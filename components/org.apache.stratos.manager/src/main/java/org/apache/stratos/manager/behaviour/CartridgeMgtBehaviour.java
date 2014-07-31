@@ -21,7 +21,6 @@ package org.apache.stratos.manager.behaviour;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.cloud.controller.stub.pojo.CartridgeInfo;
-import org.apache.stratos.cloud.controller.stub.pojo.Persistence;
 import org.apache.stratos.cloud.controller.stub.pojo.Properties;
 import org.apache.stratos.cloud.controller.stub.pojo.Property;
 import org.apache.stratos.manager.client.CloudControllerServiceClient;
@@ -88,6 +87,7 @@ public abstract class CartridgeMgtBehaviour implements Serializable {
         PayloadData payloadData = PayloadFactory.getPayloadDataInstance(cartridgeInfo.getProvider(),
                 cartridgeInfo.getType(), basicPayloadData);
 
+        boolean isDeploymentParam = false;
         // get the payload parameters defined in the cartridge definition file for this cartridge type
         if (cartridgeInfo.getProperties() != null && cartridgeInfo.getProperties().length != 0) {
 
@@ -98,11 +98,21 @@ public abstract class CartridgeMgtBehaviour implements Serializable {
                 if (property.getName()
                         .startsWith(CartridgeConstants.CUSTOM_PAYLOAD_PARAM_NAME_PREFIX)) {
                     String payloadParamName = property.getName();
-                    payloadData.add(payloadParamName.substring(payloadParamName.indexOf(".") + 1), property.getValue());
+                    String payloadParamSubstring = payloadParamName.substring(payloadParamName.indexOf(".") + 1);
+                    if("DEPLOYMENT".equals(payloadParamSubstring)) {
+                    	isDeploymentParam = true;
+                    }
+                    payloadData.add(payloadParamSubstring, property.getValue());
                 }
             }
         }
 
+        // DEPLOYMENT payload param must be set because its used by puppet agent 
+        // to generate the hostname. Therefore, if DEPLOYMENT is not set in cartridge properties, 
+        // adding the DEPLOYMENT="default" param
+        if(!isDeploymentParam) {
+        	payloadData.add("DEPLOYMENT", "default");
+        }
         //check if there are any custom payload entries defined
         if (customPayloadEntries != null) {
             //add them to the payload
@@ -115,7 +125,7 @@ public abstract class CartridgeMgtBehaviour implements Serializable {
         return payloadData;
     }
 
-    public void register(CartridgeInfo cartridgeInfo, Cluster cluster, PayloadData payloadData, String autoscalePolicyName, String deploymentPolicyName, Properties properties, Persistence persistence) throws ADCException, UnregisteredCartridgeException {
+    public void register(CartridgeInfo cartridgeInfo, Cluster cluster, PayloadData payloadData, String autoscalePolicyName, String deploymentPolicyName, Properties properties) throws ADCException, UnregisteredCartridgeException {
     	if(payloadData != null) {
         log.info("Payload: " + payloadData.getCompletePayloadData().toString());
     	}else {
@@ -130,8 +140,7 @@ public abstract class CartridgeMgtBehaviour implements Serializable {
                 cluster.getHostName(),
                 autoscalePolicyName,
                 deploymentPolicyName,
-                properties,
-                persistence);
+                properties);
     }
 
     public void remove(String clusterId, String alias) throws ADCException, NotSubscribedException {

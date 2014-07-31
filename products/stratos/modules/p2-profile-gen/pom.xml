@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.stratos</groupId>
         <artifactId>stratos</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
+        <version>4.0.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -207,6 +207,7 @@
                                 <featureArtifactDef>org.apache.stratos:org.apache.stratos.manager.feature:${project.version}</featureArtifactDef>
                                 <featureArtifactDef>org.apache.stratos:org.apache.stratos.cartridge.mgt.ui.feature:${project.version}</featureArtifactDef>
                                 <featureArtifactDef>org.apache.stratos:org.apache.stratos.rest.endpoint.feature:${project.version}</featureArtifactDef>
+                                <featureArtifactDef>org.apache.stratos:org.apache.stratos.metadataservice.feature:${project.version}</featureArtifactDef>
                                 <featureArtifactDef>org.wso2.carbon:org.wso2.carbon.identity.authenticator.saml2.sso.server.feature:${carbon.platform.patch.version.4.2.1}</featureArtifactDef>
                                 <featureArtifactDef>org.wso2.carbon:org.wso2.carbon.identity.authenticator.saml2.sso.ui.feature:${carbon.platform.patch.version.4.2.2}</featureArtifactDef>
                                 <featureArtifactDef>org.wso2.carbon:org.wso2.carbon.identity.application.authentication.framework.server.feature:${carbon.platform.patch.version.4.2.1}</featureArtifactDef>
@@ -409,6 +410,10 @@
                                 </feature>
                                 <feature>
                                     <id>org.apache.stratos.rest.endpoint.feature.group</id>
+                                    <version>${project.version}</version>
+                                </feature>
+                                <feature>
+                                    <id>org.apache.stratos.metadataservice.feature.group</id>
                                     <version>${project.version}</version>
                                 </feature>
                                 <feature>
@@ -685,6 +690,10 @@
                                 </feature>
                                 <feature>
                                     <id>org.apache.stratos.rest.endpoint.feature.group</id>
+                                    <version>${project.version}</version>
+                                </feature>
+                                 <feature>
+                                    <id>org.apache.stratos.metadataservice.feature.group</id>
                                     <version>${project.version}</version>
                                 </feature>
                                 <feature>

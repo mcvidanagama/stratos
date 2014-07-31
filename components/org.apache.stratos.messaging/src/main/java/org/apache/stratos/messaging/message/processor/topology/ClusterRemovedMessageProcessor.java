@@ -80,10 +80,6 @@ public class ClusterRemovedMessageProcessor extends MessageProcessor {
                 }
                 return false;
             }
-
-            // Notify event listeners before removing the cluster object
-            notifyEventListeners(event);
-
             if (!service.clusterExists(event.getClusterId())) {
                 if (log.isWarnEnabled()) {
                     log.warn(String.format("Cluster does not exist: [service] %s [cluster] %s",
@@ -101,7 +97,11 @@ public class ClusterRemovedMessageProcessor extends MessageProcessor {
             	}
             }
 
+
+            // Notify event listeners
+            notifyEventListeners(event);
             return true;
+
         } else {
             if (nextProcessor != null) {
                 // ask the next processor to take care of the message.

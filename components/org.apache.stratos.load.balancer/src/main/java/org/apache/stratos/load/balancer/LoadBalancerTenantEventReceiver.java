@@ -25,6 +25,7 @@ import org.apache.stratos.load.balancer.context.LoadBalancerContextUtil;
 import org.apache.stratos.messaging.domain.tenant.Subscription;
 import org.apache.stratos.messaging.domain.tenant.SubscriptionDomain;
 import org.apache.stratos.messaging.domain.tenant.Tenant;
+import org.apache.stratos.messaging.domain.topology.Cluster;
 import org.apache.stratos.messaging.domain.topology.Service;
 import org.apache.stratos.messaging.domain.topology.ServiceType;
 import org.apache.stratos.messaging.event.Event;
@@ -32,6 +33,9 @@ import org.apache.stratos.messaging.event.tenant.*;
 import org.apache.stratos.messaging.listener.tenant.*;
 import org.apache.stratos.messaging.message.receiver.tenant.TenantEventReceiver;
 import org.apache.stratos.messaging.message.receiver.topology.TopologyManager;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Load balancer tenant receiver updates load balancer context according to

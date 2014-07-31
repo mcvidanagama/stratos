@@ -23,10 +23,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.openjpa.util.java$util$ArrayList$proxy;
 import org.apache.stratos.cloud.controller.stub.CloudControllerServiceUnregisteredCartridgeExceptionException;
-import org.apache.stratos.cloud.controller.stub.pojo.*;
+import org.apache.stratos.cloud.controller.stub.pojo.CartridgeInfo;
+import org.apache.stratos.cloud.controller.stub.pojo.LoadbalancerConfig;
 import org.apache.stratos.cloud.controller.stub.pojo.Properties;
+import org.apache.stratos.cloud.controller.stub.pojo.Property;
 import org.apache.stratos.manager.client.CloudControllerServiceClient;
 import org.apache.stratos.manager.dao.CartridgeSubscriptionInfo;
+import org.apache.stratos.manager.deploy.service.Service;
 import org.apache.stratos.manager.dto.SubscriptionInfo;
 import org.apache.stratos.manager.exception.*;
 import org.apache.stratos.manager.internal.DataHolder;
@@ -166,11 +169,11 @@ public class CartridgeSubscriptionManager {
         	if(log.isDebugEnabled()) {
         		log.debug(" Registering LB Cartridge subscription ");
         	}
-            registerCartridgeSubscription(lbCartridgeSubscription, lbCartridgeSubscriptionProperties, subscriptionData.getPersistence());
+            registerCartridgeSubscription(lbCartridgeSubscription, lbCartridgeSubscriptionProperties);
         }
 
         // register service cartridge subscription
-        return registerCartridgeSubscription(serviceCartridgeSubscription, serviceCartridgeSubscriptionProperties, subscriptionData.getPersistence());
+        return registerCartridgeSubscription(serviceCartridgeSubscription, serviceCartridgeSubscriptionProperties);
     }
 
     private boolean activeInstancesAvailable(SubscriptionData subscriptionData) {
@@ -199,7 +202,7 @@ public class CartridgeSubscriptionManager {
 
         
         if (lbDataContext.getLbCategory() == null || lbDataContext.getLbCategory().equals(Constants.NO_LOAD_BALANCER)) {
-            // no load balancer subscription required generate SubscriptionKey
+            // no load balancer subscription requiredgenerateSubscriptionKey
             log.info("No LB subscription required for the Subscription with alias: " + subscriptionData.getCartridgeAlias() + ", type: " +
                     subscriptionData.getCartridgeType());
             return null;
@@ -294,25 +297,64 @@ public class CartridgeSubscriptionManager {
         // Create the CartridgeSubscription instance
         CartridgeSubscription cartridgeSubscription = CartridgeSubscriptionFactory.getCartridgeSubscriptionInstance(cartridgeInfo, tenancyBehaviour);
 
-        // Generate and set the key
-        String subscriptionKey = CartridgeSubscriptionUtils.generateSubscriptionKey();
-        cartridgeSubscription.setSubscriptionKey(subscriptionKey);
         
-        String encryptedRepoPassword;
-        String repositoryPassword = subscriptionData.getRepositoryPassword();
-        if(repositoryPassword != null && !repositoryPassword.isEmpty()) {
-        	encryptedRepoPassword = RepoPasswordMgtUtil.encryptPassword(repositoryPassword, subscriptionKey);
-        } else {
-        	encryptedRepoPassword = "";
+        // For MT cartridges subscription key should not be generated for every subscription,
+        // instead use the already generated key at the time of service deployment
+        String subscriptionKey = null;
+        if(cartridgeInfo.getMultiTenant()) {
+        	try {
+				Service service = new DataInsertionAndRetrievalManager().getService(subscriptionData.getCartridgeType());
+				if(service != null) {
+					subscriptionKey = service.getSubscriptionKey();
+				}else {
+					String msg = "Could not find service for cartridge type [" + subscriptionData.getCartridgeType() + "] " ;
+					log.error(msg);				
+					throw new ADCException(msg);
+				}
+			} catch (Exception e) {
+				String msg = "Exception has occurred in get service for cartridge type [" + subscriptionData.getCartridgeType() + "] " ;
+				log.error(msg);				
+				throw new ADCException(msg, e);
+			}
+        }else {
+        	// Generate and set the key
+            subscriptionKey = CartridgeSubscriptionUtils.generateSubscriptionKey();
         }
+        
+        cartridgeSubscription.setSubscriptionKey(subscriptionKey);
+
+        if(log.isDebugEnabled()) {
+            log.debug("Repository with url: " + subscriptionData.getRepositoryURL() +
+                    " username: " + subscriptionData.getRepositoryUsername() +
+                    " Type: " + subscriptionData.getRepositoryType());
+        }
+        
+        // Create subscriber
+        Subscriber subscriber = new Subscriber(subscriptionData.getTenantAdminUsername(), subscriptionData.getTenantId(), subscriptionData.getTenantDomain());
+        cartridgeSubscription.setSubscriber(subscriber);
+        cartridgeSubscription.setAlias(subscriptionData.getCartridgeAlias());
 
         // Create repository
         Repository repository = cartridgeSubscription.manageRepository(subscriptionData.getRepositoryURL(), subscriptionData.getRepositoryUsername(),
-                encryptedRepoPassword,
+        		subscriptionData.getRepositoryPassword(),
                 subscriptionData.isPrivateRepository());
 
-        // Create subscriber
-        Subscriber subscriber = new Subscriber(subscriptionData.getTenantAdminUsername(), subscriptionData.getTenantId(), subscriptionData.getTenantDomain());
+        // Update repository attributes
+        if(repository != null) {
+        	
+            repository.setCommitEnabled(subscriptionData.isCommitsEnabled());
+            
+            // Encrypt repository password
+            String encryptedRepoPassword;
+            String repositoryPassword = repository.getPassword();
+            if(repositoryPassword != null && !repositoryPassword.isEmpty()) {
+            	encryptedRepoPassword = RepoPasswordMgtUtil.encryptPassword(repositoryPassword, subscriptionKey);
+            } else {
+            	encryptedRepoPassword = "";
+            }
+            repository.setPassword(encryptedRepoPassword);
+            
+        }
 
         // set the LB cluster id relevant to this service cluster
         cartridgeSubscription.setLbClusterId(lbClusterId);
@@ -339,15 +381,7 @@ public class CartridgeSubscriptionManager {
         if(cartridgeSubscription.getPayloadData() != null) {
             cartridgeSubscription.getPayloadData().add(CartridgeConstants.COMMIT_ENABLED, String.valueOf(subscriptionData.isCommitsEnabled()));
         }
-
-        if(subscriptionData.getProperties() != null){
-            for(Property property : subscriptionData.getProperties().getProperties()){
-                if (property.getName().startsWith(CartridgeConstants.CUSTOM_PAYLOAD_PARAM_NAME_PREFIX)) {
-                    String payloadParamName = property.getName();
-                    cartridgeSubscription.getPayloadData().add(payloadParamName.substring(payloadParamName.indexOf(".") + 1), property.getValue());
-                }
-            }
-        }
+        
 
         log.info("Tenant [" + subscriptionData.getTenantId() + "] with username [" + subscriptionData.getTenantAdminUsername() +
                 " subscribed to " + "] Cartridge with Alias " + subscriptionData.getCartridgeAlias() + ", Cartridge Type: " +
@@ -362,15 +396,14 @@ public class CartridgeSubscriptionManager {
      *
      * @param cartridgeSubscription CartridgeSubscription subscription
      *
-     * @param persistence
      * @return SubscriptionInfo object populated with relevant information
      * @throws ADCException
      * @throws UnregisteredCartridgeException
      */
-    private SubscriptionInfo registerCartridgeSubscription(CartridgeSubscription cartridgeSubscription, Properties properties, Persistence persistence)
+    private SubscriptionInfo registerCartridgeSubscription(CartridgeSubscription cartridgeSubscription, Properties properties)
             throws ADCException, UnregisteredCartridgeException {
 
-        CartridgeSubscriptionInfo cartridgeSubscriptionInfo = cartridgeSubscription.registerSubscription(properties, persistence);
+        CartridgeSubscriptionInfo cartridgeSubscriptionInfo = cartridgeSubscription.registerSubscription(properties);
 
         //set status as 'SUBSCRIBED'
         cartridgeSubscription.setSubscriptionStatus(CartridgeConstants.SUBSCRIBED);
@@ -388,8 +421,10 @@ public class CartridgeSubscriptionManager {
         log.info("Successful Subscription: " + cartridgeSubscription.toString());
 
         // Publish tenant subscribed event to message broker
+        Set<String> clusterIds = new HashSet<String>();
+        clusterIds.add(cartridgeSubscription.getCluster().getClusterDomain());
         CartridgeSubscriptionUtils.publishTenantSubscribedEvent(cartridgeSubscription.getSubscriber().getTenantId(),
-                cartridgeSubscription.getCartridgeInfo().getType(), new HashSet<String>(cartridgeSubscription.getCluster().getId()));
+                cartridgeSubscription.getCartridgeInfo().getType(), clusterIds);
 
         return ApplicationManagementUtil.
                 createSubscriptionResponse(cartridgeSubscriptionInfo, cartridgeSubscription.getRepository());
@@ -422,9 +457,10 @@ public class CartridgeSubscriptionManager {
                 " [domain-name] " + domainName + " [application-context] " +applicationContext);
 
         EventPublisher eventPublisher = EventPublisherPool.getPublisher(Constants.TENANT_TOPIC);
+        Set<String> clusterIds = new HashSet<String>();
+        clusterIds.add(cartridgeSubscription.getCluster().getClusterDomain());
         SubscriptionDomainAddedEvent event = new SubscriptionDomainAddedEvent(tenantId, cartridgeSubscription.getType(),
-                new HashSet<String>(cartridgeSubscription.getCluster().getId()),
-                domainName, applicationContext);
+                clusterIds, domainName, applicationContext);
         eventPublisher.publish(event);
     }
 
@@ -450,9 +486,10 @@ public class CartridgeSubscriptionManager {
                 " [domain-name] " + domainName);
 
         EventPublisher eventPublisher = EventPublisherPool.getPublisher(Constants.TENANT_TOPIC);
+        Set<String> clusterIds = new HashSet<String>();
+        clusterIds.add(cartridgeSubscription.getCluster().getClusterDomain());
         SubscriptionDomainRemovedEvent event = new SubscriptionDomainRemovedEvent(tenantId, cartridgeSubscription.getType(),
-                new HashSet<String>(cartridgeSubscription.getCluster().getId()),
-                domainName);
+                clusterIds, domainName);
         eventPublisher.publish(event);
     }
 
@@ -507,6 +544,9 @@ public class CartridgeSubscriptionManager {
                                 tenant.getId(), tenant.getDomain()));
                     }
                     Collection<CartridgeSubscription> subscriptions = manager.getCartridgeSubscriptions(tenant.getId());
+                    if (subscriptions == null) {
+                        continue;
+                    }
                     for (CartridgeSubscription subscription : subscriptions) {
                         if (log.isDebugEnabled()) {
                             log.debug(String.format("Reading domain names in subscription: [alias] %s [domain-names] %s",
@@ -577,10 +617,11 @@ public class CartridgeSubscriptionManager {
             }
 
             // Publish tenant un-subscribed event to message broker
+            Set<String> clusterIds = new HashSet<String>();
+            clusterIds.add(cartridgeSubscription.getCluster().getClusterDomain());
             CartridgeSubscriptionUtils.publishTenantUnSubscribedEvent(
                     cartridgeSubscription.getSubscriber().getTenantId(),
-                    cartridgeSubscription.getCartridgeInfo().getType(),
-                    new HashSet<String>(cartridgeSubscription.getCluster().getId()));
+                    cartridgeSubscription.getCartridgeInfo().getType(), clusterIds);
             
 			// publishing to the unsubscribed event details to bam
 			CartridgeSubscriptionDataPublisher.publish(cartridgeSubscription
@@ -613,7 +654,7 @@ public class CartridgeSubscriptionManager {
 
         Properties persistenceMappingProperties = new Properties();
         persistenceMappingProperties.setProperties(new Property[]{persistenceCtxt.getPersistanceRequiredProperty(), persistenceCtxt.getSizeProperty(),
-                persistenceCtxt.getDeleteOnTerminationProperty(), persistenceCtxt.getVolumeIdProperty()});
+                persistenceCtxt.getDeleteOnTerminationProperty()});
 
         return persistenceMappingProperties;
     }

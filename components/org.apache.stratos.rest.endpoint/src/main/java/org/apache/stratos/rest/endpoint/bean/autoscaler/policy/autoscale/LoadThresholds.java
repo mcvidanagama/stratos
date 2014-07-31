@@ -24,7 +24,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class LoadThresholds {
 
-	public RequestsInFlightThresholds requestsInFlight;
-	public MemoryConsumptionThresholds memoryConsumption;
-	public LoadAverageThresholds loadAverage;
+    public RequestsInFlight requestsInFlight;
+
+    public MemoryConsumption memoryConsumption;
+
+    public LoadAverage loadAverage;
 }

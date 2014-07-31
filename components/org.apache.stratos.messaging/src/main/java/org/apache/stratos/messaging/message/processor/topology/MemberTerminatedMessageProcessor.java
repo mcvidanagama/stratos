@@ -104,9 +104,6 @@ public class MemberTerminatedMessageProcessor extends MessageProcessor {
                 }
             }
 
-            // Notify event listeners before removing member object
-            notifyEventListeners(event);
-
             if (member == null) {
                 if (log.isWarnEnabled()) {
                     log.warn(String.format("Member already terminated: [service] %s [cluster] %s [member] %s",
@@ -126,7 +123,10 @@ public class MemberTerminatedMessageProcessor extends MessageProcessor {
             	}
             }
 
+
+            notifyEventListeners(event);
             return true;
+
         } else {
             if (nextProcessor != null) {
                 // ask the next processor to take care of the message.

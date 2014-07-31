@@ -92,6 +92,7 @@ public class TenantAwareLoadBalanceEndpoint extends org.apache.synapse.endpoints
 
     @Override
     public void send(MessageContext synCtx) {
+
         SessionInformation sessionInformation = null;
         org.apache.axis2.clustering.Member currentMember = null;
         if (isSessionAffinityBasedLB()) {
@@ -154,7 +155,7 @@ public class TenantAwareLoadBalanceEndpoint extends org.apache.synapse.endpoints
      * @param currentMember
      */
     private void setupLoadBalancerContextProperties(MessageContext synCtx, org.apache.axis2.clustering.Member currentMember) {
-        String targetHostname = extractTargetHost(synCtx);
+        String lbHostName = extractTargetHost(synCtx);
         org.apache.axis2.context.MessageContext axis2MsgCtx = ((Axis2MessageContext) synCtx).getAxis2MessageContext();
         
         String httpTransportName = "http", httpsTransportName = "https";
@@ -171,7 +172,7 @@ public class TenantAwareLoadBalanceEndpoint extends org.apache.synapse.endpoints
         String lbHttpsPort = (String) httpsTransportIn.getParameter("port").getValue();
         String clusterId = currentMember.getProperties().getProperty(Constants.CLUSTER_ID);
 
-        synCtx.setProperty(Constants.LB_TARGET_HOSTNAME, targetHostname);
+        synCtx.setProperty(Constants.LB_HOST_NAME, lbHostName);
         synCtx.setProperty(Constants.LB_HTTP_PORT, lbHttpPort);
         synCtx.setProperty(Constants.LB_HTTPS_PORT, lbHttpsPort);
         synCtx.setProperty(Constants.CLUSTER_ID, clusterId);
@@ -237,16 +238,18 @@ public class TenantAwareLoadBalanceEndpoint extends org.apache.synapse.endpoints
             }
             String url = extractUrl(synCtx);
             int tenantId = scanUrlForTenantId(url);
-            if (tenantExists(tenantId)) {
+            if(tenantId == -1) {
+               // If there is no tenant involves in the URL, Find next member from host name
+               member = requestDelegator.findNextMemberFromHostName(targetHost);
+            } else if (tenantExists(tenantId)) {
                 // Tenant found, find member from hostname and tenant id
                 member = requestDelegator.findNextMemberFromTenantId(targetHost, tenantId);
             } else {
-                // Tenant id not found in URL, find member from host name
-                member = requestDelegator.findNextMemberFromHostName(targetHost);
+                // Tenant id not found in the subscription for the URL which has tenant domain.
+                throwSynapseException(synCtx, 403, String.format("You are unauthorized to access"));
             }
         } else {
-            // Find next member from host name
-            member = requestDelegator.findNextMemberFromHostName(targetHost);
+
         }
 
         if (member == null)
@@ -451,35 +454,38 @@ public class TenantAwareLoadBalanceEndpoint extends org.apache.synapse.endpoints
      */
     private int scanUrlForTenantId(String url) {
         int tenantId = -1;
-        String regex = LoadBalancerConfiguration.getInstance().getTenantIdentifierRegex();
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Request URL: %s ", url));
-            log.debug(String.format("Tenant identifier regex: %s ", regex));
-        }
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(url);
-        if (matcher.find()) {
-            if (LoadBalancerConfiguration.getInstance().getTenantIdentifier() == TenantIdentifier.TenantId) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Identifying tenant using tenant id...");
-                }
-                tenantId = Integer.parseInt(matcher.group(1));
-                if (log.isDebugEnabled()) {
-                    log.debug(String.format("Tenant identifier found: [tenant-id] %d", tenantId));
-                }
-            } else if (LoadBalancerConfiguration.getInstance().getTenantIdentifier() == TenantIdentifier.TenantDomain) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Identifying tenant using tenant domain...");
-                }
-                String tenantDomain = matcher.group(1);
-                tenantId = findTenantIdFromTenantDomain(tenantDomain);
-                if (log.isDebugEnabled()) {
-                    log.debug(String.format("Tenant identifier found: [tenant-domain] %s [tenant-id] %d", tenantDomain, tenantId));
-                }
-            }
-        } else {
+        List<String> regexList = LoadBalancerConfiguration.getInstance().getTenantIdentifierRegexList();
+        for(String regex : regexList) {
             if (log.isDebugEnabled()) {
-                log.debug("Tenant identifier not found in URL");
+                log.debug(String.format("Request URL: %s ", url));
+                log.debug(String.format("Tenant identifier regex: %s ", regex));
+            }
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(url);
+            if (matcher.find()) {
+                if (LoadBalancerConfiguration.getInstance().getTenantIdentifier() == TenantIdentifier.TenantId) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Identifying tenant using tenant id...");
+                    }
+                    tenantId = Integer.parseInt(matcher.group(1));
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Tenant identifier found: [tenant-id] %d", tenantId));
+                    }
+                } else if (LoadBalancerConfiguration.getInstance().getTenantIdentifier() == TenantIdentifier.TenantDomain) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Identifying tenant using tenant domain...");
+                    }
+                    String tenantDomain = matcher.group(1);
+                    tenantId = findTenantIdFromTenantDomain(tenantDomain);
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Tenant identifier found: [tenant-domain] %s [tenant-id] %d", tenantDomain, tenantId));
+                    }
+                }
+                break;
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Tenant identifier not found in URL");
+                }
             }
         }
         return tenantId;
@@ -521,6 +527,28 @@ public class TenantAwareLoadBalanceEndpoint extends org.apache.synapse.endpoints
             }
         }
         return hostName;
+    }
+
+    private int extractPort(MessageContext synCtx, String transport) {
+        org.apache.axis2.context.MessageContext msgCtx =
+                ((Axis2MessageContext) synCtx).getAxis2MessageContext();
+
+        Map headerMap = (Map) msgCtx.getProperty(org.apache.axis2.context.MessageContext.TRANSPORT_HEADERS);
+        int port = -1;
+        if (headerMap != null) {
+            String hostHeader = (String) headerMap.get(HTTP.TARGET_HOST);
+            int index = hostHeader.indexOf(':');
+            if (index != -1) {
+                port = Integer.parseInt(hostHeader.trim().substring(index + 1));
+            } else {
+                if ("http".equals(transport)) {
+                    port = 80;
+                } else if ("https".equals(transport)) {
+                    port = 443;
+                }
+            }
+        }
+        return port;
     }
 
     private String extractTransport(MessageContext synCtx) {
@@ -589,7 +617,7 @@ public class TenantAwareLoadBalanceEndpoint extends org.apache.synapse.endpoints
             String hostName = extractTargetHost(synCtx);
             if (LoadBalancerContext.getInstance().getHostNameAppContextMap().contains(hostName)) {
                 String appContext = LoadBalancerContext.getInstance().getHostNameAppContextMap().getAppContext(hostName);
-                if(StringUtils.isNotBlank(appContext)) {
+                if (StringUtils.isNotBlank(appContext)) {
                     if (log.isDebugEnabled()) {
                         log.debug(String.format("Domain mapping found with application context: [domain-name] %s [app-context] %s", hostName, appContext));
                         log.debug(String.format("Incoming request address: %s", address));
@@ -615,11 +643,11 @@ public class TenantAwareLoadBalanceEndpoint extends org.apache.synapse.endpoints
     }
 
     private String cleanURLPath(String path) {
-        if(StringUtils.isNotBlank(path)) {
-            if(path.startsWith("/")) {
+        if (StringUtils.isNotBlank(path)) {
+            if (path.startsWith("/")) {
                 path = path.replaceFirst("/", "");
             }
-            if(path.endsWith("/")) {
+            if (path.endsWith("/")) {
                 path = path.substring(0, path.length() - 2);
             }
         }

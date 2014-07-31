@@ -18,8 +18,6 @@
  */
 package org.apache.stratos.manager.subscription;
 
-import org.apache.stratos.cloud.controller.stub.pojo.Persistence;
-import org.apache.stratos.cloud.controller.stub.pojo.Properties;
 import org.apache.stratos.cloud.controller.stub.pojo.Property;
 
 import java.util.Collections;
@@ -30,6 +28,7 @@ import java.util.Set;
  * This holds the data that are gathered at the time of subscription. This is usefull when passing subscription details to the method calls.
  */
 public class SubscriptionData {
+
 
     private String cartridgeType;
     private String cartridgeAlias;
@@ -43,13 +42,13 @@ public class SubscriptionData {
     private boolean isPrivateRepository;
     private String repositoryUsername;
     private String repositoryPassword;
+    private Property[] properties;
     private PersistenceContext persistanceCtxt;
     private boolean isCommitsEnabled;
     private String serviceGroup;
     private Set<String> domains;
-    private Persistence persistence;
-    private Properties properties;
-
+    private String serviceName;
+    
     public SubscriptionData() {
         this.domains = new HashSet<String>();
     }
@@ -150,6 +149,14 @@ public class SubscriptionData {
         this.repositoryPassword = repositoryPassword;
     }
 
+    public Property[] getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Property[] properties) {
+        this.properties = properties;
+    }
+
     public PersistenceContext getPersistanceContext() {
         return persistanceCtxt;
     }
@@ -190,19 +197,12 @@ public class SubscriptionData {
         return Collections.unmodifiableSet(domains);
     }
 
-    public Persistence getPersistence() {
-        return persistence;
-    }
+	public String getServiceName() {
+		return serviceName;
+	}
 
-     public void setPersistence(Persistence persistence) {
-        this.persistence = persistence;
-     }
-
-    public Properties getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Properties properties) {
-        this.properties = properties;
-    }
+	public void setServiceName(String serviceName) {
+		this.serviceName = serviceName;
+	}
+    
 }

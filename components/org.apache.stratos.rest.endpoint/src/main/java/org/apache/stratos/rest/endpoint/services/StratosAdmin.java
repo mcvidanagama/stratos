@@ -43,6 +43,7 @@ import org.apache.stratos.rest.endpoint.bean.autoscaler.policy.deployment.Deploy
 import org.apache.stratos.rest.endpoint.bean.cartridge.definition.CartridgeDefinitionBean;
 import org.apache.stratos.rest.endpoint.bean.cartridge.definition.ServiceDefinitionBean;
 import org.apache.stratos.rest.endpoint.bean.repositoryNotificationInfoBean.Payload;
+import org.apache.stratos.rest.endpoint.bean.repositoryNotificationInfoBean.Repository;
 import org.apache.stratos.rest.endpoint.bean.subscription.domain.SubscriptionDomainBean;
 import org.apache.stratos.rest.endpoint.bean.topology.Cluster;
 import org.apache.stratos.rest.endpoint.exception.RestAPIException;
@@ -74,13 +75,14 @@ import java.util.UUID;
 public class StratosAdmin extends AbstractAdmin {
     private static Log log = LogFactory.getLog(StratosAdmin.class);
     @Context
-    HttpServletRequest httpServletRequest;
+          HttpServletRequest httpServletRequest;
 
     @POST
     @Path("/init")
     @AuthorizationAction("/permission/protected/manage/monitor/tenants")
     public StratosAdminResponse initialize ()
             throws RestAPIException {
+
 
         StratosAdminResponse stratosAdminResponse = new StratosAdminResponse();
         stratosAdminResponse.setMessage("Successfully logged in");
@@ -312,7 +314,18 @@ public class StratosAdmin extends AbstractAdmin {
     @Consumes("application/json")
     @AuthorizationAction("/permission/protected/manage/monitor/tenants")
     public Cartridge[] getSubscribedCartridges() throws RestAPIException {
-        List<Cartridge> cartridgeList = ServiceUtils.getSubscriptions(null, getConfigContext());
+        List<Cartridge> cartridgeList = ServiceUtils.getSubscriptions(null, null, getConfigContext());
+        // Following is very important when working with axis2
+        return cartridgeList.isEmpty() ? new Cartridge[0] : cartridgeList.toArray(new Cartridge[cartridgeList.size()]);
+    }
+
+    @GET
+    @Path("/cartridge/list/subscribed/group/{serviceGroup}")
+    @Produces("application/json")
+    @Consumes("application/json")
+    @AuthorizationAction("/permission/protected/manage/monitor/tenants")
+    public Cartridge[] getSubscribedCartridgesForServiceGroup(@PathParam("serviceGroup") String serviceGroup) throws RestAPIException {
+        List<Cartridge> cartridgeList = ServiceUtils.getSubscriptions(null, serviceGroup, getConfigContext());
         // Following is very important when working with axis2
         return cartridgeList.isEmpty() ? new Cartridge[0] : cartridgeList.toArray(new Cartridge[cartridgeList.size()]);
     }
@@ -363,7 +376,7 @@ public class StratosAdmin extends AbstractAdmin {
     @AuthorizationAction("/permission/protected/manage/monitor/tenants")
     public SubscriptionInfo subscribe(CartridgeInfoBean cartridgeInfoBean) throws RestAPIException {
 
-        return ServiceUtils.subscribe(cartridgeInfoBean,
+        return ServiceUtils.subscribeToCartridge(cartridgeInfoBean,
                 getConfigContext(),
                 getUsername(),
                 getTenantDomain());
@@ -385,6 +398,15 @@ public class StratosAdmin extends AbstractAdmin {
     @Consumes("application/json")
     @AuthorizationAction("/permission/protected/manage/monitor/tenants")
     public Cluster[] getClusters(@PathParam("cartridgeType") String cartridgeType) throws RestAPIException {
+        return ServiceUtils.getClustersForCartridgeType(cartridgeType);
+    }
+    
+    @GET
+    @Path("/cluster/service/{cartridgeType}/")
+    @Produces("application/json")
+    @Consumes("application/json")
+    @AuthorizationAction("/permission/protected/manage/monitor/tenants")
+    public Cluster[] getServiceClusters(@PathParam("cartridgeType") String cartridgeType) throws RestAPIException {
 
         return ServiceUtils.getClustersForTenantAndCartridgeType(getConfigContext(), cartridgeType);
     }
@@ -408,7 +430,7 @@ public class StratosAdmin extends AbstractAdmin {
     public Cluster getCluster(@PathParam("clusterId") String clusterId) throws RestAPIException {
     	Cluster cluster = null;
     	if(log.isDebugEnabled()) {
-    		log.debug("Finding cluster for [id]: "+clusterId);
+            log.debug("Finding cluster for [id]: "+clusterId);
     	}
         Cluster[] clusters = ServiceUtils.getClustersForTenant(getConfigContext());
         if(log.isDebugEnabled()) {
@@ -431,7 +453,9 @@ public class StratosAdmin extends AbstractAdmin {
     @Consumes("application/json")
     @AuthorizationAction("/permission/protected/manage/monitor/tenants")
     public StratosAdminResponse unsubscribe(String alias) throws RestAPIException {
+
         return ServiceUtils.unsubscribe(alias, getTenantDomain());
+
     }
 
     @POST
@@ -1025,8 +1049,8 @@ public class StratosAdmin extends AbstractAdmin {
     @Consumes("application/json")
     @AuthorizationAction("/permission/protected/manage/monitor/tenants")
     public Response addSubscriptionDomains(@PathParam("cartridgeType") String cartridgeType,
-                                           @PathParam("subscriptionAlias") String subscriptionAlias,
-                                           SubscriptionDomainRequest request) throws RestAPIException {
+                                                       @PathParam("subscriptionAlias") String subscriptionAlias,
+                                                       SubscriptionDomainRequest request) throws RestAPIException {
 
         StratosAdminResponse stratosAdminResponse = ServiceUtils.addSubscriptionDomains(getConfigContext(), cartridgeType, subscriptionAlias, request);
         return Response.ok().entity(stratosAdminResponse).build();
@@ -1037,7 +1061,7 @@ public class StratosAdmin extends AbstractAdmin {
     @Consumes("application/json")
     @AuthorizationAction("/permission/protected/manage/monitor/tenants")
     public Response getSubscriptionDomains(@PathParam("cartridgeType") String cartridgeType,
-                                           @PathParam("subscriptionAlias") String subscriptionAlias) throws RestAPIException {
+                                                           @PathParam("subscriptionAlias") String subscriptionAlias) throws RestAPIException {
         SubscriptionDomainBean[] subscriptionDomainBean = ServiceUtils.getSubscriptionDomains(getConfigContext(), cartridgeType, subscriptionAlias).toArray(new SubscriptionDomainBean[0]);
 
         if(subscriptionDomainBean.length == 0){
@@ -1052,7 +1076,7 @@ public class StratosAdmin extends AbstractAdmin {
     @Consumes("application/json")
     @AuthorizationAction("/permission/protected/manage/monitor/tenants")
     public Response getSubscriptionDomain(@PathParam("cartridgeType") String cartridgeType,
-                                          @PathParam("subscriptionAlias") String subscriptionAlias, @PathParam("domainName") String domainName) throws RestAPIException {
+                                                        @PathParam("subscriptionAlias") String subscriptionAlias, @PathParam("domainName") String domainName) throws RestAPIException {
         SubscriptionDomainBean subscriptionDomainBean = ServiceUtils.getSubscriptionDomain(getConfigContext(), cartridgeType, subscriptionAlias, domainName);
         if(subscriptionDomainBean.domainName == null){
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -1077,18 +1101,18 @@ public class StratosAdmin extends AbstractAdmin {
     @AuthorizationAction("/permission/protected/manage/monitor/tenants")
     public Response getLoadBalancerCluster(@PathParam("cartridgeType") String cartridgeType,
                                            @PathParam("subscriptionAlias") String subscriptionAlias) throws RestAPIException {
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug(String.format("GET /cartridge/%s/subscription/%s/load-balancer-cluster", cartridgeType, subscriptionAlias));
         }
         Cartridge subscription = ServiceUtils.getSubscription(subscriptionAlias, getConfigContext());
         String lbClusterId = subscription.getLbClusterId();
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug(String.format("Load balancer cluster-id found: %s", lbClusterId));
         }
-        if(StringUtils.isNotBlank(lbClusterId)) {
+        if (StringUtils.isNotBlank(lbClusterId)) {
             Cluster lbCluster = getCluster(lbClusterId);
-            if(lbCluster != null) {
-                if(log.isDebugEnabled()) {
+            if (lbCluster != null) {
+                if (log.isDebugEnabled()) {
                     log.debug(String.format("Load balancer cluster found: %s", lbCluster.toString()));
                 }
                 Response.ok().entity(lbCluster).build();

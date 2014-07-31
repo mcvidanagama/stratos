@@ -33,7 +33,6 @@ public class Registrant {
     private Properties properties;
     private String autoScalerPolicyName;
     private String deploymentPolicyName;
-    private Persistence persistence;
     
     public String getTenantRange() {
         return tenantRange;
@@ -91,13 +90,5 @@ public class Registrant {
                ", hostName=" + hostName + ", cartridgeType=" + cartridgeType + ", properties=" +
                properties + ", autoScalerPolicyName=" + autoScalerPolicyName +
                ", deploymentPolicyName=" + deploymentPolicyName + "]";
-    }
-
-    public Persistence getPersistence() {
-        return persistence;
-    }
-
-    public void setPersistence(Persistence persistence) {
-        this.persistence = persistence;
     }
 }

@@ -40,7 +40,7 @@ public class HostNameAppContextMap {
     }
 
     public void removeAppContext(String hostName) {
-        if(contains(hostName)) {
+        if (contains(hostName)) {
             concurrentHashMap.remove(hostName);
         }
     }

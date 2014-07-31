@@ -35,10 +35,7 @@ import org.apache.stratos.messaging.domain.topology.*;
 import org.apache.stratos.messaging.message.receiver.topology.TopologyManager;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -65,10 +62,9 @@ public class LoadBalancerConfiguration {
     private String topologyClusterFilter;
     private boolean multiTenancyEnabled;
     private TenantIdentifier tenantIdentifier;
-    private String tenantIdentifierRegex;
+    private List<String> tenantIdentifierRegexList;
     private String topologyMemberFilter;
     private String networkPartitionId;
-    private boolean reWriteLocationHeader;
 
     /**
      * Load balancer configuration is singleton.
@@ -256,12 +252,12 @@ public class LoadBalancerConfiguration {
         return tenantIdentifier;
     }
 
-    public void setTenantIdentifierRegex(String tenantIdentifierRegex) {
-        this.tenantIdentifierRegex = tenantIdentifierRegex;
+    public void setTenantIdentifierRegexList(List<String> tenantIdentifierRegexList) {
+        this.tenantIdentifierRegexList = tenantIdentifierRegexList;
     }
 
-    public String getTenantIdentifierRegex() {
-        return tenantIdentifierRegex;
+    public List<String> getTenantIdentifierRegexList() {
+        return tenantIdentifierRegexList;
     }
 
     public void setNetworkPartitionId(String networkPartitionId) {
@@ -270,14 +266,6 @@ public class LoadBalancerConfiguration {
 
     public String getNetworkPartitionId() {
         return networkPartitionId;
-    }
-
-    public void setRewriteLocationHeader(boolean reWriteLocationHeader) {
-        this.reWriteLocationHeader = reWriteLocationHeader;
-    }
-
-    public boolean isReWriteLocationHeader() {
-        return reWriteLocationHeader;
     }
 
     private static class LoadBalancerConfigurationReader {
@@ -432,7 +420,17 @@ public class LoadBalancerConfiguration {
                 } catch (Exception e) {
                     throw new InvalidConfigurationException(String.format("Invalid tenant identifier regular expression: %s", tenantIdentifierRegex), e);
                 }
-                configuration.setTenantIdentifierRegex(tenantIdentifierRegex);
+                List<String> regexList = new ArrayList<String>();
+                if(tenantIdentifierRegex.contains(org.apache.stratos.messaging.util.Constants.FILTER_VALUE_SEPARATOR)) {
+                    String[] regexArray;
+                    regexArray = tenantIdentifierRegex.split(org.apache.stratos.messaging.util.Constants.FILTER_VALUE_SEPARATOR);
+                    for(String regex: regexArray) {
+                       regexList.add(regex);
+                    }
+                } else {
+                    regexList.add(tenantIdentifierRegex);
+                }
+                configuration.setTenantIdentifierRegexList(regexList);
             }
 
             Node algorithmsNode = loadBalancerNode.findChildNodeByName(Constants.CONF_ELEMENT_ALGORITHMS);
@@ -443,11 +441,6 @@ public class LoadBalancerConfiguration {
                 validateRequiredPropertyInNode(Constants.CONF_PROPERTY_CLASS_NAME, className, "algorithm", algorithmNode.getName());
                 Algorithm algorithm = new Algorithm(algorithmNode.getName(), className);
                 configuration.addAlgorithm(algorithm);
-            }
-
-            String rewriteLocationHeader = loadBalancerNode.getProperty(Constants.CONF_PROPERTY_REWRITE_LOCATION_HEADER);
-            if(StringUtils.isNotEmpty(rewriteLocationHeader)) {
-                configuration.setRewriteLocationHeader(Boolean.parseBoolean(topologyEventListenerEnabled));
             }
 
             if (!configuration.isTopologyEventListenerEnabled()) {

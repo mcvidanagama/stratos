@@ -60,9 +60,6 @@ public class ServiceRemovedMessageProcessor extends MessageProcessor {
                 }
             }
 
-            // Notify event listeners before removing service object
-            notifyEventListeners(event);
-
             // Validate event against the existing topology
             Service service = topology.getService(event.getServiceName());
             if (service == null) {
@@ -80,7 +77,11 @@ public class ServiceRemovedMessageProcessor extends MessageProcessor {
             	}
             }
 
+
+            // Notify event listeners
+            notifyEventListeners(event);
             return true;
+
         } else {
             if (nextProcessor != null) {
                 // ask the next processor to take care of the message.

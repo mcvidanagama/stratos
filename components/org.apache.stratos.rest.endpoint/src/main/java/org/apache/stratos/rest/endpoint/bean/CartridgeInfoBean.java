@@ -18,8 +18,6 @@
  */
 package org.apache.stratos.rest.endpoint.bean;
 
-import org.apache.stratos.rest.endpoint.bean.cartridge.definition.PersistenceBean;
-import org.apache.stratos.rest.endpoint.bean.cartridge.definition.PropertyBean;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,12 +35,15 @@ public class CartridgeInfoBean {
     String dataCartridgeType;
     String dataCartridgeAlias;
     boolean commitsEnabled;
-    private String serviceGroup;
-    private PersistenceBean persistence;
 
-    private List<PropertyBean> property;
+    private boolean persistanceRequired;
+    private String size;
+    private boolean removeOnTermination;
+    private String serviceGroup;
+    private List<String> domains;
 
     public CartridgeInfoBean() {
+        this.domains = new ArrayList<String>();
     }
 
     public String getCartridgeType() {
@@ -125,7 +126,31 @@ public class CartridgeInfoBean {
         this.deploymentPolicy = deploymentPolicy;
     }
 
-    public boolean isCommitsEnabled() {
+    public boolean isPersistanceRequired() {
+        return persistanceRequired;
+    }
+
+    public void setPersistanceRequired(boolean persistanceRequired) {
+        this.persistanceRequired = persistanceRequired;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public boolean isRemoveOnTermination() {
+        return removeOnTermination;
+    }
+
+    public void setRemoveOnTermination(boolean removeOnTermination) {
+        this.removeOnTermination = removeOnTermination;
+    }
+
+	public boolean isCommitsEnabled() {
 		return commitsEnabled;
 	}
 
@@ -140,20 +165,9 @@ public class CartridgeInfoBean {
 	public void setServiceGroup(String serviceGroup) {
 		this.serviceGroup = serviceGroup;
 	}
+    
+    public List<String> getDomains() { return domains; }
 
-    public PersistenceBean getPersistence() {
-        return persistence;
-    }
+    public void setDomains(List<String> domains) { this.domains = domains; }
 
-    public void setPersistence(PersistenceBean persistence) {
-        this.persistence = persistence;
-    }
-
-    public List<PropertyBean> getProperty() {
-        return property;
-    }
-
-    public void setProperty(List<PropertyBean> property) {
-        this.property = property;
-    }
 }

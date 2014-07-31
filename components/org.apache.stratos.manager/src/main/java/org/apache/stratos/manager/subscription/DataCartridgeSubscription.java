@@ -19,7 +19,6 @@
 
 package org.apache.stratos.manager.subscription;
 
-import org.apache.stratos.cloud.controller.stub.pojo.Persistence;
 import org.apache.stratos.manager.dao.CartridgeSubscriptionInfo;
 import org.apache.stratos.manager.dao.DataCartridge;
 import org.apache.stratos.manager.exception.ADCException;
@@ -55,11 +54,11 @@ public class DataCartridgeSubscription extends CartridgeSubscription {
     }
 
     @Override
-    public CartridgeSubscriptionInfo registerSubscription(Properties properties, Persistence persistence) throws ADCException,
+    public CartridgeSubscriptionInfo registerSubscription(Properties properties) throws ADCException,
             UnregisteredCartridgeException {
 
         getSubscriptionTenancyBehaviour().register (getCartridgeInfo(), getCluster(), getPayloadData(), getAutoscalingPolicyName(),
-                getDeploymentPolicyName(), properties, persistence);
+                getDeploymentPolicyName(), properties);
 
         DataCartridge dataCartridge = new DataCartridge();
         dataCartridge.setUserName(getDBUsername());

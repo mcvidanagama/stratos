@@ -185,6 +185,7 @@ public class CloudControllerUtil {
 		carInfo.setAppTypes(cartridge.getAppTypeMappings()
                                 .toArray(new AppType[cartridge.getAppTypeMappings()
                                                                   .size()]));
+        carInfo.setServiceGroup(cartridge.getServiceGroup());
 		
 		List<Property> propList = new ArrayList<Property>();
         carInfo.setPersistence(cartridge.getPersistence());
@@ -296,9 +297,7 @@ public class CloudControllerUtil {
         if (properties != null && properties.getProperties() != null) {
 
             for (org.apache.stratos.cloud.controller.pojo.Property property : properties.getProperties()) {
-                if(property.getValue() != null){
-                    javaProps.put(property.getName(), property.getValue());
-                }
+                javaProps.put(property.getName(), property.getValue());
             }
 
         }

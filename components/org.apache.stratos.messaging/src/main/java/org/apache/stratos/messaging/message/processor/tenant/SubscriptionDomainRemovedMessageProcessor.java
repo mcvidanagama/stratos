@@ -46,7 +46,7 @@ public class SubscriptionDomainRemovedMessageProcessor extends MessageProcessor 
     public boolean process(String type, String message, Object object) {
         if (SubscriptionDomainRemovedEvent.class.getName().equals(type)) {
             // Return if tenant manager has not initialized
-            if(!TenantManager.getInstance().isInitialized()) {
+            if (!TenantManager.getInstance().isInitialized()) {
                 return false;
             }
 
@@ -56,39 +56,37 @@ public class SubscriptionDomainRemovedMessageProcessor extends MessageProcessor 
             try {
                 TenantManager.acquireWriteLock();
                 Tenant tenant = TenantManager.getInstance().getTenant(event.getTenantId());
-                if(tenant == null) {
-                    if(log.isWarnEnabled()) {
+                if (tenant == null) {
+                    if (log.isWarnEnabled()) {
                         log.warn(String.format("Tenant not found: [tenant-id] %d", event.getTenantId()));
                     }
                     return false;
                 }
                 Subscription subscription = tenant.getSubscription(event.getServiceName());
-                if(subscription == null) {
-                    if(log.isWarnEnabled()) {
+                if (subscription == null) {
+                    if (log.isWarnEnabled()) {
                         log.warn(String.format("Subscription not found: [tenant-id] %d", event.getTenantId()));
                     }
                     return false;
                 }
                 subscription.removeSubscriptionDomain(event.getDomainName());
-                if(log.isInfoEnabled()) {
+                if (log.isInfoEnabled()) {
                     log.info(String.format("Domain removed from tenant subscription: [tenant-id] %d [tenant-domain] %s " +
-                            "[service] %s [domain-name] %s", tenant.getTenantId(), tenant.getTenantDomain(),
-                            event.getServiceName(), event.getDomainName()));
+                                    "[service] %s [domain-name] %s", tenant.getTenantId(), tenant.getTenantDomain(),
+                            event.getServiceName(), event.getDomainName()
+                    ));
                 }
 
                 // Notify event listeners
                 notifyEventListeners(event);
                 return true;
-            }
-            finally {
+            } finally {
                 TenantManager.releaseWriteLock();
             }
-        }
-        else {
-            if(nextProcessor != null) {
+        } else {
+            if (nextProcessor != null) {
                 return nextProcessor.process(type, message, object);
-            }
-            else {
+            } else {
                 throw new RuntimeException(String.format("Failed to process tenant message using available message processors: [type] %s [body] %s", type, message));
             }
         }

@@ -26,6 +26,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.apache.stratos.load.balancer.conf.LoadBalancerConfiguration;
 
 import java.io.File;
 import java.net.URL;
@@ -35,7 +36,7 @@ import java.net.URL;
  */
 @RunWith(JUnit4.class)
 public class LoadBalancerConfigurationTest {
-    private static String configPath = File.separator + "sample" + File.separator + "configuration";
+    private static String configPath = "/sample/configuration";
 
     /**
      * Test load balancer configuration parser using different configuration files.
@@ -62,7 +63,7 @@ public class LoadBalancerConfigurationTest {
         try {
             String validationError = "Load balancer configuration validation failed";
 
-            URL resourceUrl = this.getClass().getResource(configPath + File.separator + "loadbalancer1.conf");
+            URL resourceUrl = this.getClass().getResource(configPath + "/loadbalancer1.conf");
             File configFile = new File(resourceUrl.getFile());
             System.setProperty("loadbalancer.conf.file", configFile.getAbsolutePath());
             LoadBalancerConfiguration configuration = LoadBalancerConfiguration.getInstance();
@@ -83,8 +84,7 @@ public class LoadBalancerConfigurationTest {
             Assert.assertEquals(String.format("%s, network partition id is not valid", validationError), "network-partition-1", configuration.getNetworkPartitionId());
             Assert.assertTrue(String.format("%s, multi-tenancy is not true", validationError), configuration.isMultiTenancyEnabled());
             Assert.assertEquals(String.format("%s, tenant-identifier is not valid", validationError), TenantIdentifier.TenantDomain, configuration.getTenantIdentifier());
-            Assert.assertEquals(String.format("%s, tenant-identifier-regex is not valid", validationError), "t/([^/]*)/", configuration.getTenantIdentifierRegex());
-            Assert.assertTrue(String.format("%s, rewrite-location-header is not true", validationError), configuration.isReWriteLocationHeader());
+            Assert.assertEquals(String.format("%s, tenant-identifier-regex is not valid", validationError), "t/([^/]*)/", configuration.getTenantIdentifierRegexList().get(0));
         } finally {
             LoadBalancerConfiguration.clear();
         }
@@ -95,7 +95,7 @@ public class LoadBalancerConfigurationTest {
      */
     @Test
     public final void testStaticTopology() {
-        URL resourceUrl = this.getClass().getResource(configPath + File.separator + "loadbalancer2.conf");
+        URL resourceUrl = this.getClass().getResource(configPath + "/loadbalancer2.conf");
         File configFile = new File(resourceUrl.getFile());
 
         System.setProperty("loadbalancer.conf.file", configFile.getAbsolutePath());
@@ -137,7 +137,6 @@ public class LoadBalancerConfigurationTest {
             Assert.assertEquals(String.format("%s, port value not valid: [member] %s [proxy-port] %d", validationError, memberId, proxyPort), 8080, m1Http.getValue());
             Assert.assertEquals(String.format("%s, port proxy not valid: [member] %s [proxy-port] %d", validationError, memberId, proxyPort), 80, m1Http.getProxy());
 
-            Assert.assertFalse(String.format("%s, rewrite-location-header is not false", validationError), LoadBalancerConfiguration.getInstance().isReWriteLocationHeader());
         } finally {
             TopologyManager.releaseReadLock();
             LoadBalancerConfiguration.clear();

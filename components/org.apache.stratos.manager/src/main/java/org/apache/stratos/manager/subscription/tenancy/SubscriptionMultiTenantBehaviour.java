@@ -22,7 +22,6 @@ package org.apache.stratos.manager.subscription.tenancy;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.cloud.controller.stub.pojo.CartridgeInfo;
-import org.apache.stratos.cloud.controller.stub.pojo.Persistence;
 import org.apache.stratos.cloud.controller.stub.pojo.Properties;
 import org.apache.stratos.manager.dao.Cluster;
 import org.apache.stratos.manager.deploy.service.Service;
@@ -112,8 +111,8 @@ public class SubscriptionMultiTenantBehaviour extends SubscriptionTenancyBehavio
         return null;
     }
 
-    public void register(CartridgeInfo cartridgeInfo, Cluster cluster, PayloadData payloadData, String autoscalePolicyName,
-                         String deploymentPolicyName, Properties properties, Persistence persistence)
+    public void register (CartridgeInfo cartridgeInfo, Cluster cluster, PayloadData payloadData, String autoscalePolicyName,
+                          String deploymentPolicyName, Properties properties)
             throws ADCException, UnregisteredCartridgeException {
 
         //nothing to do

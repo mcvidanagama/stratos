@@ -23,7 +23,7 @@
 	<parent>
             <groupId>org.apache.stratos</groupId>
             <artifactId>stratos-parent</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
+            <version>4.0.0</version>
             <relativePath>../pom.xml</relativePath>
         </parent>
 
@@ -102,6 +102,8 @@
         <module>org.apache.stratos.rest.endpoint</module>
         <!-- Stratos manager styles bundle -->
         <module>org.apache.stratos.manager.styles</module>
+        
+        <module>org.apache.stratos.metadataservice</module>
 	
     </modules>
 	    
