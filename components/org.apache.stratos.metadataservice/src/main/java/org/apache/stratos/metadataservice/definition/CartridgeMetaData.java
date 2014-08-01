@@ -27,7 +27,7 @@ public class CartridgeMetaData {
 
 		return "applicationName: " + applicationName + ", displayName: " + displayName +
 		       ", description: " + description + ", type: " + type + ", provider: " + provider +
-		       ", host: " + host + ", Version: " + version + ", property " + getProperties();
+		       ", host: " + host + ", Version: " + version + ", property: " + getProperties();
 	}
 
 	private String getProperties() {
@@ -35,7 +35,7 @@ public class CartridgeMetaData {
 		StringBuilder propertyBuilder = new StringBuilder();
 		if (property != null) {
 			for (PropertyBean propertyBean : property) {
-				propertyBuilder.append(propertyBean.name + " : " + propertyBean.value + " | ");
+				propertyBuilder.append(propertyBean.toString());
 			}
 		}
 		return propertyBuilder.toString();
