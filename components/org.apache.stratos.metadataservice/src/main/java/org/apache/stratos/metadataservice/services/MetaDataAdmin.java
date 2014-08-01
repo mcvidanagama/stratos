@@ -13,11 +13,14 @@ import javax.ws.rs.core.Context;
 
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.context.ConfigurationContextFactory;
+import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.metadataservice.annotation.AuthorizationAction;
 import org.apache.stratos.metadataservice.definition.CartridgeMetaData;
+import org.apache.stratos.metadataservice.definition.PropertyBean;
 import org.apache.stratos.metadataservice.exception.RestAPIException;
+import org.apache.stratos.metadataservice.util.ConfUtil;
 import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.registry.api.Resource;
 import org.wso2.carbon.registry.core.Comment;
@@ -49,6 +52,10 @@ public class MetaDataAdmin {
 
 	private static WSRegistryServiceClient setRegistry() throws Exception {
 
+		XMLConfiguration conf = ConfUtil.getInstance(null).getConfiguration();
+		String gregUsername = conf.getString("metadataservice.username", "admin@org.com");
+		String gregPassword = conf.getString("metadataservice.password", "admin@org.com");
+
 		System.setProperty("javax.net.ssl.trustStore", "repository" + File.separator + "resources" +
 		                                               File.separator + "security" +
 		                                               File.separator + "wso2carbon.jks");
@@ -58,15 +65,17 @@ public class MetaDataAdmin {
 		configContext =
 		                ConfigurationContextFactory.createConfigurationContextFromFileSystem(axis2Repo,
 		                                                                                     axis2Conf);
-		return new WSRegistryServiceClient(serverURL, username, password, configContext);
+		return new WSRegistryServiceClient(serverURL, gregUsername, gregPassword, configContext);
 	}
 
 	@POST
-	@Path("/cartridge/metadata")
+	@Path("/cartridge/metadata/{applicationname}/{cartridgetype}")
 	@Produces("application/json")
 	@Consumes("application/json")
 	@AuthorizationAction("/permission/protected/manage/monitor/tenants")
-	public String addCartridgeMetaDataDetails(CartridgeMetaData cartridgeMetaData) throws Exception {
+	public String addCartridgeMetaDataDetails(@PathParam("applicationname") String applicationName,
+	                                          @PathParam("cartridgetype") String cartridgeType,
+	                                          CartridgeMetaData cartridgeMetaData) throws Exception {
 		System.out.println("Adding meta data details");
 		Registry registry = setRegistry();
 		try {
@@ -75,12 +84,16 @@ public class MetaDataAdmin {
 
 			String type = cartridgeMetaData.type;
 
-			resource.setContent("Hello Out there!" + type);
+			resource.setContent("Application description :: " + type);
 
-			String resourcePath = "/startos/app-3/" + type;
+			String resourcePath = "/startos/" + applicationName + "/" + cartridgeType;
 
-			resource.addProperty("id", "ewwtreiwet");
-			resource.addProperty("name", "admin");
+			resource.addProperty("Application Name", cartridgeMetaData.applicationName);
+			resource.addProperty("Cartidge Type", cartridgeMetaData.type);
+
+			for (PropertyBean prop : cartridgeMetaData.property) {
+				resource.addProperty(prop.name, prop.value);
+			}
 
 			registry.put(resourcePath, resource);
 
@@ -91,9 +104,8 @@ public class MetaDataAdmin {
 
 			System.out.println("Resource rated with 3 stars!");
 			Comment comment = new Comment();
-			comment.setText("Wow! A comment out there");
+			comment.setText("Added the " + applicationName + " " + type + " cartridge");
 			registry.addComment(resourcePath, comment);
-			System.out.println("Comment added to resource");
 
 			Resource getResource = registry.get("/startos/app-2");
 			System.out.println("Resource retrived");
@@ -123,12 +135,19 @@ public class MetaDataAdmin {
 
 	throws Exception {
 		Registry registry = setRegistry();
+		CartridgeMetaData cartridgeMetaData = new CartridgeMetaData();
 		try {
 
-			Resource getResource = registry.get("/startos/" + cartridgeType);
-			System.out.println("Resource retrived");
-			System.out.println("Printing retrieved resource content: " +
-			                   new String((byte[]) getResource.getContent()));
+			cartridgeMetaData.applicationName = "appi1";
+			cartridgeMetaData.type = "mysql";
+			String resourcePath = "/startos/" + applicationName + "/" + cartridgeType;
+			if (registry.resourceExists(resourcePath)) {
+
+				Resource getResource = registry.get(resourcePath);
+				System.out.println("Resource retrived");
+				System.out.println("Printing retrieved resource content: " +
+				                   new String((byte[]) getResource.getContent()));
+			}
 
 		} catch (Exception e) {
 
@@ -138,6 +157,6 @@ public class MetaDataAdmin {
 			// Close the session
 			((WSRegistryServiceClient) registry).logut();
 		}
-		return "result";
+		return cartridgeMetaData.toString();
 	}
 }

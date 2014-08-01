@@ -24,5 +24,6 @@ package org.apache.stratos.metadataservice;
 public class Constants {
 
 	public static final String SUPER_TENANT_SERVICE = "super.tenant.service";
+	public static final String METADATASERVICE_CONFIG_FILE_NAME = "metadataservice.xml";
 
 }
