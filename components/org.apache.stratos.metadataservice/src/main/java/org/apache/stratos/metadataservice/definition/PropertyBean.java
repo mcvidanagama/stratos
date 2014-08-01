@@ -24,7 +24,14 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "property")
 public class PropertyBean {
 
-	public String name;
+	public String hostname;
 
-	public String value;
+	public String username;
+	public String password;
+
+	@Override
+	public String toString() {
+		return " [ hostname: " + hostname + ", username: " + username + ", password: " + password +
+		       "] ";
+	}
 }
