@@ -92,7 +92,7 @@ public class MetaDataAdmin {
 			resource.addProperty("Cartidge Type", cartridgeMetaData.type);
 
 			for (PropertyBean prop : cartridgeMetaData.property) {
-				resource.addProperty(prop.name, prop.value);
+				resource.addProperty("hotsname", prop.username);
 			}
 
 			registry.put(resourcePath, resource);
