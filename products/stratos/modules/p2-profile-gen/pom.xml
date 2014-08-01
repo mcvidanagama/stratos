@@ -217,7 +217,7 @@
                                 <featureArtifactDef>org.wso2.carbon:org.wso2.carbon.identity.application.authentication.framework.server.feature:4.2.1</featureArtifactDef>
                                 <featureArtifactDef>org.apache.stratos:org.apache.stratos.messaging.feature:${project.version}</featureArtifactDef>
                                 <featureArtifactDef>org.apache.stratos:org.apache.stratos.autoscaler.feature:${project.version}</featureArtifactDef>
-                                <featureArtifactDef>org.wso2.carbon:org.wso2.carbon.registry.ui.menu.feature:${carbon.version}</featureArtifactDef>--&gt;
+                                <featureArtifactDef>org.wso2.carbon:org.wso2.carbon.registry.ui.menu.feature:${carbon.version}</featureArtifactDef>
                                 <featureArtifactDef>org.wso2.carbon:org.wso2.carbon.logging.mgt.feature:${carbon.version}</featureArtifactDef>
                                 <featureArtifactDef>org.apache.stratos:org.apache.stratos.cloud.controller.feature:${project.version}</featureArtifactDef>
                                 <featureArtifactDef>org.wso2.carbon:org.apache.synapse.wso2.feature:${synapse.version}</featureArtifactDef>
@@ -491,6 +491,14 @@
                             <id>org.wso2.carbon.registry.resource.properties.feature.group</id>
                             <version>${carbon.platform.patch.version.4.2.1}</version>
                         </feature>
+                        <feature>
+                             <id>org.apache.stratos.metadataservice.feature.group</id>
+                             <version>${project.version}</version>
+                        </feature>
+                          <feature>
+                                    <id>org.apache.stratos.metadataservice.feature.group</id>
+                                    <version>${project.version}</version>
+                                </feature>
                     </features>
                     </configuration>
                     </execution>
@@ -573,6 +581,10 @@
                             <id>org.wso2.carbon.event.server.feature.group</id>
                             <version>${carbon.platform.patch.version.4.2.1}</version>
                         </feature>
+                            <feature>
+                                    <id>org.apache.stratos.metadataservice.feature.group</id>
+                                    <version>${project.version}</version>
+                                </feature>
                     </features>
                     </configuration>
                     </execution>
@@ -807,6 +819,10 @@
                                 <feature>
                                     <id>org.wso2.carbon.cassandra.common.feature.group</id>
                                     <version>${carbon.platform.version}</version>
+                                </feature>
+                               <feature>
+                                    <id>org.apache.stratos.metadataservice.feature.group</id>
+                                    <version>${project.version}</version>
                                 </feature>
                             </features>
                         </configuration>
