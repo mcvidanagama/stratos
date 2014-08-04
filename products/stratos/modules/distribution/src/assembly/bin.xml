@@ -853,6 +853,15 @@
             <outputDirectory>${pom.artifactId}-${pom.version}/repository/deployment/server/webapps/</outputDirectory>
             <fileMode>644</fileMode>
         </file>
+<<<<<<< HEAD
+=======
+        <!-- Meta data service -->
+        <file>
+            <source>../p2-profile-gen/target/wso2carbon-core-${carbon.kernel.version}/repository/deployment/server/webapps/stratosmetadataservice.war</source>
+            <outputDirectory>${pom.artifactId}-${pom.version}/repository/deployment/server/webapps/</outputDirectory>
+            <fileMode>644</fileMode>
+        </file>
+>>>>>>> b1a61f6... updates
         <!-- End of REST endpoint webapp -->
         <file>
             <source>../../conf/data-bridge/data-bridge-config.xml</source>
