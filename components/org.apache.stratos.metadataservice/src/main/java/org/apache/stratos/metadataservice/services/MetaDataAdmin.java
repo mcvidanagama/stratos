@@ -44,6 +44,8 @@ public class MetaDataAdmin {
 	private static final String defaultUsername = "admin@org.com";
 	private static final String defaultPassword = "admin123";
 	private static final String serverURL = "https://localhost:9445/services/";
+	private static final String mainResource = "/startos/";
+	private static final int defaultRank = 3;
 
 	@POST
 	@Path("/init")
@@ -89,7 +91,7 @@ public class MetaDataAdmin {
 
 			resource.setContent("Application description :: " + type);
 
-			String resourcePath = "/startos/" + applicationName + "/" + cartridgeType;
+			String resourcePath = mainResource + applicationName + "/" + cartridgeType;
 
 			resource.addProperty("Application Name", cartridgeMetaData.applicationName);
 			resource.addProperty("Display Name", cartridgeMetaData.displayName);
@@ -110,17 +112,11 @@ public class MetaDataAdmin {
 			System.out.println("A resource added to: " + resourcePath);
 
 			System.out.println(cartridgeMetaData.type);
-			registry.rateResource(resourcePath, 3);
+			registry.rateResource(resourcePath, defaultRank);
 
-			System.out.println("Resource rated with 3 stars!");
 			Comment comment = new Comment();
 			comment.setText("Added the " + applicationName + " " + type + " cartridge");
 			registry.addComment(resourcePath, comment);
-
-			Resource getResource = registry.get("/startos/app-2");
-			System.out.println("Resource retrived");
-			System.out.println("Printing retrieved resource content: " +
-			                   new String((byte[]) getResource.getContent()));
 
 		} catch (Exception e) {
 
@@ -148,9 +144,7 @@ public class MetaDataAdmin {
 		CartridgeMetaData cartridgeMetaData = new CartridgeMetaData();
 		try {
 
-			cartridgeMetaData.applicationName = "appi1";
-			cartridgeMetaData.type = "mysql";
-			String resourcePath = "/startos/" + applicationName + "/" + cartridgeType;
+			String resourcePath = mainResource + applicationName + "/" + cartridgeType;
 			if (registry.resourceExists(resourcePath)) {
 
 				Resource getResource = registry.get(resourcePath);
