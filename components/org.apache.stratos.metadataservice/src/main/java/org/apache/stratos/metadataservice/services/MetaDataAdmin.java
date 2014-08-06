@@ -16,6 +16,7 @@ import org.apache.stratos.metadataservice.annotation.AuthorizationAction;
 import org.apache.stratos.metadataservice.definition.CartridgeMetaData;
 import org.apache.stratos.metadataservice.definition.PropertyBean;
 import org.apache.stratos.metadataservice.exception.RestAPIException;
+import org.apache.stratos.metadataservice.registry.DataRegistryFactory;
 import org.apache.stratos.metadataservice.util.ConfUtil;
 <<<<<<< HEAD
 <<<<<<< HEAD
