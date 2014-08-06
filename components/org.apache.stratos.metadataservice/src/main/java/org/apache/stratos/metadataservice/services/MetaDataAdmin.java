@@ -60,7 +60,7 @@ public class MetaDataAdmin {
 
 		String gregUsername = conf.getString("metadataservice.username", defaultUsername);
 		String gregPassword = conf.getString("metadataservice.password", defaultPassword);
-
+		String gregServerURL = conf.getString("metadataservice.serverurl", serverURL);
 		System.setProperty("javax.net.ssl.trustStore", "repository" + File.separator + "resources" +
 		                                               File.separator + "security" +
 		                                               File.separator + "wso2carbon.jks");
@@ -70,7 +70,7 @@ public class MetaDataAdmin {
 		configContext =
 		                ConfigurationContextFactory.createConfigurationContextFromFileSystem(axis2Repo,
 		                                                                                     axis2Conf);
-		return new WSRegistryServiceClient(serverURL, gregUsername, gregPassword, configContext);
+		return new WSRegistryServiceClient(gregServerURL, gregUsername, gregPassword, configContext);
 	}
 
 	@POST
