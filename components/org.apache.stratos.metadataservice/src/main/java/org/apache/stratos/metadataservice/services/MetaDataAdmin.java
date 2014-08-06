@@ -136,8 +136,8 @@ public class MetaDataAdmin {
 	@Produces("application/json")
 	@Consumes("application/json")
 	@AuthorizationAction("/permission/protected/manage/monitor/tenants")
-	public String getPartition(@PathParam("applicationname") String applicationName,
-	                           @PathParam("cartridgetype") String cartridgeType)
+	public String getCartridgeMetaDataDetails(@PathParam("applicationname") String applicationName,
+	                                          @PathParam("cartridgetype") String cartridgeType)
 
 	throws Exception {
 		Registry registry = setRegistry();
@@ -180,5 +180,14 @@ public class MetaDataAdmin {
 			((WSRegistryServiceClient) registry).logut();
 		}
 		return cartridgeMetaData.toString();
+	}
+
+	public boolean removeCartridgeMetaDataDetails(String applicationName, String cartridgeType)
+	                                                                                           throws Exception {
+		Registry registry = setRegistry();
+		String resourcePath = mainResource + applicationName + "/" + cartridgeType;
+		registry.delete(resourcePath);
+		return false;
+
 	}
 }
