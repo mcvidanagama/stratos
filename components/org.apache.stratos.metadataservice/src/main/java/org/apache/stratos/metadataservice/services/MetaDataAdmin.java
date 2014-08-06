@@ -16,10 +16,10 @@ import org.apache.axis2.context.ConfigurationContextFactory;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.stratos.metadataservice.Registry.DataRegistryFactory;
 import org.apache.stratos.metadataservice.annotation.AuthorizationAction;
 import org.apache.stratos.metadataservice.definition.CartridgeMetaData;
 import org.apache.stratos.metadataservice.exception.RestAPIException;
+import org.apache.stratos.metadataservice.registry.DataRegistryFactory;
 import org.apache.stratos.metadataservice.util.ConfUtil;
 import org.wso2.carbon.registry.ws.client.registry.WSRegistryServiceClient;
 
