@@ -47,6 +47,7 @@ public class MetaDataAdmin {
 	private static final String password = "admin123";
 	private static final String serverURL = "https://localhost:9445/services/";
 	private static final String mainResource = "/startos/";
+<<<<<<< HEAD
 	private static final int defaultRank = 3;
 =======
 =======
@@ -55,12 +56,17 @@ public class MetaDataAdmin {
 
 	private XMLConfiguration conf;
 >>>>>>> b65a712... updates
+=======
+	private final String defaultRegType = "GREG";
+
+	private XMLConfiguration conf;
+>>>>>>> 6cd41ce... updates
 
 	@POST
 	@Path("/init")
 	@AuthorizationAction("/permission/protected/manage/monitor/tenants")
 	public void initialize() throws RestAPIException {
-
+		conf = ConfUtil.getInstance(null).getConfiguration();
 	}
 
 <<<<<<< HEAD
@@ -118,6 +124,7 @@ public class MetaDataAdmin {
 
 			System.out.println("A resource added to: " + resourcePath);
 
+<<<<<<< HEAD
 			System.out.println(cartridgeMetaData.type);
 			registry.rateResource(resourcePath, defaultRank);
 
@@ -135,6 +142,16 @@ public class MetaDataAdmin {
 		}
 		System.out.println("Add meta data details");
 		return "success";
+=======
+		conf = ConfUtil.getInstance(null).getConfiguration();
+
+		String registryType =
+		                      conf.getString("metadataservice.govenanceregistrytype",
+		                                     defaultRegType);
+		return DataRegistryFactory.getDataRegistryFactory(registryType)
+		                          .addCartridgeMetaDataDetails(applicationName, cartridgeType,
+		                                                       cartridgeMetaData);
+>>>>>>> 6cd41ce... updates
 
 	}
 
@@ -147,6 +164,7 @@ public class MetaDataAdmin {
 	                           @PathParam("cartridgetype") String cartridgeType)
 
 	throws Exception {
+<<<<<<< HEAD
 		Registry registry = setRegistry();
 		CartridgeMetaData cartridgeMetaData = new CartridgeMetaData();
 		try {
@@ -169,5 +187,25 @@ public class MetaDataAdmin {
 			((WSRegistryServiceClient) registry).logut();
 		}
 		return cartridgeMetaData.toString();
+=======
+		conf = ConfUtil.getInstance(null).getConfiguration();
+		String registryType =
+		                      conf.getString("metadataservice.govenanceregistrytype",
+		                                     defaultRegType);
+		return DataRegistryFactory.getDataRegistryFactory(registryType)
+		                          .getCartridgeMetaDataDetails(applicationName, cartridgeType);
+
+	}
+
+	public boolean removeCartridgeMetaDataDetails(String applicationName, String cartridgeType)
+	                                                                                           throws Exception {
+		conf = ConfUtil.getInstance(null).getConfiguration();
+		String registryType =
+		                      conf.getString("metadataservice.govenanceregistrytype",
+		                                     defaultRegType);
+		return DataRegistryFactory.getDataRegistryFactory(registryType)
+		                          .removeCartridgeMetaDataDetails(applicationName, cartridgeType);
+
+>>>>>>> 6cd41ce... updates
 	}
 }
