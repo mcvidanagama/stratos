@@ -1,7 +1,5 @@
 package org.apache.stratos.metadataservice.services;
 
-import java.io.File;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -11,8 +9,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 
-import org.apache.axis2.context.ConfigurationContext;
-import org.apache.axis2.context.ConfigurationContextFactory;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -21,10 +17,13 @@ import org.apache.stratos.metadataservice.definition.CartridgeMetaData;
 import org.apache.stratos.metadataservice.definition.PropertyBean;
 import org.apache.stratos.metadataservice.exception.RestAPIException;
 import org.apache.stratos.metadataservice.util.ConfUtil;
+<<<<<<< HEAD
 import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.registry.api.Resource;
 import org.wso2.carbon.registry.core.Comment;
 import org.wso2.carbon.registry.ws.client.registry.WSRegistryServiceClient;
+=======
+>>>>>>> b65a712... updates
 
 @Path("/metadataservice/")
 public class MetaDataAdmin {
@@ -33,6 +32,7 @@ public class MetaDataAdmin {
 	@Context
 	HttpServletRequest httpServletRequest;
 
+<<<<<<< HEAD
 	private static ConfigurationContext configContext = null;
 
 	private static final String CARBON_HOME = "/../../../../";
@@ -44,6 +44,11 @@ public class MetaDataAdmin {
 	private static final String serverURL = "https://localhost:9445/services/";
 	private static final String mainResource = "/startos/";
 	private static final int defaultRank = 3;
+=======
+	private final String defaultRegType = "GREG";
+
+	private XMLConfiguration conf;
+>>>>>>> b65a712... updates
 
 	@POST
 	@Path("/init")
@@ -52,6 +57,7 @@ public class MetaDataAdmin {
 
 	}
 
+<<<<<<< HEAD
 	private static WSRegistryServiceClient setRegistry() throws Exception {
 
 		XMLConfiguration conf = ConfUtil.getInstance(null).getConfiguration();
@@ -70,6 +76,8 @@ public class MetaDataAdmin {
 		return new WSRegistryServiceClient(serverURL, gregUsername, gregPassword, configContext);
 	}
 
+=======
+>>>>>>> b65a712... updates
 	@POST
 	@Path("/cartridge/metadata/{applicationname}/{cartridgetype}")
 	@Produces("application/json")
