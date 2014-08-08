@@ -19,31 +19,19 @@
 -->
 <configuration>
 	<metadataservice>
+	    <govenanceregistrytype>GREG</govenanceregistrytype>
+	    <serverurl>https://localhost:9445/services/</serverurl>
 		<username>admin</username>
 		<password>admin</password>
-	    <rulesEvaluator>
-	        <schedule>
-		    <initialDelay>30</initialDelay>
-	            <period>15</period>
-	        </schedule>
-	    </rulesEvaluator>
-	    <cloudController>
-	        <hostname>localhost</hostname>
-		<port>9444</port>
-		<!-->CC client timout in ms<-->
-                <clientTimeout>300000</clientTimeout>
-	    </cloudController>
-            <stratosManager>
-	        <hostname>localhost</hostname>
-		<port>9445</port>
-		<!--SM client timeout in ms-->
-                <clientTimeout>300000</clientTimeout>
-	    </stratosManager>
-	    <member>
-		<!-->member expiry timeout (time waited till activation) in ms<-->
-		<expiryTimeout>900000</expiryTimeout>
-	    </member>
-	    <!-- monitor task interval -->
-	    <monitorInterval>90000</monitorInterval>
+		
+		<mainResource>stratos</mainResource>
+		<axis2Repo>repository/deployment/client</axis2Repo>
+		<axis2Conf>repository/conf/axis2/axis2_client.xml</axis2Conf>
+		<trustStore>repository/resources/security/wso2carbon.jks</trustStore>
+		<trustStorePassword>wso2carbon</trustStorePassword>
+		<trustStoreType>JKS</trustStoreType>
+	 
+	 
+	 
 	</metadataservice>
 </configuration>
