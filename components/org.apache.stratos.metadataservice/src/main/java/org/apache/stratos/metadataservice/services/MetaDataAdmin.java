@@ -18,10 +18,13 @@ import org.apache.stratos.metadataservice.definition.PropertyBean;
 import org.apache.stratos.metadataservice.exception.RestAPIException;
 import org.apache.stratos.metadataservice.util.ConfUtil;
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.registry.api.Resource;
 import org.wso2.carbon.registry.core.Comment;
 import org.wso2.carbon.registry.ws.client.registry.WSRegistryServiceClient;
+=======
+>>>>>>> b65a712... updates
 =======
 >>>>>>> b65a712... updates
 
@@ -32,6 +35,7 @@ public class MetaDataAdmin {
 	@Context
 	HttpServletRequest httpServletRequest;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	private static ConfigurationContext configContext = null;
 
@@ -45,6 +49,8 @@ public class MetaDataAdmin {
 	private static final String mainResource = "/startos/";
 	private static final int defaultRank = 3;
 =======
+=======
+>>>>>>> b65a712... updates
 	private final String defaultRegType = "GREG";
 
 	private XMLConfiguration conf;
@@ -57,6 +63,7 @@ public class MetaDataAdmin {
 
 	}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	private static WSRegistryServiceClient setRegistry() throws Exception {
 
@@ -76,6 +83,8 @@ public class MetaDataAdmin {
 		return new WSRegistryServiceClient(serverURL, gregUsername, gregPassword, configContext);
 	}
 
+=======
+>>>>>>> b65a712... updates
 =======
 >>>>>>> b65a712... updates
 	@POST
