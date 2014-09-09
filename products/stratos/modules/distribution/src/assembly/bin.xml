@@ -576,6 +576,7 @@
                 <include>org.apache.activemq:activemq-client:jar</include>
                 <include>org.apache.geronimo.specs:geronimo-j2ee-management_1.1_spec:jar</include>
                 <include>org.fusesource.hawtbuf:hawtbuf:jar</include>
+                <include>org.eclipse.paho:mqtt-client:jar</include>
             </includes>
         </dependencySet>
         <dependencySet>
