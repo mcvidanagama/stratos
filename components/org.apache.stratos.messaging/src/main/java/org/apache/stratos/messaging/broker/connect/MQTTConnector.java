@@ -37,6 +37,7 @@ import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 public class MQTTConnector {
 
 	private static MqttClient topicClient;
+
 	private static MqttClient topicClientSub;
 
 	public static synchronized MqttClient getMQTTConClient() {
@@ -68,16 +69,19 @@ public class MQTTConnector {
 
 	}
 
-	public static synchronized MqttClient getMQTTSubClient() {
+	public static synchronized MqttClient getMQTTSubClient(String identifier) {
 		// if (topicClientSub == null) {
+
 		String broker = "tcp://localhost:1883";
-		String clientId = "Stratos";
+
 		// Creating new default persistence for mqtt client
 		MqttDefaultFilePersistence persistence = new MqttDefaultFilePersistence("/tmp");
 
 		try {
+			MqttConnectOptions connOpts = new MqttConnectOptions();
+			connOpts.setCleanSession(true);
 			// mqtt client with specific url and a random client id
-			topicClientSub = new MqttClient(broker, "Subscriber-ID", persistence);
+			topicClientSub = new MqttClient(broker, identifier, persistence);
 
 			System.out.println("Connecting to subscribe broker: " + broker);
 			// topicClient.connect();
@@ -102,7 +106,8 @@ public class MQTTConnector {
 		if (topicClient == null) {
 			return;
 		}
-		// topicClient.disconnect();
+		// topicClientSub.disconnect();
+		topicClient.disconnect();
 	}
 
 }

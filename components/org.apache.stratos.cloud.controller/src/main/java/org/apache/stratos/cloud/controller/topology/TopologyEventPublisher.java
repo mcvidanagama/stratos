@@ -49,6 +49,7 @@ import org.apache.stratos.messaging.event.topology.MemberStartedEvent;
 import org.apache.stratos.messaging.event.topology.MemberTerminatedEvent;
 import org.apache.stratos.messaging.event.topology.ServiceCreatedEvent;
 import org.apache.stratos.messaging.event.topology.ServiceRemovedEvent;
+import org.apache.stratos.messaging.util.Util;
 
 /**
  * this is to send the relevant events from cloud controller to topology topic
@@ -246,7 +247,7 @@ public class TopologyEventPublisher {
 	}
 
 	public static void publishEvent(Event event) {
-		String topic = event.getClass().getName().substring(35).replace(".", "/");
+		String topic = Util.getMessageTopicName(event);
 		EventPublisher eventPublisher = EventPublisherPool.getPublisher(topic);
 		eventPublisher.publish(event);
 	}

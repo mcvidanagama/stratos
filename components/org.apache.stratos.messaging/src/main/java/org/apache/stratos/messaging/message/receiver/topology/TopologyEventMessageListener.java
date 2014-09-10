@@ -25,6 +25,7 @@ import org.apache.activemq.command.ActiveMQTextMessage;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.messaging.util.Constants;
+import org.apache.stratos.messaging.util.Util;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -61,11 +62,10 @@ class TopologyEventMessageListener implements MqttCallback {
 
 			System.out.println("messege received");
 			TextMessage receivedMessage = new ActiveMQTextMessage();
-			System.out.println("messege received....");
+
 			receivedMessage.setText(new String(message.getPayload()));
 			receivedMessage.setStringProperty(Constants.EVENT_CLASS_NAME,
-			                                  "org.apache.stratos.messaging.event.".concat(arg0.replace("/",
-			                                                                                            ".")));
+			                                  Util.getEventNameForTopic(arg0));
 
 			try {
 				if (log.isDebugEnabled()) {
@@ -80,4 +80,5 @@ class TopologyEventMessageListener implements MqttCallback {
 			}
 		}
 	}
+
 }
