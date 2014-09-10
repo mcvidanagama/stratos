@@ -62,7 +62,7 @@ class InstanceNotifierEventMessageListener implements MqttCallback {
 		if (message instanceof MqttMessage) {
 
 			TextMessage receivedMessage = new ActiveMQTextMessage();
-			System.out.println("messege received....");
+			System.out.println("instance notifier messege received....");
 			receivedMessage.setText(new String(message.getPayload()));
 			receivedMessage.setStringProperty(Constants.EVENT_CLASS_NAME,
 			                                  "org.apache.stratos.messaging.event.".concat(arg0.replace("/",

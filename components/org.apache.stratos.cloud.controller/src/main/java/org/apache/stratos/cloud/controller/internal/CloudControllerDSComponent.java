@@ -31,7 +31,7 @@ import org.apache.stratos.cloud.controller.topic.instance.status.InstanceStatusE
 import org.apache.stratos.cloud.controller.util.CloudControllerConstants;
 import org.apache.stratos.cloud.controller.util.ServiceReferenceHolder;
 import org.apache.stratos.messaging.broker.publish.EventPublisherPool;
-import org.apache.stratos.messaging.broker.subscribe.TopicSubscriber1;
+import org.apache.stratos.messaging.broker.subscribe.TopicSubscriber;
 import org.apache.stratos.messaging.util.Constants;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
@@ -68,9 +68,9 @@ public class CloudControllerDSComponent {
 		try {
 
 			// Start instance status event message listener
-			TopicSubscriber1 subscriber =
-			                              new TopicSubscriber1(
-			                                                   CloudControllerConstants.INSTANCE_TOPIC);
+			TopicSubscriber subscriber =
+			                             new TopicSubscriber(
+			                                                 CloudControllerConstants.INSTANCE_TOPIC);
 			subscriber.setMessageListener(new InstanceStatusEventMessageListener());
 			Thread tsubscriber = new Thread(subscriber);
 			tsubscriber.start();

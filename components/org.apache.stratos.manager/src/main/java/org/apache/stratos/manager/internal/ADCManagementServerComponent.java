@@ -27,7 +27,7 @@ import org.apache.stratos.manager.retriever.DataInsertionAndRetrievalManager;
 import org.apache.stratos.manager.topology.receiver.StratosManagerTopologyEventReceiver;
 import org.apache.stratos.manager.utils.CartridgeConfigFileReader;
 import org.apache.stratos.messaging.broker.publish.EventPublisherPool;
-import org.apache.stratos.messaging.broker.subscribe.TopicSubscriber1;
+import org.apache.stratos.messaging.broker.subscribe.TopicSubscriber;
 import org.apache.stratos.messaging.util.Constants;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.ntask.core.service.TaskService;
@@ -36,8 +36,9 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
 /**
- * @scr.component 
- *                name="org.wso2.carbon.hosting.mgt.internal.ADCManagementServerComponent"
+ * @scr.component
+ *                name=
+ *                "org.wso2.carbon.hosting.mgt.internal.ADCManagementServerComponent"
  *                immediate="true"
  * @scr.reference name="config.context.service"
  *                interface="org.wso2.carbon.utils.ConfigurationContextService"
@@ -88,7 +89,7 @@ public class ADCManagementServerComponent {
 			if (log.isDebugEnabled()) {
 				log.debug("Starting instance status topic subscriber...");
 			}
-			TopicSubscriber1 subscriber = new TopicSubscriber1(Constants.INSTANCE_STATUS_TOPIC);
+			TopicSubscriber subscriber = new TopicSubscriber(Constants.INSTANCE_STATUS_TOPIC);
 			subscriber.setMessageListener(new InstanceStatusListener());
 			Thread tsubscriber = new Thread(subscriber);
 			tsubscriber.start();
