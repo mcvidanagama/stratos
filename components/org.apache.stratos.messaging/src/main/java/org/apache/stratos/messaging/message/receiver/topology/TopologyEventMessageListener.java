@@ -60,7 +60,6 @@ class TopologyEventMessageListener implements MqttCallback {
 	public void messageArrived(String topicName, MqttMessage message) throws Exception {
 		if (message instanceof MqttMessage) {
 
-			System.out.println("messege received");
 			TextMessage receivedMessage = new ActiveMQTextMessage();
 
 			receivedMessage.setText(new String(message.getPayload()));
