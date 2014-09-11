@@ -26,7 +26,6 @@ import org.apache.stratos.manager.publisher.TenantSynchronizerTaskScheduler;
 import org.apache.stratos.manager.retriever.DataInsertionAndRetrievalManager;
 import org.apache.stratos.manager.topology.receiver.StratosManagerTopologyEventReceiver;
 import org.apache.stratos.manager.utils.CartridgeConfigFileReader;
-import org.apache.stratos.messaging.broker.publish.EventPublisherPool;
 import org.apache.stratos.messaging.broker.subscribe.TopicSubscriber;
 import org.apache.stratos.messaging.util.Constants;
 import org.osgi.service.component.ComponentContext;
@@ -185,8 +184,8 @@ public class ADCManagementServerComponent {
 
 	protected void deactivate(ComponentContext context) {
 		// Close event publisher connections to message broker
-		EventPublisherPool.close(Constants.INSTANCE_NOTIFIER_TOPIC);
-		EventPublisherPool.close(Constants.TENANT_TOPIC);
+		// EventPublisherPool.close(Constants.INSTANCE_NOTIFIER_TOPIC);
+		// EventPublisherPool.close(Constants.TENANT_TOPIC);
 
 		// terminate Stratos Manager Topology Receiver
 		stratosManagerTopologyEventReceiver.terminate();

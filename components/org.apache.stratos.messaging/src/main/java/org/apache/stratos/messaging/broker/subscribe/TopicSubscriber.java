@@ -75,8 +75,10 @@ public class TopicSubscriber implements Runnable {
 		try {
 
 			mqttClient.connect();
-			System.out.println("Subscribing to topic '" + topicName + "' from " +
-			                   mqttClient.getServerURI());
+			if (log.isDebugEnabled()) {
+				log.debug("Subscribing to topic '" + topicName + "' from " +
+				          mqttClient.getServerURI());
+			}
 			// Subscribing to specific topic
 
 			mqttClient.subscribe(topicName);

@@ -30,9 +30,7 @@ import org.apache.stratos.cloud.controller.topic.instance.status.InstanceStatusE
 import org.apache.stratos.cloud.controller.topic.instance.status.InstanceStatusEventMessageListener;
 import org.apache.stratos.cloud.controller.util.CloudControllerConstants;
 import org.apache.stratos.cloud.controller.util.ServiceReferenceHolder;
-import org.apache.stratos.messaging.broker.publish.EventPublisherPool;
 import org.apache.stratos.messaging.broker.subscribe.TopicSubscriber;
-import org.apache.stratos.messaging.util.Constants;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.ntask.core.service.TaskService;
@@ -146,7 +144,7 @@ public class CloudControllerDSComponent {
 
 	protected void deactivate(ComponentContext ctx) {
 		// Close event publisher connections to message broker
-		EventPublisherPool.close(Constants.TOPOLOGY_TOPIC);
+		// EventPublisherPool.close(Constants.TOPOLOGY_TOPIC);
 	}
 
 }
