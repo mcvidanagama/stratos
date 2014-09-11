@@ -21,7 +21,6 @@ package org.apache.stratos.cep.extension;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +35,6 @@ import org.apache.stratos.messaging.domain.topology.Service;
 import org.apache.stratos.messaging.event.health.stat.MemberFaultEvent;
 import org.apache.stratos.messaging.message.receiver.topology.TopologyEventReceiver;
 import org.apache.stratos.messaging.message.receiver.topology.TopologyManager;
-import org.apache.stratos.messaging.util.Constants;
 import org.wso2.siddhi.core.config.SiddhiContext;
 import org.wso2.siddhi.core.event.StreamEvent;
 import org.wso2.siddhi.core.event.in.InEvent;
@@ -59,6 +57,7 @@ import org.wso2.siddhi.query.api.extension.annotation.SiddhiExtension;
 public class FaultHandlingWindowProcessor extends WindowProcessor implements
                                                                  RunnableWindowProcessor {
 
+	private static final String HEALTH_STAT_MEMBER_FAULT_EVENT = "health/stat/MemberFaultEvent";
 	private static final int TIME_OUT = 60 * 1000;
 	static final Logger log = Logger.getLogger(FaultHandlingWindowProcessor.class);
 	private ScheduledExecutorService eventRemoverScheduler;
@@ -70,8 +69,8 @@ public class FaultHandlingWindowProcessor extends WindowProcessor implements
 	                                                                   new ConcurrentHashMap<String, Long>();
 	private final ConcurrentHashMap<String, Member> memberIdMap =
 	                                                              new ConcurrentHashMap<String, Member>();
-	EventPublisher healthStatPublisher =
-	                                     EventPublisherPool.getPublisher(Constants.HEALTH_STAT_TOPIC);
+
+	EventPublisher healthStatPublisher = null;
 	Map<String, Object> MemberFaultEventMap = new HashMap<String, Object>();
 	Map<String, Object> memberFaultEventMessageMap = new HashMap<String, Object>();
 	private TopologyEventReceiver topologyEventReceiver;
@@ -162,8 +161,8 @@ public class FaultHandlingWindowProcessor extends WindowProcessor implements
 		                                                         member.getMemberId(),
 		                                                         member.getPartitionId(), 0);
 		memberFaultEventMessageMap.put("message", memberFaultEvent);
-		Properties headers = new Properties();
-		headers.put(Constants.EVENT_CLASS_NAME, memberFaultEvent.getClass().getName());
+
+		healthStatPublisher = EventPublisherPool.getPublisher(HEALTH_STAT_MEMBER_FAULT_EVENT);
 		healthStatPublisher.publish(MemberFaultEventMap, true);
 
 		if (log.isDebugEnabled()) {

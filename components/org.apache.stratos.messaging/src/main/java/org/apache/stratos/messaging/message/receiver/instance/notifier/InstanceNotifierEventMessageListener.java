@@ -26,6 +26,7 @@ import org.apache.activemq.command.ActiveMQTextMessage;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.messaging.util.Constants;
+import org.apache.stratos.messaging.util.Util;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -47,26 +48,30 @@ class InstanceNotifierEventMessageListener implements MqttCallback {
 
 	@Override
 	public void connectionLost(Throwable arg0) {
-		// TODO Auto-generated method stub
+		if (log.isDebugEnabled()) {
+			log.debug("MQTT connection lost");
+		}
 
 	}
 
 	@Override
 	public void deliveryComplete(IMqttDeliveryToken arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void messageArrived(String arg0, MqttMessage message) throws Exception {
+	public void messageArrived(String topicName, MqttMessage message) throws Exception {
 		if (message instanceof MqttMessage) {
 
 			TextMessage receivedMessage = new ActiveMQTextMessage();
-			System.out.println("instance notifier messege received....");
+			if (log.isDebugEnabled()) {
+				log.debug(String.format("instance notifier messege received...."));
+
+			}
+
 			receivedMessage.setText(new String(message.getPayload()));
 			receivedMessage.setStringProperty(Constants.EVENT_CLASS_NAME,
-			                                  "org.apache.stratos.messaging.event.".concat(arg0.replace("/",
-			                                                                                            ".")));
+			                                  Util.getEventNameForTopic(topicName));
 
 			try {
 				if (log.isDebugEnabled()) {

@@ -19,8 +19,14 @@
 
 package org.apache.stratos.messaging.broker.connect;
 
+import java.io.File;
+import java.util.Properties;
+
 import javax.jms.JMSException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.stratos.messaging.util.Util;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -39,29 +45,31 @@ public class MQTTConnector {
 	private static MqttClient topicClient;
 
 	private static MqttClient topicClientSub;
+	private static final Log log = LogFactory.getLog(MQTTConnector.class);
+
+	private static String configFileLocation = System.getProperty("jndi.properties.dir");
 
 	public static synchronized MqttClient getMQTTConClient() {
+
 		if (topicClient == null) {
-			String broker = "tcp://localhost:1883";
-			String clientId = "Stratos";
+			Properties mqttProp =
+			                      Util.getProperties(configFileLocation + File.separator +
+			                                         "mqtttopic.properties");
+			String broker = mqttProp.getProperty("mqtturl", "defaultValue");// "tcp://localhost:1883"
+			String clientId = mqttProp.getProperty("clientID", "Startos_SM");
 			MemoryPersistence persistence = new MemoryPersistence();
 
 			try {
 				topicClient = new MqttClient(broker, clientId, persistence);
 				MqttConnectOptions connOpts = new MqttConnectOptions();
 				connOpts.setCleanSession(true);
-				System.out.println("Connecting to broker: " + broker);
-				// topicClient.connect();
-
-				System.out.println("Connected");
+				if (log.isDebugEnabled()) {
+					log.debug("MQTT client connected");
+				}
 
 			} catch (MqttException me) {
-				System.out.println("reason " + me.getReasonCode());
-				System.out.println("msg " + me.getMessage());
-				System.out.println("loc " + me.getLocalizedMessage());
-				System.out.println("cause " + me.getCause());
-				System.out.println("excep " + me);
-				me.printStackTrace();
+				String msg = "Failed to initiate autoscaler service client. " + me.getMessage();
+				log.error(msg, me);
 			}
 
 		}
@@ -72,10 +80,13 @@ public class MQTTConnector {
 	public static synchronized MqttClient getMQTTSubClient(String identifier) {
 		// if (topicClientSub == null) {
 
-		String broker = "tcp://localhost:1883";
-
+		Properties mqttProp =
+		                      Util.getProperties(configFileLocation + File.separator +
+		                                         "mqtttopic.properties");
+		String broker = mqttProp.getProperty("mqtturl", "defaultValue");// "tcp://localhost:1883"
+		String tempFile = mqttProp.getProperty("tempfilelocation", "/tmp");
 		// Creating new default persistence for mqtt client
-		MqttDefaultFilePersistence persistence = new MqttDefaultFilePersistence("/tmp");
+		MqttDefaultFilePersistence persistence = new MqttDefaultFilePersistence(tempFile);
 
 		try {
 			MqttConnectOptions connOpts = new MqttConnectOptions();
@@ -83,18 +94,24 @@ public class MQTTConnector {
 			// mqtt client with specific url and a random client id
 			topicClientSub = new MqttClient(broker, identifier, persistence);
 
-			System.out.println("Connecting to subscribe broker: " + broker);
-			// topicClient.connect();
-
-			System.out.println("Connected");
+			if (log.isDebugEnabled()) {
+				log.debug("MQTT client connected");
+			}
 
 		} catch (MqttException me) {
+
+			String msg = "Failed to initiate autoscaler service client. " + me.getMessage();
+			log.error(msg, me);
+
+			// please remove under
+
 			System.out.println("reason " + me.getReasonCode());
 			System.out.println("msg " + me.getMessage());
 			System.out.println("loc " + me.getLocalizedMessage());
 			System.out.println("cause " + me.getCause());
 			System.out.println("excep " + me);
 			me.printStackTrace();
+
 		}
 
 		// }
