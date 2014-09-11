@@ -81,6 +81,7 @@ import org.apache.stratos.messaging.domain.topology.Member;
 import org.apache.stratos.messaging.event.tenant.SubscriptionDomainAddedEvent;
 import org.apache.stratos.messaging.event.tenant.SubscriptionDomainRemovedEvent;
 import org.apache.stratos.messaging.util.Constants;
+import org.apache.stratos.messaging.util.Util;
 import org.wso2.carbon.context.CarbonContext;
 
 /**
@@ -647,7 +648,7 @@ public class CartridgeSubscriptionManager {
 		                                                                          clusterIds,
 		                                                                          domainName);
 
-		String topicName = event.getClass().getName().substring(35).replace(".", "/");
+		String topicName = Util.getMessageTopicName(event);
 		EventPublisher eventPublisher = EventPublisherPool.getPublisher(topicName);
 		eventPublisher.publish(event);
 	}

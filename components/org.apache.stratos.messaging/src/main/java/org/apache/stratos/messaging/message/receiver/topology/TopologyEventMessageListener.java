@@ -57,7 +57,7 @@ class TopologyEventMessageListener implements MqttCallback {
 	}
 
 	@Override
-	public void messageArrived(String arg0, MqttMessage message) throws Exception {
+	public void messageArrived(String topicName, MqttMessage message) throws Exception {
 		if (message instanceof MqttMessage) {
 
 			System.out.println("messege received");
@@ -65,7 +65,7 @@ class TopologyEventMessageListener implements MqttCallback {
 
 			receivedMessage.setText(new String(message.getPayload()));
 			receivedMessage.setStringProperty(Constants.EVENT_CLASS_NAME,
-			                                  Util.getEventNameForTopic(arg0));
+			                                  Util.getEventNameForTopic(topicName));
 
 			try {
 				if (log.isDebugEnabled()) {

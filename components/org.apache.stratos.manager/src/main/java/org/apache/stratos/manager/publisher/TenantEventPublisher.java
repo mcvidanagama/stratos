@@ -30,7 +30,7 @@ import org.apache.stratos.messaging.domain.tenant.Tenant;
 import org.apache.stratos.messaging.event.tenant.TenantCreatedEvent;
 import org.apache.stratos.messaging.event.tenant.TenantRemovedEvent;
 import org.apache.stratos.messaging.event.tenant.TenantUpdatedEvent;
-import org.apache.stratos.messaging.util.Constants;
+import org.apache.stratos.messaging.util.Util;
 
 /**
  * Tenant event publisher to publish tenant events to the message broker by
@@ -50,8 +50,8 @@ public class TenantEventPublisher implements TenantMgtListener {
 			}
 			Tenant tenant = new Tenant(tenantInfo.getTenantId(), tenantInfo.getTenantDomain());
 			TenantCreatedEvent event = new TenantCreatedEvent(tenant);
-
-			EventPublisher eventPublisher = EventPublisherPool.getPublisher(Constants.TENANT_TOPIC);
+			String topic = Util.getMessageTopicName(event);
+			EventPublisher eventPublisher = EventPublisherPool.getPublisher(topic);
 			eventPublisher.publish(event);
 		} catch (Exception e) {
 			log.error("Could not publish tenant created event", e);
@@ -68,7 +68,8 @@ public class TenantEventPublisher implements TenantMgtListener {
 			TenantUpdatedEvent event =
 			                           new TenantUpdatedEvent(tenantInfo.getTenantId(),
 			                                                  tenantInfo.getTenantDomain());
-			EventPublisher eventPublisher = EventPublisherPool.getPublisher(Constants.TENANT_TOPIC);
+			String topic = Util.getMessageTopicName(event);
+			EventPublisher eventPublisher = EventPublisherPool.getPublisher(topic);
 			eventPublisher.publish(event);
 		} catch (Exception e) {
 			log.error("Could not publish tenant updated event");
@@ -82,7 +83,8 @@ public class TenantEventPublisher implements TenantMgtListener {
 				log.info(String.format("Publishing tenant removed event: [tenant-id] %d", tenantId));
 			}
 			TenantRemovedEvent event = new TenantRemovedEvent(tenantId);
-			EventPublisher eventPublisher = EventPublisherPool.getPublisher(Constants.TENANT_TOPIC);
+			String topic = Util.getMessageTopicName(event);
+			EventPublisher eventPublisher = EventPublisherPool.getPublisher(topic);
 			eventPublisher.publish(event);
 		} catch (Exception e) {
 			log.error("Could not publish tenant removed event");
