@@ -19,8 +19,6 @@
 
 package org.apache.stratos.messaging.broker.subscribe;
 
-import java.util.Random;
-
 import javax.jms.JMSException;
 import javax.jms.TopicSession;
 
@@ -71,7 +69,7 @@ public class TopicSubscriber implements Runnable {
 
 	private void doSubscribe() throws Exception, JMSException {
 
-		MqttClient mqttClient = MQTTConnector.getMQTTSubClient(randomString(5));
+		MqttClient mqttClient = MQTTConnector.getMQTTSubClient(Util.getRandomString(5));
 		try {
 
 			mqttClient.connect();
@@ -95,16 +93,6 @@ public class TopicSubscriber implements Runnable {
 		} finally {
 			mqttClient.disconnect();
 		}
-	}
-
-	static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	static Random rnd = new Random();
-
-	String randomString(int len) {
-		StringBuilder sb = new StringBuilder(len);
-		for (int i = 0; i < len; i++)
-			sb.append(AB.charAt(rnd.nextInt(AB.length())));
-		return sb.toString();
 	}
 
 	/**

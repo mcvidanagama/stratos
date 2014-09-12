@@ -22,8 +22,6 @@ package org.apache.stratos.messaging.broker.connect;
 import java.io.File;
 import java.util.Properties;
 
-import javax.jms.JMSException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.messaging.util.Util;
@@ -117,14 +115,6 @@ public class MQTTConnector {
 		// }
 		return topicClientSub;
 
-	}
-
-	public void close() throws JMSException, MqttException {
-		if (topicClient == null) {
-			return;
-		}
-		// topicClientSub.disconnect();
-		topicClient.disconnect();
 	}
 
 }

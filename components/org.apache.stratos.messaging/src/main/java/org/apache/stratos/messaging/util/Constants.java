@@ -25,7 +25,7 @@ public class Constants {
 	public static final String INSTANCE_STATUS_TOPIC = "instance/#";
 	public static final String INSTANCE_NOTIFIER_TOPIC = "instance/#";
 	public static final String PING_TOPIC = "ping";
-	public static final String TENANT_TOPIC = "tenant";
+	public static final String TENANT_TOPIC = "tenant/#";
 	public static final String TENANT_RANGE_ALL = "*";
 
 	public static final String TENANT_RANGE_DELIMITER = "-";
