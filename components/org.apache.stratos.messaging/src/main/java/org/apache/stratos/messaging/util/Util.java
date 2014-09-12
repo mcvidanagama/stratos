@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.Random;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -161,5 +162,14 @@ public class Util {
 
 	public static String getEventNameForTopic(String arg0) {
 		return "org.apache.stratos.messaging.event.".concat(arg0.replace("/", "."));
+	}
+
+	public static String getRandomString(int len) {
+		String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		Random rnd = new Random();
+		StringBuilder sb = new StringBuilder(len);
+		for (int i = 0; i < len; i++)
+			sb.append(AB.charAt(rnd.nextInt(AB.length())));
+		return sb.toString();
 	}
 }
