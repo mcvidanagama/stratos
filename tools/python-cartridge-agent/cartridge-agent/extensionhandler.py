@@ -27,9 +27,18 @@ def onInstanceCleanupClusterEvent(extenstionpath,scriptname):
 def startServerExtension():
     print('=================================startServerExtension')
 
-def onInstanceStartedEvent():
+def onInstanceStartedEvent(extensionpath, scriptname, multitenant, copyartifactscriptname, apppath, envparams):
     print('=================================onInstanceStartedEvent')
+    #if ismultitenant
+    #   execute copy artifact extension
 
+    if multitenant == "true":
+        Process = Popen([os.path.join(extensionpath, copyartifactscriptname), apppath + "/repository/deployment/server/", "/tmp/-1234/"], shell=True, stdin=PIPE, stderr=PIPE)
+        print Process.communicate();
 
+    #addPayloadParams()
+    Process = Popen([os.path.join(extensionpath, scriptname), envparams], shell=True, stdin=PIPE, stderr=PIPE)
+    print Process.communicate();
 
+    #execute instance started extension with empty map
 
