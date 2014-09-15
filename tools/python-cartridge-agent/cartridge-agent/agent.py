@@ -12,6 +12,7 @@ import extensionhandler
 import util
 import subprocess
 import ConfigParser
+import paho.mqtt.client as mqtt
 
 # Parse properties file
 properties = ConfigParser.SafeConfigParser()
@@ -63,9 +64,12 @@ if multitenant == "true":
 else:
     app_path = ""
 
+instanceTopicClient = mqtt.Client()
+
+
 env_params = {}
 env_params['STRATOS_APP_PATH']= app_path
-env_params['STRATOS_PARAM_FILE_PATH']=properties.get("agent", "param.file.path")
+env_params['STRATOS_PARAM_FILE_PATH']=readProperty("param.file.path")
 env_params['STRATOS_SERVICE_NAME']=service_name
 env_params['STRATOS_TENANT_ID']=tenant_id
 env_params['STRATOS_CARTRIDGE_KEY']=cartridge_key
@@ -82,8 +86,10 @@ env_params['STRATOS_REPO_URL']=sd['REPO_URL']
 # envParams['']=
 # envParams['']=
 
-extensionhandler.onInstanceStartedEvent(extensionsDir, 'instance-started.sh.erb', multitenant, 'artifacts-copy.sh.erb', app_path, env_params)
+extensionhandler.onInstanceStartedEvent(extensionsDir, 'instance-started.sh', multitenant, 'artifacts-copy.sh.erb', app_path, env_params)
 
+def readProperty(property):
+    return properties.get("agent", property)
 
 def runningSuspendScript():
     print "inside thread"
@@ -137,41 +143,75 @@ def listeningTopology():
 
 
 def listeningInstanceNotifier():
-    class MyListener(stomp.ConnectionListener):
-        def on_error(self, headers, message):
-            print('received an error %s' % message)
-        def on_message(self, headers, message):
-            for k,v in headers.iteritems():
-                print('header: key %s , value %s' %(k,v))
-                if k=='event-class-name':
-                    print('event class name found')
-                    if v=='org.apache.stratos.messaging.listener.instance.notifier.ArtifactUpdateEvent':
-                        print('ArtifactUpdateEvent triggered')
-                        print('received message\n %s'% message)
-                    if v=='org.apache.stratos.messaging.listener.instance.notifier.InstanceCleanupMemberEvent':
-                        print('MemberTerminatedEvent triggered')
-                    if v=='org.apache.stratos.messaging.listener.instance.notifier.InstanceCleanupClusterEvent':
-                        print('MemberTerminatedEvent triggered')
-                    else: 
-                        print('something else')
-            print('received message\n %s'% message)
+    # class MyListener(stomp.ConnectionListener):
+    #     def on_error(self, headers, message):
+    #         print('received an error %s' % message)
+    #     def on_message(self, headers, message):
+    #         for k,v in headers.iteritems():
+    #             print('header: key %s , value %s' %(k,v))
+    #             if k=='event-class-name':
+    #                 print('event class name found')
+    #                 if v=='org.apache.stratos.messaging.listener.instance.notifier.ArtifactUpdateEvent':
+    #                     print('ArtifactUpdateEvent triggered')
+    #                     print('received message\n %s'% message)
+    #                 if v=='org.apache.stratos.messaging.listener.instance.notifier.InstanceCleanupMemberEvent':
+    #                     print('MemberTerminatedEvent triggered')
+    #                 if v=='org.apache.stratos.messaging.listener.instance.notifier.InstanceCleanupClusterEvent':
+    #                     print('MemberTerminatedEvent triggered')
+    #                 else:
+    #                     print('something else')
+    #         print('received message\n %s'% message)
+    #
+    #
+    # dest='/topic/instance-notifier'
+    # conn=stomp.Connection([('localhost',61613)])
+    # print('set up Connection')
+    # conn.set_listener('somename',MyListener())
+    # print('Set up listener')
+    #
+    # conn.start()
+    # print('started connection')
+    #
+    # conn.connect(wait=True)
+    # print('connected')
+    # conn.subscribe(destination=dest, ack='auto')
+    # print('subscribed')
 
+    instanceTopicClient.on_connect = instanceNotifierConnect
+    instanceTopicClient.on_message = instanceNotifierMessage
 
-    dest='/topic/instance-notifier'
-    conn=stomp.Connection([('localhost',61613)])
-    print('set up Connection')
-    conn.set_listener('somename',MyListener())
-    print('Set up listener')
+    #mb_client.connect(readProperty("mb.ip"), properties.get("agent", "mb.port"), 60)
+    instanceTopicClient.connect("127.0.0.1", 61616, 60)
+    instanceTopicClient.loop_forever()
 
-    conn.start()
-    print('started connection')
+def instanceNotifierConnect(client, userdata, flags, rc):
+    instanceTopicClient.subscribe("instance/#")
 
-    conn.connect(wait=True)
-    print('connected')
-    conn.subscribe(destination=dest, ack='auto')
-    print('subscribed')
-
-
+def instanceNotifierMessage(client, userdata, msg):
+    print "Topic: %r\nContent:%r" % (msg.topic, msg.payload)
+    for k,v in msg.payload.iteritems():
+        print('header: key %s , value %s' %(k,v))
+        if k=='event-class-name':
+            print('event class name found')
+            if v=='org.apache.stratos.messaging.listener.instance.notifier.ArtifactUpdateEvent':
+                print('ArtifactUpdateEvent triggered')
+                print('received message\n %s'% msg.payload)
+                #TODO: event details to be passed to the script
+                extensionhandler.onArtifactUpdatedEvent(extensionsDir, 'artifacts-updated.sh')
+            if v=='org.apache.stratos.messaging.listener.instance.notifier.InstanceCleanupMemberEvent':
+                print('MemberTerminatedEvent triggered')
+                #TODO: instance cleanup member event
+                #TODO: event details to be passed to the script
+                if sd['MEMBER_ID'] == member_id_from_event:
+                    extensionhandler.onInstanceCleanupMemberEvent(extensionsDir, 'clean.sh')
+            if v=='org.apache.stratos.messaging.listener.instance.notifier.InstanceCleanupClusterEvent':
+                print('InstanceCleanupClusterEvent triggered')
+                #TODO: instance cleanup cluster event
+                #TODO: event details to be passed to the script
+                if cluster_id == cluster_id_from_event:
+                    extensionhandler.onInstanceCleanupMemberEvent(extensionsDir, 'clean.sh')
+            else:
+                print('something else')
 
 def publishInstanceStartedEvent():
     class MyListener(stomp.ConnectionListener):
