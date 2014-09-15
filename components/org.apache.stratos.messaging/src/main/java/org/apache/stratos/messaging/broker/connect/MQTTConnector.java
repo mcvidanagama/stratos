@@ -34,8 +34,7 @@ import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 /**
  * This class is responsible for loading the mqtt config file from the
  * classpath
- * and initialize the topic connection. Later if some other object needs a topic
- * session, this object is capable of providing one.
+ * Initialize the topic connection.
  * 
  */
 public class MQTTConnector {
@@ -53,7 +52,7 @@ public class MQTTConnector {
 			Properties mqttProp =
 			                      Util.getProperties(configFileLocation + File.separator +
 			                                         "mqtttopic.properties");
-			String broker = mqttProp.getProperty("mqtturl", "defaultValue");// "tcp://localhost:1883"
+			String broker = mqttProp.getProperty("mqtturl", "defaultValue");
 			String clientId = mqttProp.getProperty("clientID", "Startos_SM");
 			MemoryPersistence persistence = new MemoryPersistence();
 
@@ -81,7 +80,7 @@ public class MQTTConnector {
 		Properties mqttProp =
 		                      Util.getProperties(configFileLocation + File.separator +
 		                                         "mqtttopic.properties");
-		String broker = mqttProp.getProperty("mqtturl", "defaultValue");// "tcp://localhost:1883"
+		String broker = mqttProp.getProperty("mqtturl", "defaultValue");
 		String tempFile = mqttProp.getProperty("tempfilelocation", "/tmp");
 		// Creating new default persistence for mqtt client
 		MqttDefaultFilePersistence persistence = new MqttDefaultFilePersistence(tempFile);
@@ -100,15 +99,6 @@ public class MQTTConnector {
 
 			String msg = "Failed to initiate autoscaler service client. " + me.getMessage();
 			log.error(msg, me);
-
-			// please remove under
-
-			System.out.println("reason " + me.getReasonCode());
-			System.out.println("msg " + me.getMessage());
-			System.out.println("loc " + me.getLocalizedMessage());
-			System.out.println("cause " + me.getCause());
-			System.out.println("excep " + me);
-			me.printStackTrace();
 
 		}
 
