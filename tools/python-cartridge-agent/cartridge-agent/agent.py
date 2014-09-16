@@ -11,8 +11,13 @@ import json
 import extensionhandler
 import util
 import subprocess
+import ConfigParser
 
+# Parse properties file
+properties = ConfigParser.SafeConfigParser()
+properties.read('agent.properties')
 
+#TODO: check from properties file
 util.validateRequiredSystemProperties()
 
 payloadPath=sys.argv[1]
@@ -32,24 +37,52 @@ print [i for i in sd.keys()]
 print "HOST_NAME   ", sd['HOST_NAME']
 
 hostname=sd['HOST_NAME']
-servicename=sd['SERVICE_NAME']
+service_name=sd['SERVICE_NAME']
 multitenant=sd['MULTITENANT']
-tenantid=sd['TENANT_ID']
+tenant_id=sd['TENANT_ID']
 tenantrange=sd['TENANT_RANGE']
 cartridealies=sd['CARTRIDGE_ALIAS']
-clusterid=sd['CLUSTER_ID']
-cartridgekey=sd['CARTRIDGE_KEY']
+cluster_id=sd['CLUSTER_ID']
+cartridge_key=sd['CARTRIDGE_KEY']
 deployement=sd['DEPLOYMENT']
 repourl=sd['REPO_URL']
 ports=sd['PORTS']
 puppetip=sd['PUPPET_IP']
 puppethostname=sd['PUPPET_HOSTNAME']
 puppetenv=sd['PUPPET_ENV']
-commitenabled=sd['COMMIT_ENABLED']
-dbhost=sd['DB_HOST']
+persistance_mapping = sd['PERSISTENCE_MAPPING'] if 'PERSISTENCE_MAPPING' in sd else None
 
+if 'COMMIT_ENABLED' in sd:
+    commitenabled=sd['COMMIT_ENABLED']
 
+if 'DB_HOST' in sd:
+    dbhost=sd['DB_HOST']
 
+if multitenant == "true":
+    app_path = sd['APP_PATH']
+else:
+    app_path = ""
+
+env_params = {}
+env_params['STRATOS_APP_PATH']= app_path
+env_params['STRATOS_PARAM_FILE_PATH']=properties.get("agent", "param.file.path")
+env_params['STRATOS_SERVICE_NAME']=service_name
+env_params['STRATOS_TENANT_ID']=tenant_id
+env_params['STRATOS_CARTRIDGE_KEY']=cartridge_key
+env_params['STRATOS_LB_CLUSTER_ID']=sd['LB_CLUSTER_ID']
+env_params['STRATOS_CLUSTER_ID']=cluster_id
+env_params['STRATOS_NETWORK_PARTITION_ID']=sd['NETWORK_PARTITION_ID']
+env_params['STRATOS_PARTITION_ID']=sd['PARTITION_ID']
+env_params['STRATOS_PERSISTENCE_MAPPINGS']=persistance_mapping
+env_params['STRATOS_REPO_URL']=sd['REPO_URL']
+# envParams['STRATOS_LB_IP']=
+# envParams['STRATOS_LB_PUBLIC_IP']=
+# envParams['']=
+# envParams['']=
+# envParams['']=
+# envParams['']=
+
+extensionhandler.onInstanceStartedEvent(extensionsDir, 'instance-started.sh.erb', multitenant, 'artifacts-copy.sh.erb', app_path, env_params)
 
 
 def runningSuspendScript():
@@ -163,7 +196,7 @@ def publishInstanceStartedEvent():
     conn.subscribe(destination=dest, ack='auto')
     print('subscribed')
 
-    message=InstanceStartedEvent(servicename,clusterid,'','',tenantid).to_JSON()
+    message=InstanceStartedEvent(service_name,cluster_id,'','',tenant_id).to_JSON()
     conn.send(message=message, destination=dest,headers={'seltype':'mandi-age-to-man','type':'textMessage','MessageNumber':random.randint(0,65535),'event-class-name':'org.apache.stratos.messaging.event.instance.status.InstanceStartedEvent'},ack='auto')
     print('sent message')
     print(message)
@@ -195,7 +228,7 @@ class InstanceStartedEvent:
 
 def onInstanceStartedEvent():
     print('on instance start up event')
-    event = InstanceStartedEvent(servicename,clusterid,'','',tenantid)
+    event = InstanceStartedEvent(service_name,cluster_id,'','',tenant_id)
     print(event.to_JSON())
 
 
