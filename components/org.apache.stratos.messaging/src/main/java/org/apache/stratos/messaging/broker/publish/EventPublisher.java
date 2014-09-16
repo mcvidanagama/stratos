@@ -19,6 +19,12 @@
 
 package org.apache.stratos.messaging.broker.publish;
 
+<<<<<<< HEAD
+import org.apache.stratos.messaging.event.Event;
+=======
+import java.util.Properties;
+>>>>>>> 6f13a6458d3b5d79df347034bc8fa140d4b765cf
+
 import org.apache.stratos.messaging.event.Event;
 
 /**
@@ -47,6 +53,12 @@ public class EventPublisher extends TopicPublisher {
 
 	public void publish(Event event, boolean retry) {
 		synchronized (EventPublisher.class) {
+<<<<<<< HEAD
+=======
+			Properties headers = new Properties();
+			// headers.put(Constants.EVENT_CLASS_NAME,
+			// event.getClass().getName());
+>>>>>>> 6f13a6458d3b5d79df347034bc8fa140d4b765cf
 			super.publish(event, retry);
 		}
 	}

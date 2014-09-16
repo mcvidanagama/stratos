@@ -34,7 +34,12 @@ import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 /**
  * This class is responsible for loading the mqtt config file from the
  * classpath
+<<<<<<< HEAD
  * Initialize the topic connection.
+=======
+ * and initialize the topic connection. Later if some other object needs a topic
+ * session, this object is capable of providing one.
+>>>>>>> 6f13a6458d3b5d79df347034bc8fa140d4b765cf
  * 
  */
 public class MQTTConnector {
@@ -52,7 +57,11 @@ public class MQTTConnector {
 			Properties mqttProp =
 			                      Util.getProperties(configFileLocation + File.separator +
 			                                         "mqtttopic.properties");
+<<<<<<< HEAD
 			String broker = mqttProp.getProperty("mqtturl", "defaultValue");
+=======
+			String broker = mqttProp.getProperty("mqtturl", "defaultValue");// "tcp://localhost:1883"
+>>>>>>> 6f13a6458d3b5d79df347034bc8fa140d4b765cf
 			String clientId = mqttProp.getProperty("clientID", "Startos_SM");
 			MemoryPersistence persistence = new MemoryPersistence();
 
@@ -80,7 +89,11 @@ public class MQTTConnector {
 		Properties mqttProp =
 		                      Util.getProperties(configFileLocation + File.separator +
 		                                         "mqtttopic.properties");
+<<<<<<< HEAD
 		String broker = mqttProp.getProperty("mqtturl", "defaultValue");
+=======
+		String broker = mqttProp.getProperty("mqtturl", "defaultValue");// "tcp://localhost:1883"
+>>>>>>> 6f13a6458d3b5d79df347034bc8fa140d4b765cf
 		String tempFile = mqttProp.getProperty("tempfilelocation", "/tmp");
 		// Creating new default persistence for mqtt client
 		MqttDefaultFilePersistence persistence = new MqttDefaultFilePersistence(tempFile);
@@ -100,6 +113,18 @@ public class MQTTConnector {
 			String msg = "Failed to initiate autoscaler service client. " + me.getMessage();
 			log.error(msg, me);
 
+<<<<<<< HEAD
+=======
+			// please remove under
+
+			System.out.println("reason " + me.getReasonCode());
+			System.out.println("msg " + me.getMessage());
+			System.out.println("loc " + me.getLocalizedMessage());
+			System.out.println("cause " + me.getCause());
+			System.out.println("excep " + me);
+			me.printStackTrace();
+
+>>>>>>> 6f13a6458d3b5d79df347034bc8fa140d4b765cf
 		}
 
 		// }
