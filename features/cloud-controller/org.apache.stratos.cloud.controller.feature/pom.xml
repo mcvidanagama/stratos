@@ -199,14 +199,13 @@
             <groupId>org.wso2.andes.wso2</groupId>
             <artifactId>andes-client</artifactId>
             <version>0.13.wso2v8</version>
-<<<<<<< HEAD
+
         </dependency>
           <dependency>
            <groupId>com.jcraft</groupId>
 	        <artifactId>jsch.agentproxy.usocket-nc</artifactId>
            <version>0.0.7</version>
-=======
->>>>>>> 6f13a6458d3b5d79df347034bc8fa140d4b765cf
+
         </dependency>
     </dependencies>
 
@@ -284,11 +283,9 @@
                                 </bundleDef>
                                 <bundleDef>com.jcraft:jsch.agentproxy.connector-factory:0.0.7</bundleDef>
                                 <bundleDef>com.jcraft:jsch.agentproxy.sshagent:0.0.7</bundleDef>
-<<<<<<< HEAD
+
                                 <bundleDef>com.jcraft:jsch.agentproxy.usocket-nc:0.0.7</bundleDef>
-=======
-                                <bundleDef>com.jcraft:jsch.agentproxy.usocket-jna:0.0.7</bundleDef>
->>>>>>> 6f13a6458d3b5d79df347034bc8fa140d4b765cf
+
                                 <bundleDef>com.jcraft:jsch.agentproxy.core:0.0.7</bundleDef>
                                 <bundleDef>net.java.dev.jna:jna:4.1.0</bundleDef>
                                 <bundleDef>

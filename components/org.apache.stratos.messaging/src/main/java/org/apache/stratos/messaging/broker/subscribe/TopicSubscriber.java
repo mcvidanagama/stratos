@@ -25,10 +25,6 @@ import javax.jms.TopicSession;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.messaging.broker.connect.MQTTConnector;
-<<<<<<< HEAD
-=======
-import org.apache.stratos.messaging.broker.connect.TopicConnector;
->>>>>>> 6f13a6458d3b5d79df347034bc8fa140d4b765cf
 import org.apache.stratos.messaging.broker.heartbeat.TopicHealthChecker;
 import org.apache.stratos.messaging.message.processor.MessageProcessorChain;
 import org.apache.stratos.messaging.message.processor.instance.notifier.InstanceNotifierMessageProcessorChain;
@@ -51,32 +47,19 @@ public class TopicSubscriber implements Runnable {
 	private MqttCallback messageListener;
 	private TopicSession topicSession;
 	private final String topicName;
-<<<<<<< HEAD
 
 	private TopicHealthChecker healthChecker;
 	private final javax.jms.TopicSubscriber topicSubscriber = null;
 	private boolean subscribed;
 	private final MessageProcessorChain processorChain;
 
-=======
-	private final TopicConnector connector;
-	private TopicHealthChecker healthChecker;
-	private final javax.jms.TopicSubscriber topicSubscriber = null;
-	private boolean subscribed;
-	private final MessageProcessorChain processorChain;
-
->>>>>>> 6f13a6458d3b5d79df347034bc8fa140d4b765cf
 	/**
 	 * @param aTopicName
 	 *            topic name of this subscriber instance.
 	 */
 	public TopicSubscriber(String aTopicName) {
 		topicName = aTopicName;
-<<<<<<< HEAD
 
-=======
-		connector = new TopicConnector();
->>>>>>> 6f13a6458d3b5d79df347034bc8fa140d4b765cf
 		if (log.isDebugEnabled()) {
 			log.debug(String.format("Topic subscriber connector created: [topic] %s", topicName));
 		}
@@ -174,17 +157,7 @@ public class TopicSubscriber implements Runnable {
 							                        topicName));
 						}
 					}
-<<<<<<< HEAD
-				
-=======
-					if (connector != null) {
-						connector.close();
-						if (log.isDebugEnabled()) {
-							log.debug(String.format("Topic subscriber connector closed: [topic] %s",
-							                        topicName));
-						}
-					}
->>>>>>> 6f13a6458d3b5d79df347034bc8fa140d4b765cf
+
 				} catch (JMSException ignore) {
 				}
 			}

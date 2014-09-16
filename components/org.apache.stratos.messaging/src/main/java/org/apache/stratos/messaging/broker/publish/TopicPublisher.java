@@ -40,10 +40,9 @@ import com.google.gson.Gson;
 public class TopicPublisher {
 
 	private static final Log log = LogFactory.getLog(TopicPublisher.class);
-<<<<<<< HEAD
+
 	private static final int QOS = 2;
-=======
->>>>>>> 6f13a6458d3b5d79df347034bc8fa140d4b765cf
+
 	public static TopicPublisher topicPub;
 	private boolean initialized;
 	private final String topic;
@@ -77,11 +76,9 @@ public class TopicPublisher {
 					MqttClient mqttClient = MQTTConnector.getMQTTConClient();
 
 					MqttMessage mqttMSG = new MqttMessage(message.getBytes());
-<<<<<<< HEAD
+
 					mqttMSG.setQos(QOS);
-=======
-					mqttMSG.setQos(2);
->>>>>>> 6f13a6458d3b5d79df347034bc8fa140d4b765cf
+
 					mqttClient.connect();
 					mqttClient.publish(topic, mqttMSG);
 					mqttClient.disconnect();
