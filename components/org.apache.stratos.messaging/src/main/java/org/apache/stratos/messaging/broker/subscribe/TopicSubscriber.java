@@ -25,7 +25,6 @@ import javax.jms.TopicSession;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.messaging.broker.connect.MQTTConnector;
-import org.apache.stratos.messaging.broker.connect.TopicConnector;
 import org.apache.stratos.messaging.broker.heartbeat.TopicHealthChecker;
 import org.apache.stratos.messaging.message.processor.MessageProcessorChain;
 import org.apache.stratos.messaging.message.processor.instance.notifier.InstanceNotifierMessageProcessorChain;
@@ -48,7 +47,7 @@ public class TopicSubscriber implements Runnable {
 	private MqttCallback messageListener;
 	private TopicSession topicSession;
 	private final String topicName;
-	private final TopicConnector connector;
+
 	private TopicHealthChecker healthChecker;
 	private final javax.jms.TopicSubscriber topicSubscriber = null;
 	private boolean subscribed;
@@ -60,7 +59,7 @@ public class TopicSubscriber implements Runnable {
 	 */
 	public TopicSubscriber(String aTopicName) {
 		topicName = aTopicName;
-		connector = new TopicConnector();
+
 		if (log.isDebugEnabled()) {
 			log.debug(String.format("Topic subscriber connector created: [topic] %s", topicName));
 		}
@@ -158,13 +157,7 @@ public class TopicSubscriber implements Runnable {
 							                        topicName));
 						}
 					}
-					if (connector != null) {
-						connector.close();
-						if (log.isDebugEnabled()) {
-							log.debug(String.format("Topic subscriber connector closed: [topic] %s",
-							                        topicName));
-						}
-					}
+				
 				} catch (JMSException ignore) {
 				}
 			}
