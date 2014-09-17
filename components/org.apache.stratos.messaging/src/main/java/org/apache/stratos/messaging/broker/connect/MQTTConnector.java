@@ -34,17 +34,17 @@ import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 /**
  * This class is responsible for loading the mqtt config file from the
  * classpath
- * <<<<<<< HEAD
  * Initialize the topic connection.
- * =======
  * and initialize the topic connection. Later if some other object needs a topic
  * session, this object is capable of providing one.
- * >>>>>>> 6f13a6458d3b5d79df347034bc8fa140d4b765cf
- * 
+ *
  */
 public class MQTTConnector {
 
-	private static MqttClient topicClient;
+    public static final String MQTTURL = "defaultValue";
+    public static final String CLIENT_ID = "Startos";
+    public static final String TMPFILELOCATION = "/tmp";
+    private static MqttClient topicClient;
 
 	private static MqttClient topicClientSub;
 	private static final Log log = LogFactory.getLog(MQTTConnector.class);
@@ -58,14 +58,14 @@ public class MQTTConnector {
 			                      Util.getProperties(configFileLocation + File.separator +
 			                                         "mqtttopic.properties");
 
-			String broker = mqttProp.getProperty("mqtturl", "defaultValue");
+			String broker = mqttProp.getProperty("mqtturl", MQTTURL);
 
-			String clientId = mqttProp.getProperty("clientID", "Startos_SM");
+			String clientId = mqttProp.getProperty("clientID", CLIENT_ID);
 			MemoryPersistence persistence = new MemoryPersistence();
 
 			try {
 				topicClient = new MqttClient(broker, clientId, persistence);
-				MqttConnectOptions connOpts = new MqttConnectOptions();
+			    MqttConnectOptions connOpts = new MqttConnectOptions();
 				connOpts.setCleanSession(true);
 				if (log.isDebugEnabled()) {
 					log.debug("MQTT client connected");
@@ -88,9 +88,9 @@ public class MQTTConnector {
 		                      Util.getProperties(configFileLocation + File.separator +
 		                                         "mqtttopic.properties");
 
-		String broker = mqttProp.getProperty("mqtturl", "defaultValue");
+		String broker = mqttProp.getProperty("mqtturl", MQTTURL);
 
-		String tempFile = mqttProp.getProperty("tempfilelocation", "/tmp");
+		String tempFile = mqttProp.getProperty("tempfilelocation", TMPFILELOCATION);
 		// Creating new default persistence for mqtt client
 		MqttDefaultFilePersistence persistence = new MqttDefaultFilePersistence(tempFile);
 
