@@ -71,7 +71,7 @@ public class TopologyAgent implements Runnable {
 						log.debug("Terminated event :::::::::::::::::::: " +
 					                   memberTerminatedEvent.getServiceName());
 					}
-					new MetaDataAdmin().removeCartridgeMetaDataDetails("appA", "php");
+					new MetaDataAdmin().removeCartridgeMetaDataDetails("applicationID", memberTerminatedEvent.getServiceName());
 
 				} catch (Exception e) {
 					if (log.isErrorEnabled()) {
@@ -83,26 +83,6 @@ public class TopologyAgent implements Runnable {
 			}
 		});
 
-		topologyEventReceiver.addEventListener(new MemberSuspendedEventListener() {
-			@Override
-			protected void onEvent(Event event) {
-				try {
-					log.info("Member suspended event received");
-					TopologyManager.acquireReadLock();
-					if (log.isDebugEnabled()) {
-						log.debug("Member suspended event received");
-					}
-					MemberSuspendedEvent memberSuspendedEvent = (MemberSuspendedEvent) event;
-					// extensionHandler.onMemberSuspendedEvent(memberSuspendedEvent);
-				} catch (Exception e) {
-					if (log.isErrorEnabled()) {
-						log.error("Error processing member suspended event", e);
-					}
-				} finally {
-					TopologyManager.releaseReadLock();
-				}
-			}
-		});
 
 		Thread thread = new Thread(topologyEventReceiver);
 		thread.start();
