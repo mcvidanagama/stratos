@@ -19,9 +19,6 @@
 
 package org.apache.stratos.messaging.broker.connect;
 
-import java.io.File;
-import java.util.Properties;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.messaging.util.Util;
@@ -31,13 +28,15 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 
+import java.io.File;
+import java.util.Properties;
+
 /**
  * This class is responsible for loading the mqtt config file from the
  * classpath
  * Initialize the topic connection.
  * and initialize the topic connection. Later if some other object needs a topic
  * session, this object is capable of providing one.
- *
  */
 public class MQTTConnector {
 
@@ -46,73 +45,67 @@ public class MQTTConnector {
     public static final String TMPFILELOCATION = "/tmp";
     private static MqttClient topicClient;
 
-	private static MqttClient topicClientSub;
-	private static final Log log = LogFactory.getLog(MQTTConnector.class);
+    private static MqttClient topicClientSub;
+    private static final Log log = LogFactory.getLog(MQTTConnector.class);
+    private static String configFileLocation = System.getProperty("jndi.properties.dir");
+    private static Properties mqttProp =
+            Util.getProperties(configFileLocation + File.separator +
+                    "mqtttopic.properties");
 
-	private static String configFileLocation = System.getProperty("jndi.properties.dir");
+    public static synchronized MqttClient getMQTTConClient() {
 
-	public static synchronized MqttClient getMQTTConClient() {
+        if (topicClient == null) {
 
-		if (topicClient == null) {
-			Properties mqttProp =
-			                      Util.getProperties(configFileLocation + File.separator +
-			                                         "mqtttopic.properties");
 
-			String broker = mqttProp.getProperty("mqtturl", MQTTURL);
+            String broker = mqttProp.getProperty("mqtturl", MQTTURL);
 
-			String clientId = mqttProp.getProperty("clientID", CLIENT_ID);
-			MemoryPersistence persistence = new MemoryPersistence();
+            String clientId = mqttProp.getProperty("clientID", CLIENT_ID);
+            MemoryPersistence persistence = new MemoryPersistence();
 
-			try {
-				topicClient = new MqttClient(broker, clientId, persistence);
-			    MqttConnectOptions connOpts = new MqttConnectOptions();
-				connOpts.setCleanSession(true);
-				if (log.isDebugEnabled()) {
-					log.debug("MQTT client connected");
-				}
+            try {
+                topicClient = new MqttClient(broker, clientId, persistence);
+                MqttConnectOptions connOpts = new MqttConnectOptions();
+                connOpts.setCleanSession(true);
+                if (log.isDebugEnabled()) {
+                    log.debug("MQTT client connected");
+                }
 
-			} catch (MqttException me) {
-				String msg = "Failed to initiate autoscaler service client. " + me.getMessage();
-				log.error(msg, me);
-			}
+            } catch (MqttException me) {
 
-		}
-		return topicClient;
+                log.error("Failed to initiate autoscaler service client. ", me);
+            }
 
-	}
+        }
+        return topicClient;
 
-	public static synchronized MqttClient getMQTTSubClient(String identifier) {
-		// if (topicClientSub == null) {
+    }
 
-		Properties mqttProp =
-		                      Util.getProperties(configFileLocation + File.separator +
-		                                         "mqtttopic.properties");
+    public static synchronized MqttClient getMQTTSubClient(String identifier) {
+        // if (topicClientSub == null) {
 
-		String broker = mqttProp.getProperty("mqtturl", MQTTURL);
+        String broker = mqttProp.getProperty("mqtturl", MQTTURL);
 
-		String tempFile = mqttProp.getProperty("tempfilelocation", TMPFILELOCATION);
-		// Creating new default persistence for mqtt client
-		MqttDefaultFilePersistence persistence = new MqttDefaultFilePersistence(tempFile);
+        String tempFile = mqttProp.getProperty("tempfilelocation", TMPFILELOCATION);
+        // Creating new default persistence for mqtt client
+        MqttDefaultFilePersistence persistence = new MqttDefaultFilePersistence(tempFile);
 
-		try {
-			MqttConnectOptions connOpts = new MqttConnectOptions();
-			connOpts.setCleanSession(true);
-			// mqtt client with specific url and a random client id
-			topicClientSub = new MqttClient(broker, identifier, persistence);
+        try {
+            MqttConnectOptions connOpts = new MqttConnectOptions();
+            connOpts.setCleanSession(true);
+            // mqtt client with specific url and a random client id
+            topicClientSub = new MqttClient(broker, identifier, persistence);
 
-			if (log.isDebugEnabled()) {
-				log.debug("MQTT client connected");
-			}
+            if (log.isDebugEnabled()) {
+                log.debug("MQTT client connected");
+            }
 
-		} catch (MqttException me) {
+        } catch (MqttException me) {
 
-			String msg = "Failed to initiate autoscaler service client. " + me.getMessage();
-			log.error(msg, me);
+            log.error("Failed to initiate autoscaler service client. ", me);
+        }
 
-		}
+        // }
+        return topicClientSub;
 
-		// }
-		return topicClientSub;
-
-	}
+    }
 }
