@@ -48,15 +48,6 @@ define agent::initialize ($repo, $version, $service, $local_dir, $target, $owner
       timeout   => 0,
       require   => File["/${local_dir}/apache-stratos-${service}-${version}.zip"];
 
-    "setting_permission_for_${name}":
-      path      => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
-      cwd       => $target,
-      command   => "chown -R ${owner}:${owner} ${target}/apache-stratos-${service}-${version} ;
-                    chmod -R 755 ${target}/apache-stratos-${service}-${version}",
-      logoutput => 'on_failure',
-      timeout   => 0,
-      require   => Exec["extracting_stratos${service}-${version}.zip_for_${name}"];
-
   }
 
   file { "/${target}/apache-stratos-${service}-${version}/lib":
@@ -68,5 +59,25 @@ define agent::initialize ($repo, $version, $service, $local_dir, $target, $owner
     recurse      => true,
   }
 
+  package { "python-pip":
+    ensure => installed,
+    provider => apt,
+  }
+
+  exec { "installing paho":
+    path      => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+    cwd   => "/root/bin",
+    command => "pip install paho",
+    logoutput => 'on_failure',
+    require => Package["python-pip"]
+  }
+
+  exec { "installing GitPython":
+    path      => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+    cwd   => "/root/bin",
+    command => "pip install GitPython",
+    logoutput => 'on_failure',
+    require => Exec["installing paho"]
+  }
 
 }

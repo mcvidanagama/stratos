@@ -25,6 +25,7 @@ import 'nodes/php.pp'
 import 'nodes/ruby.pp'
 import 'nodes/tomcat.pp'
 import 'nodes/wordpress.pp'
+import 'nodes/java.pp'
 
 # import a single manifest file with node definitions
 import 'nodes.pp'

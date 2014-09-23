@@ -33,13 +33,10 @@ class agent(
   $carbon_version  = $version
   $service_code    = 'cartridge-agent'
   $carbon_home     = "${target}/apache-stratos-${service_code}-${carbon_version}"
-
   tag($service_code)
 
   $default_templates = [
-    'bin/stratos.sh',
-    'conf/jndi.properties',
-    'conf/log4j.properties',   
+    'agent.conf',
     'extensions/clean.sh',
     'extensions/instance-activated.sh',
     'extensions/instance-started.sh',
