@@ -18,25 +18,21 @@
  */
 package org.apache.stratos.metadataservice.registry;
 
-import java.io.File;
-
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Context;
-
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.context.ConfigurationContextFactory;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.metadataservice.definition.CartridgeMetaData;
-
 import org.apache.stratos.metadataservice.util.ConfUtil;
 import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.registry.api.Resource;
 import org.wso2.carbon.registry.core.Comment;
 import org.wso2.carbon.registry.ws.client.registry.WSRegistryServiceClient;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Context;
+import java.io.File;
 
 /**
  * Governance registry implementation for the registry factory
@@ -46,9 +42,6 @@ public class GRegRegistry implements DataStore {
     private static Log log = LogFactory.getLog(GRegRegistry.class);
     @Context
     HttpServletRequest httpServletRequest;
-
-	private static String defaultAxis2Repo = "repository/deployment/client";
-    private static String defaultAxis2Conf = "repository/conf/axis2/axis2_client.xml";
 
     private static final String defaultUsername = "admin@org.com";
     private static final String defaultPassword = "admin123";
@@ -66,7 +59,9 @@ public class GRegRegistry implements DataStore {
         String gregUsername = conf.getString("metadataservice.username", defaultUsername);
         String gregPassword = conf.getString("metadataservice.password", defaultPassword);
         String gregServerURL = conf.getString("metadataservice.serverurl", serverURL);
-        String axis2Repo = conf.getString("metadataservice.axis2Repo", defaultAxis2Repo);
+	    String defaultAxis2Repo = "repository/deployment/client";
+	    String defaultAxis2Conf = "repository/conf/axis2/axis2_client.xml";
+	    String axis2Repo = conf.getString("metadataservice.axis2Repo", defaultAxis2Repo);
         String axis2Conf = conf.getString("metadataservice.axis2Conf", defaultAxis2Conf);
         String defaultTrustStore =
                 "repository" + File.separator + "resources" + File.separator +
