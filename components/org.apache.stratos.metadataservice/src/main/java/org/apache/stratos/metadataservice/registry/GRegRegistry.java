@@ -172,10 +172,9 @@ public class GRegRegistry implements DataStore {
             }
 
         } catch (Exception e) {
-
-            if (log.isErrorEnabled()) {
-                log.error("getCartridgeMetaDataDetails", e);
-            }
+	        if (log.isErrorEnabled()) {
+		        log.error("Get Cartridge MetaData Details failed", e);
+	        }
         } finally {
             // Close the session
             ((WSRegistryServiceClient) registry).logut();
