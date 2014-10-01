@@ -34,8 +34,6 @@ import org.wso2.carbon.user.core.service.RealmService;
  */
 public class ServiceHolder {
 
-
-
 	public static RealmService getRealmService() {
 		PrivilegedCarbonContext carbonContext =
 		                                        PrivilegedCarbonContext.getThreadLocalCarbonContext();
