@@ -21,7 +21,6 @@ import org.apache.stratos.metadataservice.util.ConfUtil;
 @Path("/metadataservice/")
 public class MetaDataAdmin {
 
-	private static Log log = LogFactory.getLog(MetaDataAdmin.class);
 	@Context
 	HttpServletRequest httpServletRequest;
 

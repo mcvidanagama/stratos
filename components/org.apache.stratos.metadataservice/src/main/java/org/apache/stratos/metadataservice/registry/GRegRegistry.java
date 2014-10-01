@@ -47,9 +47,7 @@ public class GRegRegistry implements DataStore {
     @Context
     HttpServletRequest httpServletRequest;
 
-    private static ConfigurationContext configContext = null;
-
-    private static String defaultAxis2Repo = "repository/deployment/client";
+	private static String defaultAxis2Repo = "repository/deployment/client";
     private static String defaultAxis2Conf = "repository/conf/axis2/axis2_client.xml";
 
     private static final String defaultUsername = "admin@org.com";
@@ -83,9 +81,9 @@ public class GRegRegistry implements DataStore {
         System.setProperty("javax.net.ssl.trustStorePassword", trustStorePassword);// "wso2carbon"
         System.setProperty("javax.net.ssl.trustStoreType", trustStoreType);// "JKS"
         System.setProperty("carbon.repo.write.mode", "true");
-        configContext =
-                ConfigurationContextFactory.createConfigurationContextFromFileSystem(axis2Repo,
-                        axis2Conf);
+	    ConfigurationContext configContext =
+			    ConfigurationContextFactory.createConfigurationContextFromFileSystem(axis2Repo,
+			                                                                         axis2Conf);
         return new WSRegistryServiceClient(gregServerURL, gregUsername, gregPassword, configContext);
     }
 

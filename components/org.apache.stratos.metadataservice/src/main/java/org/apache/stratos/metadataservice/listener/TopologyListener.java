@@ -44,43 +44,5 @@ public class TopologyListener implements ServletContextListener {
 		thread.stop();
 	}
     
-    protected void registerTopologyEventListeners() {
-        if (log.isDebugEnabled()) {
-            log.debug("Starting topology event message receiver thread");
-        }
-        TopologyEventReceiver topologyEventReceiver = new TopologyEventReceiver();
 
-        topologyEventReceiver.addEventListener(new MemberTerminatedEventListener() {
-            @Override
-            protected void onEvent(Event event) {
-                try {
-                    TopologyManager.acquireReadLock();
-                    if (log.isDebugEnabled()) {
-                        log.debug("Member terminated event received");
-                    }
-                    MemberTerminatedEvent memberTerminatedEvent = (MemberTerminatedEvent) event;
-                    if(log.isDebugEnabled()){
-                        log.info("Terminated event :::::::::::::::::::: " +
-                                memberTerminatedEvent.getServiceName());
-                    }
-                    new MetaDataAdmin().removeCartridgeMetaDataDetails("appli-1", ((MemberTerminatedEvent) event).getServiceName());
-
-
-                } catch (Exception e) {
-                    if (log.isErrorEnabled()) {
-                        log.error("Error processing member terminated event", e);
-                    }
-                } finally {
-                    TopologyManager.releaseReadLock();
-                }
-            }
-        });
-
-
-        Thread thread = new Thread(topologyEventReceiver);
-        thread.start();
-        if (log.isDebugEnabled()) {
-            log.info("Cartridge Agent topology receiver thread started");
-        }
-    }
 }

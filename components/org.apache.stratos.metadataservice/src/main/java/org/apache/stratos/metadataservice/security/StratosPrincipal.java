@@ -18,8 +18,7 @@
  */
 package org.apache.stratos.metadataservice.security;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
 
 import java.security.Principal;
 
@@ -28,19 +27,11 @@ import java.security.Principal;
  * authentication/authorization framework we only need username as the principal details
  */
 public class StratosPrincipal implements Principal {
-    private Log log = LogFactory.getLog(StratosPrincipal.class);
+
     private String userName;
 
     public StratosPrincipal(String userName) {
         this.userName = userName;
-    }
-
-    public boolean equals(Object another) {
-      return userName.equals((another));
-    }
-
-    public String toString() {
-        return userName.toString();
     }
 
     public int hashCode() {

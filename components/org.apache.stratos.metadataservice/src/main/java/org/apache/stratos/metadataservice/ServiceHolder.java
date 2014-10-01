@@ -18,15 +18,11 @@
  */
 package org.apache.stratos.metadataservice;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.stratos.common.TenantBillingService;
-import org.apache.stratos.tenant.mgt.core.TenantPersistor;
+
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.user.core.tenant.TenantManager;
-import org.wso2.carbon.utils.ConfigurationContextService;
+
 
 /**
  * Some of the admin services needs objects with states inside the runtime.
@@ -37,48 +33,20 @@ import org.wso2.carbon.utils.ConfigurationContextService;
  * doing that.
  */
 public class ServiceHolder {
-	private static Log log = LogFactory.getLog(ServiceHolder.class);
 
-	public static TenantManager getTenantManager() {
-		PrivilegedCarbonContext carbonContext =
-		                                        PrivilegedCarbonContext.getThreadLocalCarbonContext();
-		RealmService realmService = (RealmService) carbonContext.getOSGiService(RealmService.class);
-		return realmService.getTenantManager();
-	}
 
-	public static TenantBillingService getBillingService() {
-		PrivilegedCarbonContext carbonContext =
-		                                        PrivilegedCarbonContext.getThreadLocalCarbonContext();
-		TenantBillingService tenantBillingService =
-		                                            (TenantBillingService) carbonContext.getOSGiService(TenantBillingService.class);
-		return tenantBillingService;
-	}
 
 	public static RealmService getRealmService() {
 		PrivilegedCarbonContext carbonContext =
 		                                        PrivilegedCarbonContext.getThreadLocalCarbonContext();
-		RealmService realmService = (RealmService) carbonContext.getOSGiService(RealmService.class);
-		return realmService;
+		return (RealmService) carbonContext.getOSGiService(RealmService.class);
 	}
 
 	public static RegistryService getRegistryService() {
 		PrivilegedCarbonContext carbonContext =
 		                                        PrivilegedCarbonContext.getThreadLocalCarbonContext();
-		RegistryService registryService =
-		                                  (RegistryService) carbonContext.getOSGiService(RegistryService.class);
-		return registryService;
+		return (RegistryService) carbonContext.getOSGiService(RegistryService.class);
 	}
 
-	public static TenantPersistor getTenantPersistor() {
-		TenantPersistor tenantPersistor = new TenantPersistor();
-		return tenantPersistor;
-	}
 
-	public static ConfigurationContextService getConfigurationContext() {
-		PrivilegedCarbonContext carbonContext =
-		                                        PrivilegedCarbonContext.getThreadLocalCarbonContext();
-		ConfigurationContextService configurationContextService =
-		                                                          (ConfigurationContextService) carbonContext.getOSGiService(ConfigurationContextService.class);
-		return configurationContextService;
-	}
 }

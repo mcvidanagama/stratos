@@ -125,10 +125,8 @@ public class StratosAuthorizingHandler implements RequestHandler {
 		UserRealm userRealm = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserRealm();
 		AuthorizationManager authorizationManager = userRealm.getAuthorizationManager();
 
-		boolean isAuthorized =
-		                       isAuthorized(authorizationManager, userName, permissionString,
-		                                    ACTION_ON_RESOURCE);
-		return isAuthorized;
+		return isAuthorized(authorizationManager, userName, permissionString,
+		             ACTION_ON_RESOURCE);
 
 	}
 
@@ -177,18 +175,6 @@ public class StratosAuthorizingHandler implements RequestHandler {
 		}
 		log.error("The requested resource is not found. Please check the resource path etc..");
 		throw new AccessDeniedException("Method is not available : Unauthorized");
-	}
-
-	/**
-	 * The instance of the secured bean get injected by the IOC framework
-	 * 
-	 * @param securedObject
-	 */
-	public void setSecuredObject(Object securedObject) {
-		Class<?> clazz = ClassHelper.getRealClass(securedObject);
-		authorizationActionMap = getAuthorizationActionMap(clazz);
-		superTenantServiceSet = getSuperTenantServiceSet(clazz);
-
 	}
 
 	private Set<String> getSuperTenantServiceSet(Class<?> clazz) {

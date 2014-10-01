@@ -18,7 +18,6 @@
  */
 package org.apache.stratos.metadataservice.registry;
 
-import org.apache.axis2.context.ConfigurationContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.metadataservice.definition.CartridgeMetaData;
@@ -26,12 +25,13 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.registry.api.Resource;
 import org.wso2.carbon.registry.core.Comment;
-import org.wso2.carbon.registry.core.service.RegistryService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 
-
+/**
+ * Factory class for carbon registry
+ */
 public class CarbonRegistry extends AbstractAdmin implements DataStore {
 
 
@@ -41,7 +41,7 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
 
     @Context
     HttpServletRequest httpServletRequest;
-    private RegistryService registryService;
+
 
     public CarbonRegistry() {
 
@@ -91,7 +91,8 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
 
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
-                log.error("addCartridgeMetaDataDetails", e);
+	            String msg="Add CartridgeMeta Data Details Failed";
+                log.error(msg, e);
             }
         }
 
@@ -130,7 +131,8 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
         } catch (Exception e) {
 
             if (log.isErrorEnabled()) {
-                log.error("getCartridgeMetaDataDetails", e);
+	            String msg="Get CartridgeMeta Data Details Failed";
+                log.error(msg, e);
             }
         }
         return cartridgeMetaData.toString();

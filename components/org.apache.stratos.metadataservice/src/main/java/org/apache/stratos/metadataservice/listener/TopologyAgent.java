@@ -23,9 +23,7 @@ package org.apache.stratos.metadataservice.listener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.messaging.event.Event;
-import org.apache.stratos.messaging.event.topology.MemberSuspendedEvent;
 import org.apache.stratos.messaging.event.topology.MemberTerminatedEvent;
-import org.apache.stratos.messaging.listener.topology.MemberSuspendedEventListener;
 import org.apache.stratos.messaging.listener.topology.MemberTerminatedEventListener;
 import org.apache.stratos.messaging.message.receiver.topology.TopologyEventReceiver;
 import org.apache.stratos.messaging.message.receiver.topology.TopologyManager;
@@ -37,8 +35,6 @@ import org.apache.stratos.metadataservice.services.MetaDataAdmin;
 public class TopologyAgent implements Runnable {
 
 	private static final Log log = LogFactory.getLog(TopologyAgent.class);
-
-	private boolean terminated;
 
 	@Override
 	public void run() {
