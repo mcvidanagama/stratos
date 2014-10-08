@@ -29,7 +29,7 @@ import java.util.List;
  * Interface of the Data Store
  */
 public interface DataStore {
-	public String addCartridgeMetaDataDetails(String applicationName, String cartridgeType,
+	public void addCartridgeMetaDataDetails(String applicationName, String cartridgeType,
 	                                          CartridgeMetaData cartridgeMetaData) throws Exception;
 
 	public String getCartridgeMetaDataDetails(String applicationName, String cartridgeType)

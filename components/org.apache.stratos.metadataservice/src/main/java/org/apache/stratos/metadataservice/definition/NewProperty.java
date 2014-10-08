@@ -30,8 +30,8 @@ import java.util.List;
 @XmlRootElement(name="properties")
 public class NewProperty implements Serializable{
 
-    private String key;
-    private List<String> values = new ArrayList<String>();
+    public String key;
+    public List<String> values = new ArrayList<String>();
 
     public NewProperty(){}
     public NewProperty(String key, String value){

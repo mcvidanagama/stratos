@@ -102,7 +102,7 @@ public class GRegRegistry implements DataStore {
 	 * org.apache.stratos.metadataservice.definition.CartridgeMetaData)
 	 */
 	@Override
-	public String addCartridgeMetaDataDetails(String applicationName, String cartridgeType,
+	public void addCartridgeMetaDataDetails(String applicationName, String cartridgeType,
 	                                          CartridgeMetaData cartridgeMetaData) throws Exception {
 	
 		Registry registry = setRegistry();
@@ -124,11 +124,7 @@ public class GRegRegistry implements DataStore {
 			resource.addProperty("Version", cartridgeMetaData.version);
 			resource.addProperty("host", cartridgeMetaData.host);
 
-			for (PropertyBean prop : cartridgeMetaData.properties) {
-				resource.addProperty("hostname", prop.hostname);
-				resource.addProperty("username", prop.username);
-				resource.addProperty("password", prop.password);
-			}
+
 
 			registry.put(resourcePath, resource);
 
@@ -149,7 +145,7 @@ public class GRegRegistry implements DataStore {
 			((WSRegistryServiceClient) registry).logut();
 		}
 	
-		return "success";
+
 	}
 
 	/*
@@ -190,7 +186,7 @@ public class GRegRegistry implements DataStore {
 				prop.password = getResource.getProperty("password");
 				lst.add(prop);
 
-				cartridgeMetaData.properties = lst;
+				//cartridgeMetaData.properties = lst;
 
 			}
 

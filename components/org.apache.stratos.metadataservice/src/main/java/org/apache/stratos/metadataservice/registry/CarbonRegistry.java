@@ -23,7 +23,8 @@ import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 
-import org.apache.axis2.context.ConfigurationContext;
+
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.metadataservice.definition.*;
@@ -32,152 +33,122 @@ import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.api.Resource;
 import org.wso2.carbon.registry.core.Comment;
-import org.wso2.carbon.registry.core.service.RegistryService;
+
+/**
+ * Carbon registry implementation
+ */
 
 public class CarbonRegistry extends AbstractAdmin implements DataStore {
 
-	private static Log log = LogFactory.getLog(CarbonRegistry.class);
-	@Context
-	HttpServletRequest httpServletRequest;
+    private static Log log = LogFactory.getLog(CarbonRegistry.class);
+    @Context
+    HttpServletRequest httpServletRequest;
 
-	private static ConfigurationContext configContext = null;
+    private static final String mainResource = "/startos/";
 
-	private static String defaultAxis2Repo = "repository/deployment/client";
-	private static String defaultAxis2Conf = "repository/conf/axis2/axis2_client.xml";
 
-	private static final String defaultUsername = "admin@org.com";
-	private static final String defaultPassword = "admin123";
-	private static final String serverURL = "https://localhost:9445/services/";
-	private static final String mainResource = "/startos/";
-	private static final int defaultRank = 3;
-	private RegistryService registryService;
+    public CarbonRegistry() {
 
-	public CarbonRegistry() {
+    }
 
-	}
+    /*
+     * Add the meta data to governance registry
+     *
+     * @see org.apache.stratos.metadataservice.registry.DataStore#
+     * addCartridgeMetaDataDetails(java.lang.String, java.lang.String,
+     * org.apache.stratos.metadataservice.definition.CartridgeMetaData)
+     */
+    @Override
+    public void addCartridgeMetaDataDetails(String applicationName, String cartridgeType,
+                                            CartridgeMetaData cartridgeMetaData) throws Exception {
+        log.debug("Adding meta data details");
 
-	/*
-	 * Add the meta data to governance registry
-	 * 
-	 * @see org.apache.stratos.metadataservice.registry.DataStore#
-	 * addCartridgeMetaDataDetails(java.lang.String, java.lang.String,
-	 * org.apache.stratos.metadataservice.definition.CartridgeMetaData)
-	 */
-	@Override
-	public String addCartridgeMetaDataDetails(String applicationName, String cartridgeType,
-	                                          CartridgeMetaData cartridgeMetaData) throws Exception {
-		log.debug("Adding meta data details");
-		
-		Registry tempRegistry = getGovernanceUserRegistry();
-		try {
+        Registry tempRegistry = getGovernanceUserRegistry();
 
-			Resource resource = tempRegistry.newResource();
 
-			String type = cartridgeMetaData.type;
+        Resource resource = tempRegistry.newResource();
 
-			resource.setContent("Application description :: " + type);
+        String type = cartridgeMetaData.type;
 
-			String resourcePath = mainResource + applicationName + "/" + cartridgeType;
+        resource.setContent("Application description :: " + type);
 
-			resource.addProperty("Application Name", cartridgeMetaData.applicationName);
-			resource.addProperty("Display Name", cartridgeMetaData.displayName);
-			resource.addProperty("Description", cartridgeMetaData.description);
-			resource.addProperty("Cartidge Type", cartridgeMetaData.type);
-			resource.addProperty("provider", cartridgeMetaData.provider);
-			resource.addProperty("Version", cartridgeMetaData.version);
-			resource.addProperty("host", cartridgeMetaData.host);
+        String resourcePath = mainResource + applicationName + "/" + cartridgeType;
 
-			for (PropertyBean prop : cartridgeMetaData.properties) {
-				resource.addProperty("hostname", prop.hostname);
-				resource.addProperty("username", prop.username);
-				resource.addProperty("password", prop.password);
-			}
+        resource.addProperty("Application Name", cartridgeMetaData.applicationName);
+        resource.addProperty("Display Name", cartridgeMetaData.displayName);
+        resource.addProperty("Description", cartridgeMetaData.description);
+        resource.addProperty("Cartidge Type", cartridgeMetaData.type);
+        resource.addProperty("provider", cartridgeMetaData.provider);
+        resource.addProperty("Version", cartridgeMetaData.version);
+        resource.addProperty("Host", cartridgeMetaData.host);
+        resource.addProperty("Properties", cartridgeMetaData.properties);
 
-			tempRegistry.put(resourcePath, resource);
+        tempRegistry.put(resourcePath, resource);
 
-			if(log.isDebugEnabled()){
-				log.debug("A resource added to: " + resourcePath);
-			}
-		
-			Comment comment = new Comment();
-			comment.setText("Added the " + applicationName + " " + type + " cartridge");
-			// registry.addComment(resourcePath, comment);
+        if (log.isDebugEnabled()) {
+            log.debug("A resource added to: " + resourcePath);
+        }
 
-		} catch (Exception e) {
-			if (log.isErrorEnabled()) {
-				log.error("addCartridgeMetaDataDetails", e);
-			}
-		} finally {
-			// Close the session
+        Comment comment = new Comment();
+        comment.setText("Added the " + applicationName + " " + type + " cartridge");
+        // registry.addComment(resourcePath, comment);
 
-		}
-        
-		return "success";
-	}
 
-	/*
-	 * Get the meta data from the registry
-	 * 
-	 * @see org.apache.stratos.metadataservice.registry.DataStore#
-	 * getCartridgeMetaDataDetails(java.lang.String, java.lang.String)
-	 */
-	@Override
-	public String getCartridgeMetaDataDetails(String applicationName, String cartridgeType)
-	                                                                                       throws Exception {
-		Registry registry = getGovernanceUserRegistry();
-		CartridgeMetaData cartridgeMetaData = new CartridgeMetaData();
-		try {
+    }
 
-			String resourcePath = mainResource + applicationName + "/" + cartridgeType;
-			if (registry.resourceExists(resourcePath)) {
+    /*
+     * Get the meta data from the registry
+     *
+     * @see org.apache.stratos.metadataservice.registry.DataStore#
+     * getCartridgeMetaDataDetails(java.lang.String, java.lang.String)
+     */
+    @Override
+    public String getCartridgeMetaDataDetails(String applicationName, String cartridgeType)
+            throws Exception {
+        Registry registry = getGovernanceUserRegistry();
+        CartridgeMetaData cartridgeMetaData = new CartridgeMetaData();
+        try {
 
-				Resource getResource = registry.get(resourcePath);
-			
-				cartridgeMetaData.type = getResource.getProperty("Cartidge Type");
-				cartridgeMetaData.applicationName = getResource.getProperty("Application Name");
-				cartridgeMetaData.description = getResource.getProperty("Description");
-				cartridgeMetaData.displayName = getResource.getProperty("Display Name");
-				cartridgeMetaData.host = getResource.getProperty("host");
-				cartridgeMetaData.provider = getResource.getProperty("provider");
-				cartridgeMetaData.version = getResource.getProperty("Version");
+            String resourcePath = mainResource + applicationName + "/" + cartridgeType;
+            if (registry.resourceExists(resourcePath)) {
 
-				List<PropertyBean> lst = new ArrayList<PropertyBean>();
-				PropertyBean prop = new PropertyBean();
-				prop.hostname = getResource.getProperty("hostname");
-				prop.username = getResource.getProperty("username");
-				prop.password = getResource.getProperty("password");
-				lst.add(prop);
+                Resource getResource = registry.get(resourcePath);
 
-				cartridgeMetaData.properties = lst;
+                cartridgeMetaData.type = getResource.getProperty("Cartidge Type");
+                cartridgeMetaData.applicationName = getResource.getProperty("Application Name");
+                cartridgeMetaData.description = getResource.getProperty("Description");
+                cartridgeMetaData.displayName = getResource.getProperty("Display Name");
+                cartridgeMetaData.host = getResource.getProperty("host");
+                cartridgeMetaData.provider = getResource.getProperty("provider");
+                cartridgeMetaData.version = getResource.getProperty("Version");
+                cartridgeMetaData.properties=getResource.getProperty("Properties");
 
-			}
 
-		} catch (Exception e) {
+            }
 
-			if (log.isErrorEnabled()) {
-				log.error("getCartridgeMetaDataDetails", e);
-			}
-		} finally {
-			// Close the session
+        } catch (Exception e) {
 
-		}
-		return cartridgeMetaData.toString();
-	}
+            if (log.isErrorEnabled()) {
+                log.error("getCartridgeMetaDataDetails", e);
+            }
+        }
+        return cartridgeMetaData.toString();
+    }
 
-	/*
-	 * 
-	 * Remove the meta data from the registry
-	 * 
-	 * @see org.apache.stratos.metadataservice.registry.DataStore#
-	 * removeCartridgeMetaDataDetails(java.lang.String, java.lang.String)
-	 */
-	@Override
-	public boolean removeCartridgeMetaDataDetails(String applicationName, String cartridgeType)
-	                                                                                           throws Exception {
-		Registry registry = getGovernanceUserRegistry();
-		String resourcePath = mainResource + applicationName + "/" + cartridgeType;
+    /*
+     *
+     * Remove the meta data from the registry
+     *
+     * @see org.apache.stratos.metadataservice.registry.DataStore#
+     * removeCartridgeMetaDataDetails(java.lang.String, java.lang.String)
+     */
+    @Override
+    public boolean removeCartridgeMetaDataDetails(String applicationName, String cartridgeType)
+            throws Exception {
+        Registry registry = getGovernanceUserRegistry();
+        String resourcePath = mainResource + applicationName + "/" + cartridgeType;
         if (registry != null) {
-		    registry.delete(resourcePath);
+            registry.delete(resourcePath);
             return true;
         } else {
             if (log.isDebugEnabled()) {
@@ -185,14 +156,13 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
             }
             return false;
         }
-	}
-
+    }
 
 
     public List<NewProperty> getPropertiesOfCluster(String applicationName, String clusterId) throws RegistryException {
         Registry tempRegistry = getGovernanceUserRegistry();
         String resourcePath = mainResource + applicationName + "/" + clusterId;
-        if(!tempRegistry.resourceExists(resourcePath)){
+        if (!tempRegistry.resourceExists(resourcePath)) {
             return null;
             //throw new RegistryException("Cluster does not exist at " + resourcePath);
         }
@@ -202,10 +172,9 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
 
         Properties props = regResource.getProperties();
         Enumeration<?> x = props.propertyNames();
-        while(x.hasMoreElements())
-        {
+        while (x.hasMoreElements()) {
             String key = (String) x.nextElement();
-            List<String>  values = regResource.getPropertyValues(key);
+            List<String> values = regResource.getPropertyValues(key);
             NewProperty property = new NewProperty();
             property.setKey(key);
             String[] valueArr = new String[values.size()];
@@ -235,7 +204,7 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
         Resource regResource;
         regResource = createOrGetResourceforCluster(tempRegistry, resourcePath);
 
-        for(NewProperty property : properties){
+        for (NewProperty property : properties) {
             regResource.setProperty(property.getKey(), (Arrays.asList(property.getValues())));
 
         }
@@ -248,7 +217,7 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
         String resourcePath = mainResource + applicationId;
         Resource regResource = createOrGetResourceforApplication(tempRegistry, resourcePath);
 
-        for(NewProperty property : properties){
+        for (NewProperty property : properties) {
             regResource.setProperty(property.getKey(), (Arrays.asList(property.getValues())));
 
         }
@@ -268,7 +237,7 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
     public List<NewProperty> getPropertiesOfApplication(String applicationId) throws RegistryException {
         Registry tempRegistry = getGovernanceUserRegistry();
         String resourcePath = mainResource + applicationId;
-        if(!tempRegistry.resourceExists(resourcePath)){
+        if (!tempRegistry.resourceExists(resourcePath)) {
             return null;
             //throw new RegistryException("Cluster does not exist at " + resourcePath);
         }
@@ -278,10 +247,9 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
 
         Properties props = regResource.getProperties();
         Enumeration<?> x = props.propertyNames();
-        while(x.hasMoreElements())
-        {
+        while (x.hasMoreElements()) {
             String key = (String) x.nextElement();
-            List<String>  values = regResource.getPropertyValues(key);
+            List<String> values = regResource.getPropertyValues(key);
             NewProperty property = new NewProperty();
             property.setKey(key);
             String[] valueArr = new String[values.size()];
@@ -290,7 +258,7 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
             newProperties.add(property);
 
         }
-        if(newProperties.size() == 0){
+        if (newProperties.size() == 0) {
             return null;
         }
         return newProperties;
@@ -299,11 +267,11 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
 
     private Resource createOrGetResourceforApplication(Registry tempRegistry, String resourcePath) throws RegistryException {
         Resource regResource;
-        if(tempRegistry.resourceExists(resourcePath)) {
+        if (tempRegistry.resourceExists(resourcePath)) {
             regResource = tempRegistry.get(resourcePath);
-        }else{
+        } else {
             regResource = tempRegistry.newCollection();
-            if(log.isDebugEnabled()){
+            if (log.isDebugEnabled()) {
                 log.debug("Registry resource is create at path " + regResource.getPath() + " for application");
             }
         }
@@ -313,14 +281,14 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
     private Resource createOrGetResourceforCluster(Registry tempRegistry, String resourcePath) throws RegistryException {
 
         int index = resourcePath.lastIndexOf('/');
-        String applicationResourcePath = resourcePath.substring(0,index);
+        String applicationResourcePath = resourcePath.substring(0, index);
         createOrGetResourceforApplication(tempRegistry, applicationResourcePath);
         Resource regResource;
-        if(tempRegistry.resourceExists(resourcePath)) {
+        if (tempRegistry.resourceExists(resourcePath)) {
             regResource = tempRegistry.get(resourcePath);
-        }else{
+        } else {
             regResource = tempRegistry.newResource();
-            if(log.isDebugEnabled()){
+            if (log.isDebugEnabled()) {
                 log.debug("Registry resource is create at path for cluster" + regResource.getPath() + " for cluster");
             }
         }
