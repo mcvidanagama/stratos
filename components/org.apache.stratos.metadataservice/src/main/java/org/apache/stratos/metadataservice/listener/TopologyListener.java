@@ -34,6 +34,10 @@ public class TopologyListener implements ServletContextListener {
 	private TopologyAgent topologyThread = null;
 	private Thread thread = null;
 
+    /**
+     * Initialization of the context
+     * @param arg0
+     */
 	@Override
 	public void contextInitialized(ServletContextEvent arg0) {
 		log.info("Topology literner started....");
@@ -50,6 +54,10 @@ public class TopologyListener implements ServletContextListener {
 
 	}
 
+    /**
+     * Destroy the context
+     * @param arg0
+     */
 	@Override
 	public void contextDestroyed(ServletContextEvent arg0)
     {

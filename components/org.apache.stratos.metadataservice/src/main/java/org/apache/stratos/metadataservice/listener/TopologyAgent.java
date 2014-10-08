@@ -52,6 +52,9 @@ public class TopologyAgent implements Runnable {
 
 	}
 
+    /**
+     * Register the topology event listener
+     */
 	private void registerTopologyEventListeners() {
         final String defaultRegType = "carbon";
 
@@ -106,7 +109,7 @@ public class TopologyAgent implements Runnable {
 					}
 					MemberSuspendedEvent memberSuspendedEvent = (MemberSuspendedEvent) event;
                     //TODO : Add the funtionalilty for the suspended event
-					// extensionHandler.onMemberSuspendedEvent(memberSuspendedEvent);
+
 				} catch (Exception e) {
 					if (log.isErrorEnabled()) {
 						log.error("Error processing member suspended event", e);

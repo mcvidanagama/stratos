@@ -24,7 +24,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 
 
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.metadataservice.definition.*;
@@ -51,12 +50,14 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
 
     }
 
-    /*
+
+    /**
      * Add the meta data to governance registry
      *
-     * @see org.apache.stratos.metadataservice.registry.DataStore#
-     * addCartridgeMetaDataDetails(java.lang.String, java.lang.String,
-     * org.apache.stratos.metadataservice.definition.CartridgeMetaData)
+     * @param applicationName Application Name
+     * @param cartridgeType Cartridge Type
+     * @param cartridgeMetaData Cartridge Meta Data
+     * @throws Exception
      */
     @Override
     public void addCartridgeMetaDataDetails(String applicationName, String cartridgeType,
@@ -96,51 +97,50 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
 
     }
 
-    /*
+    /**
      * Get the meta data from the registry
      *
-     * @see org.apache.stratos.metadataservice.registry.DataStore#
-     * getCartridgeMetaDataDetails(java.lang.String, java.lang.String)
+     * @param applicationName
+     * @param cartridgeType
+     * @return
+     * @throws Exception
      */
     @Override
     public String getCartridgeMetaDataDetails(String applicationName, String cartridgeType)
             throws Exception {
         Registry registry = getGovernanceUserRegistry();
         CartridgeMetaData cartridgeMetaData = new CartridgeMetaData();
-        try {
-
-            String resourcePath = mainResource + applicationName + "/" + cartridgeType;
-            if (registry.resourceExists(resourcePath)) {
-
-                Resource getResource = registry.get(resourcePath);
-
-                cartridgeMetaData.type = getResource.getProperty("Cartidge Type");
-                cartridgeMetaData.applicationName = getResource.getProperty("Application Name");
-                cartridgeMetaData.description = getResource.getProperty("Description");
-                cartridgeMetaData.displayName = getResource.getProperty("Display Name");
-                cartridgeMetaData.host = getResource.getProperty("host");
-                cartridgeMetaData.provider = getResource.getProperty("provider");
-                cartridgeMetaData.version = getResource.getProperty("Version");
-                cartridgeMetaData.properties=getResource.getProperty("Properties");
 
 
-            }
+        String resourcePath = mainResource + applicationName + "/" + cartridgeType;
+        if (registry.resourceExists(resourcePath)) {
 
-        } catch (Exception e) {
+            Resource getResource = registry.get(resourcePath);
 
-            if (log.isErrorEnabled()) {
-                log.error("getCartridgeMetaDataDetails", e);
-            }
+            cartridgeMetaData.type = getResource.getProperty("Cartidge Type");
+            cartridgeMetaData.applicationName = getResource.getProperty("Application Name");
+            cartridgeMetaData.description = getResource.getProperty("Description");
+            cartridgeMetaData.displayName = getResource.getProperty("Display Name");
+            cartridgeMetaData.host = getResource.getProperty("host");
+            cartridgeMetaData.provider = getResource.getProperty("provider");
+            cartridgeMetaData.version = getResource.getProperty("Version");
+            cartridgeMetaData.properties = getResource.getProperty("Properties");
+
+
         }
+
+
         return cartridgeMetaData.toString();
     }
 
-    /*
-     *
+
+    /**
      * Remove the meta data from the registry
      *
-     * @see org.apache.stratos.metadataservice.registry.DataStore#
-     * removeCartridgeMetaDataDetails(java.lang.String, java.lang.String)
+     * @param applicationName
+     * @param cartridgeType
+     * @return
+     * @throws Exception
      */
     @Override
     public boolean removeCartridgeMetaDataDetails(String applicationName, String cartridgeType)

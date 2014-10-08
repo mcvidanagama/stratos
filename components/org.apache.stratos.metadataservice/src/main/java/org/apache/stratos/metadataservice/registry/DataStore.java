@@ -18,7 +18,6 @@
  */
 package org.apache.stratos.metadataservice.registry;
 
-import org.apache.stratos.metadataservice.definition.ApplicationBean;
 import org.apache.stratos.metadataservice.definition.CartridgeMetaData;
 import org.apache.stratos.metadataservice.definition.NewProperty;
 import org.wso2.carbon.registry.api.RegistryException;
