@@ -31,7 +31,7 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.api.Resource;
-import org.wso2.carbon.registry.core.Comment;
+
 
 /**
  * Carbon registry implementation
@@ -89,10 +89,6 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
         if (log.isDebugEnabled()) {
             log.debug("A resource added to: " + resourcePath);
         }
-
-        Comment comment = new Comment();
-        comment.setText("Added the " + applicationName + " " + type + " cartridge");
-        // registry.addComment(resourcePath, comment);
 
 
     }
