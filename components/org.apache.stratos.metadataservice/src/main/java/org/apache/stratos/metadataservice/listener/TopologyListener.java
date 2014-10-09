@@ -36,7 +36,7 @@ public class TopologyListener implements ServletContextListener {
 
     /**
      * Initialization of the context
-     * @param arg0
+     * @param arg0 ServletContextEvent
      */
 	@Override
 	public void contextInitialized(ServletContextEvent arg0) {
@@ -56,7 +56,7 @@ public class TopologyListener implements ServletContextListener {
 
     /**
      * Destroy the context
-     * @param arg0
+     * @param arg0 ServletContextEvent
      */
 	@Override
 	public void contextDestroyed(ServletContextEvent arg0)

@@ -96,8 +96,8 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
     /**
      * Get the meta data from the registry
      *
-     * @param applicationName
-     * @param cartridgeType
+     * @param applicationName name of the application
+     * @param cartridgeType cartridge type
      * @return
      * @throws Exception
      */
@@ -133,8 +133,8 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
     /**
      * Remove the meta data from the registry
      *
-     * @param applicationName
-     * @param cartridgeType
+     * @param applicationName name of the application
+     * @param cartridgeType cartridge type
      * @return
      * @throws Exception
      */
