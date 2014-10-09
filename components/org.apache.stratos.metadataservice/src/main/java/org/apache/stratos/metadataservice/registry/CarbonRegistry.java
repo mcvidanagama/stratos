@@ -154,7 +154,14 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
         }
     }
 
-
+    /**
+     * Get Properties of clustor
+     * @param applicationName
+     * @param clusterId
+     * @return
+     * @throws RegistryException
+     */
+    @Override
     public List<NewProperty> getPropertiesOfCluster(String applicationName, String clusterId) throws RegistryException {
         Registry tempRegistry = getGovernanceUserRegistry();
         String resourcePath = mainResource + applicationName + "/" + clusterId;
@@ -182,6 +189,14 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
         return newProperties;
     }
 
+    /**
+     * Add property to cluster
+     * @param applicationId
+     * @param clusterId
+     * @param property
+     * @throws RegistryException
+     */
+    @Override
     public void addPropertyToCluster(String applicationId, String clusterId, NewProperty property) throws RegistryException {
         Registry tempRegistry = getGovernanceUserRegistry();
         String resourcePath = mainResource + applicationId + "/" + clusterId;
@@ -193,6 +208,13 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
 
     }
 
+    /**
+     * Add properties to clustor
+     * @param applicationName
+     * @param clusterId
+     * @param properties
+     * @throws RegistryException
+     */
     @Override
     public void addPropertiesToCluster(String applicationName, String clusterId, NewProperty[] properties) throws RegistryException {
         Registry tempRegistry = getGovernanceUserRegistry();
@@ -208,6 +230,12 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
         log.info(String.format("Properties  are added to cluster %s of application %s", clusterId, applicationName));
     }
 
+    /**
+     * Add properties to application
+     * @param applicationId
+     * @param properties
+     * @throws RegistryException
+     */
     public void addPropertiesToApplication(String applicationId, NewProperty[] properties) throws RegistryException {
         Registry tempRegistry = getGovernanceUserRegistry();
         String resourcePath = mainResource + applicationId;
@@ -221,6 +249,12 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
         log.info(String.format("Properties  are added to application %s", applicationId));
     }
 
+    /**
+     * Add property to application
+     * @param applicationId
+     * @param property
+     * @throws RegistryException
+     */
     public void addPropertyToApplication(String applicationId, NewProperty property) throws RegistryException {
         Registry tempRegistry = getGovernanceUserRegistry();
         String resourcePath = mainResource + applicationId;
@@ -230,6 +264,12 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
         log.info(String.format("Property %s is added to application %s ", property.getKey(), applicationId));
     }
 
+    /**
+     * Get properties of application
+     * @param applicationId
+     * @return
+     * @throws RegistryException
+     */
     public List<NewProperty> getPropertiesOfApplication(String applicationId) throws RegistryException {
         Registry tempRegistry = getGovernanceUserRegistry();
         String resourcePath = mainResource + applicationId;
@@ -260,7 +300,13 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
         return newProperties;
     }
 
-
+    /**
+     * Create or get resources for application
+     * @param tempRegistry
+     * @param resourcePath
+     * @return
+     * @throws RegistryException
+     */
     private Resource createOrGetResourceforApplication(Registry tempRegistry, String resourcePath) throws RegistryException {
         Resource regResource;
         if (tempRegistry.resourceExists(resourcePath)) {
@@ -274,6 +320,13 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
         return regResource;
     }
 
+    /**
+     * Create and get resources for Clustor
+     * @param tempRegistry
+     * @param resourcePath
+     * @return
+     * @throws RegistryException
+     */
     private Resource createOrGetResourceforCluster(Registry tempRegistry, String resourcePath) throws RegistryException {
 
         int index = resourcePath.lastIndexOf('/');
