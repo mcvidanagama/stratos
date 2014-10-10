@@ -17,7 +17,7 @@
                     <xs:element minOccurs="0" name="message" nillable="true" type="xs:string"></xs:element>
                 </xs:sequence>
             </xs:complexType>
-            <xs:complexType name="InvalidClusterException">
+            <xs:complexType name="UnregisteredCartridgeException">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="message" nillable="true" type="xs:string"></xs:element>
                 </xs:sequence>
@@ -32,7 +32,12 @@
                     <xs:element minOccurs="0" name="message" nillable="true" type="xs:string"></xs:element>
                 </xs:sequence>
             </xs:complexType>
-            <xs:complexType name="UnregisteredCartridgeException">
+            <xs:complexType name="MemberTerminationFailedException">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="message" nillable="true" type="xs:string"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="InvalidClusterException">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="message" nillable="true" type="xs:string"></xs:element>
                 </xs:sequence>
@@ -95,18 +100,25 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="CloudControllerServiceInvalidClusterException">
+            <xs:element name="CloudControllerServiceUnregisteredCartridgeException">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="InvalidClusterException" nillable="true" type="ax220:InvalidClusterException"></xs:element>
+                        <xs:element minOccurs="0" name="UnregisteredCartridgeException" nillable="true" type="ax220:UnregisteredCartridgeException"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="updateKubernetesController">
+            <xs:element name="updateContainers">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="clusterId" nillable="true" type="xs:string"></xs:element>
                         <xs:element minOccurs="0" name="replicas" type="xs:int"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateContainersResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax223:MemberContext"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -152,6 +164,27 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="CloudControllerServiceMemberTerminationFailedException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="MemberTerminationFailedException" nillable="true" type="ax220:MemberTerminationFailedException"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="terminateContainer">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="memberId" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="CloudControllerServiceInvalidClusterException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="InvalidClusterException" nillable="true" type="ax220:InvalidClusterException"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="terminateAllInstances">
                 <xs:complexType>
                     <xs:sequence>
@@ -163,13 +196,6 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="clusterId" nillable="true" type="xs:string"></xs:element>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="CloudControllerServiceUnregisteredCartridgeException">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="UnregisteredCartridgeException" nillable="true" type="ax220:UnregisteredCartridgeException"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -482,6 +508,12 @@
     <wsdl:message name="CloudControllerServiceInvalidPartitionException">
         <wsdl:part name="parameters" element="ns:CloudControllerServiceInvalidPartitionException"></wsdl:part>
     </wsdl:message>
+    <wsdl:message name="terminateContainerRequest">
+        <wsdl:part name="parameters" element="ns:terminateContainer"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="CloudControllerServiceMemberTerminationFailedException">
+        <wsdl:part name="parameters" element="ns:CloudControllerServiceMemberTerminationFailedException"></wsdl:part>
+    </wsdl:message>
     <wsdl:message name="validateDeploymentPolicyRequest">
         <wsdl:part name="parameters" element="ns:validateDeploymentPolicy"></wsdl:part>
     </wsdl:message>
@@ -563,20 +595,27 @@
     <wsdl:message name="startInstanceResponse">
         <wsdl:part name="parameters" element="ns:startInstanceResponse"></wsdl:part>
     </wsdl:message>
+    <wsdl:message name="updateContainersRequest">
+        <wsdl:part name="parameters" element="ns:updateContainers"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="updateContainersResponse">
+        <wsdl:part name="parameters" element="ns:updateContainersResponse"></wsdl:part>
+    </wsdl:message>
     <wsdl:message name="getClusterContextRequest">
         <wsdl:part name="parameters" element="ns:getClusterContext"></wsdl:part>
     </wsdl:message>
     <wsdl:message name="getClusterContextResponse">
         <wsdl:part name="parameters" element="ns:getClusterContextResponse"></wsdl:part>
     </wsdl:message>
-    <wsdl:message name="updateKubernetesControllerRequest">
-        <wsdl:part name="parameters" element="ns:updateKubernetesController"></wsdl:part>
-    </wsdl:message>
     <wsdl:portType name="CloudControllerServicePortType">
         <wsdl:operation name="validatePartition">
             <wsdl:input message="ns:validatePartitionRequest" wsaw:Action="urn:validatePartition"></wsdl:input>
             <wsdl:output message="ns:validatePartitionResponse" wsaw:Action="urn:validatePartitionResponse"></wsdl:output>
             <wsdl:fault message="ns:CloudControllerServiceInvalidPartitionException" name="CloudControllerServiceInvalidPartitionException" wsaw:Action="urn:validatePartitionCloudControllerServiceInvalidPartitionException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="terminateContainer">
+            <wsdl:input message="ns:terminateContainerRequest" wsaw:Action="urn:terminateContainer"></wsdl:input>
+            <wsdl:fault message="ns:CloudControllerServiceMemberTerminationFailedException" name="CloudControllerServiceMemberTerminationFailedException" wsaw:Action="urn:terminateContainerCloudControllerServiceMemberTerminationFailedException"></wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="validateDeploymentPolicy">
             <wsdl:input message="ns:validateDeploymentPolicyRequest" wsaw:Action="urn:validateDeploymentPolicy"></wsdl:input>
@@ -642,13 +681,14 @@
             <wsdl:fault message="ns:CloudControllerServiceUnregisteredCartridgeException" name="CloudControllerServiceUnregisteredCartridgeException" wsaw:Action="urn:startInstanceCloudControllerServiceUnregisteredCartridgeException"></wsdl:fault>
             <wsdl:fault message="ns:CloudControllerServiceInvalidIaasProviderException" name="CloudControllerServiceInvalidIaasProviderException" wsaw:Action="urn:startInstanceCloudControllerServiceInvalidIaasProviderException"></wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="updateContainers">
+            <wsdl:input message="ns:updateContainersRequest" wsaw:Action="urn:updateContainers"></wsdl:input>
+            <wsdl:output message="ns:updateContainersResponse" wsaw:Action="urn:updateContainersResponse"></wsdl:output>
+            <wsdl:fault message="ns:CloudControllerServiceUnregisteredCartridgeException" name="CloudControllerServiceUnregisteredCartridgeException" wsaw:Action="urn:updateContainersCloudControllerServiceUnregisteredCartridgeException"></wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="getClusterContext">
             <wsdl:input message="ns:getClusterContextRequest" wsaw:Action="urn:getClusterContext"></wsdl:input>
             <wsdl:output message="ns:getClusterContextResponse" wsaw:Action="urn:getClusterContextResponse"></wsdl:output>
-        </wsdl:operation>
-        <wsdl:operation name="updateKubernetesController">
-            <wsdl:input message="ns:updateKubernetesControllerRequest" wsaw:Action="urn:updateKubernetesController"></wsdl:input>
-            <wsdl:fault message="ns:CloudControllerServiceInvalidClusterException" name="CloudControllerServiceInvalidClusterException" wsaw:Action="urn:updateKubernetesControllerCloudControllerServiceInvalidClusterException"></wsdl:fault>
         </wsdl:operation>
     </wsdl:portType>
     <wsdl:binding name="CloudControllerServiceSoap11Binding" type="ns:CloudControllerServicePortType">
@@ -663,6 +703,15 @@
             </wsdl:output>
             <wsdl:fault name="CloudControllerServiceInvalidPartitionException">
                 <soap:fault use="literal" name="CloudControllerServiceInvalidPartitionException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="terminateContainer">
+            <soap:operation soapAction="urn:terminateContainer" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="CloudControllerServiceMemberTerminationFailedException">
+                <soap:fault use="literal" name="CloudControllerServiceMemberTerminationFailedException"></soap:fault>
             </wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="validateDeploymentPolicy">
@@ -827,13 +876,16 @@
                 <soap:body use="literal"></soap:body>
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="updateKubernetesController">
-            <soap:operation soapAction="urn:updateKubernetesController" style="document"></soap:operation>
+        <wsdl:operation name="updateContainers">
+            <soap:operation soapAction="urn:updateContainers" style="document"></soap:operation>
             <wsdl:input>
                 <soap:body use="literal"></soap:body>
             </wsdl:input>
-            <wsdl:fault name="CloudControllerServiceInvalidClusterException">
-                <soap:fault use="literal" name="CloudControllerServiceInvalidClusterException"></soap:fault>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="CloudControllerServiceUnregisteredCartridgeException">
+                <soap:fault use="literal" name="CloudControllerServiceUnregisteredCartridgeException"></soap:fault>
             </wsdl:fault>
         </wsdl:operation>
     </wsdl:binding>
@@ -849,6 +901,15 @@
             </wsdl:output>
             <wsdl:fault name="CloudControllerServiceInvalidPartitionException">
                 <soap12:fault use="literal" name="CloudControllerServiceInvalidPartitionException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="terminateContainer">
+            <soap12:operation soapAction="urn:terminateContainer" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="CloudControllerServiceMemberTerminationFailedException">
+                <soap12:fault use="literal" name="CloudControllerServiceMemberTerminationFailedException"></soap12:fault>
             </wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="validateDeploymentPolicy">
@@ -1013,13 +1074,16 @@
                 <soap12:body use="literal"></soap12:body>
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="updateKubernetesController">
-            <soap12:operation soapAction="urn:updateKubernetesController" style="document"></soap12:operation>
+        <wsdl:operation name="updateContainers">
+            <soap12:operation soapAction="urn:updateContainers" style="document"></soap12:operation>
             <wsdl:input>
                 <soap12:body use="literal"></soap12:body>
             </wsdl:input>
-            <wsdl:fault name="CloudControllerServiceInvalidClusterException">
-                <soap12:fault use="literal" name="CloudControllerServiceInvalidClusterException"></soap12:fault>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="CloudControllerServiceUnregisteredCartridgeException">
+                <soap12:fault use="literal" name="CloudControllerServiceUnregisteredCartridgeException"></soap12:fault>
             </wsdl:fault>
         </wsdl:operation>
     </wsdl:binding>
@@ -1033,6 +1097,12 @@
             <wsdl:output>
                 <mime:content type="text/xml" part="parameters"></mime:content>
             </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="terminateContainer">
+            <http:operation location="terminateContainer"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
         </wsdl:operation>
         <wsdl:operation name="validateDeploymentPolicy">
             <http:operation location="validateDeploymentPolicy"></http:operation>
@@ -1148,31 +1218,34 @@
                 <mime:content type="text/xml" part="parameters"></mime:content>
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="updateKubernetesController">
-            <http:operation location="updateKubernetesController"></http:operation>
+        <wsdl:operation name="updateContainers">
+            <http:operation location="updateContainers"></http:operation>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"></mime:content>
             </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
         </wsdl:operation>
     </wsdl:binding>
     <wsdl:service name="CloudControllerService">
         <wsdl:port name="CloudControllerServiceHttpSoap11Endpoint" binding="ns:CloudControllerServiceSoap11Binding">
-            <soap:address location="http://10.10.10.75:9763/services/CloudControllerService.CloudControllerServiceHttpSoap11Endpoint/"></soap:address>
+            <soap:address location="http://172.17.8.1:9763/services/CloudControllerService.CloudControllerServiceHttpSoap11Endpoint/"></soap:address>
         </wsdl:port>
         <wsdl:port name="CloudControllerServiceHttpsSoap11Endpoint" binding="ns:CloudControllerServiceSoap11Binding">
-            <soap:address location="https://10.10.10.75:9443/services/CloudControllerService.CloudControllerServiceHttpsSoap11Endpoint/"></soap:address>
+            <soap:address location="https://172.17.8.1:9443/services/CloudControllerService.CloudControllerServiceHttpsSoap11Endpoint/"></soap:address>
         </wsdl:port>
         <wsdl:port name="CloudControllerServiceHttpSoap12Endpoint" binding="ns:CloudControllerServiceSoap12Binding">
-            <soap12:address location="http://10.10.10.75:9763/services/CloudControllerService.CloudControllerServiceHttpSoap12Endpoint/"></soap12:address>
+            <soap12:address location="http://172.17.8.1:9763/services/CloudControllerService.CloudControllerServiceHttpSoap12Endpoint/"></soap12:address>
         </wsdl:port>
         <wsdl:port name="CloudControllerServiceHttpsSoap12Endpoint" binding="ns:CloudControllerServiceSoap12Binding">
-            <soap12:address location="https://10.10.10.75:9443/services/CloudControllerService.CloudControllerServiceHttpsSoap12Endpoint/"></soap12:address>
+            <soap12:address location="https://172.17.8.1:9443/services/CloudControllerService.CloudControllerServiceHttpsSoap12Endpoint/"></soap12:address>
         </wsdl:port>
         <wsdl:port name="CloudControllerServiceHttpEndpoint" binding="ns:CloudControllerServiceHttpBinding">
-            <http:address location="http://10.10.10.75:9763/services/CloudControllerService.CloudControllerServiceHttpEndpoint/"></http:address>
+            <http:address location="http://172.17.8.1:9763/services/CloudControllerService.CloudControllerServiceHttpEndpoint/"></http:address>
         </wsdl:port>
         <wsdl:port name="CloudControllerServiceHttpsEndpoint" binding="ns:CloudControllerServiceHttpBinding">
-            <http:address location="https://10.10.10.75:9443/services/CloudControllerService.CloudControllerServiceHttpsEndpoint/"></http:address>
+            <http:address location="https://172.17.8.1:9443/services/CloudControllerService.CloudControllerServiceHttpsEndpoint/"></http:address>
         </wsdl:port>
     </wsdl:service>
 </wsdl:definitions>

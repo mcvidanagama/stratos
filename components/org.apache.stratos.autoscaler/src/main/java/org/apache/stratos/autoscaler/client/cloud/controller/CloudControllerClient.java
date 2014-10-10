@@ -19,6 +19,8 @@
 
 package org.apache.stratos.autoscaler.client.cloud.controller;
 
+import java.rmi.RemoteException;
+
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.logging.Log;
@@ -31,7 +33,14 @@ import org.apache.stratos.autoscaler.exception.SpawningException;
 import org.apache.stratos.autoscaler.exception.TerminationException;
 import org.apache.stratos.autoscaler.kubernetes.KubernetesManager;
 import org.apache.stratos.autoscaler.util.ConfUtil;
-import org.apache.stratos.cloud.controller.stub.*;
+import org.apache.stratos.cloud.controller.stub.CloudControllerServiceInvalidCartridgeTypeExceptionException;
+import org.apache.stratos.cloud.controller.stub.CloudControllerServiceInvalidClusterExceptionException;
+import org.apache.stratos.cloud.controller.stub.CloudControllerServiceInvalidIaasProviderExceptionException;
+import org.apache.stratos.cloud.controller.stub.CloudControllerServiceInvalidMemberExceptionException;
+import org.apache.stratos.cloud.controller.stub.CloudControllerServiceInvalidPartitionExceptionException;
+import org.apache.stratos.cloud.controller.stub.CloudControllerServiceMemberTerminationFailedExceptionException;
+import org.apache.stratos.cloud.controller.stub.CloudControllerServiceStub;
+import org.apache.stratos.cloud.controller.stub.CloudControllerServiceUnregisteredCartridgeExceptionException;
 import org.apache.stratos.cloud.controller.stub.deployment.partition.Partition;
 import org.apache.stratos.cloud.controller.stub.pojo.ContainerClusterContext;
 import org.apache.stratos.cloud.controller.stub.pojo.MemberContext;
@@ -40,8 +49,6 @@ import org.apache.stratos.cloud.controller.stub.pojo.Property;
 import org.apache.stratos.common.constants.StratosConstants;
 import org.apache.stratos.common.kubernetes.KubernetesGroup;
 import org.apache.stratos.common.kubernetes.KubernetesMaster;
-
-import java.rmi.RemoteException;
 
 
 /**
@@ -238,7 +245,7 @@ public class CloudControllerClient {
      * @return
      * @throws SpawningException
      */
-    public synchronized MemberContext[] createContainers(String kubernetesClusterId, String clusterId) throws SpawningException {
+    public synchronized MemberContext[] startContainers(String kubernetesClusterId, String clusterId) throws SpawningException {
         try {
         	
         	KubernetesManager kubernetesManager = KubernetesManager.getInstance();
@@ -304,4 +311,37 @@ public class CloudControllerClient {
 		} 
     }
 
+    public synchronized MemberContext[] updateContainers(String clusterId, int replicas)
+    		throws SpawningException {
+        try {
+            log.info(String.format("Updating kubernetes replication controller via cloud controller: " +
+                                   "[cluster] %s [replicas] %s", clusterId, replicas));
+            MemberContext[] memberContexts = stub.updateContainers(clusterId, replicas);
+            return memberContexts;
+        } catch (CloudControllerServiceUnregisteredCartridgeExceptionException e) {
+            String msg = "Error while updating kubernetes controller, cartridge not found for [cluster] " + clusterId;
+            log.error(msg, e);
+            throw new SpawningException(msg, e);
+        } catch (RemoteException e) {
+            String msg = "Error while updating kubernetes controller, cannot communicate with " +
+                         "cloud controller service";
+            log.error(msg, e);
+            throw new SpawningException(msg, e);
+        } 
+    }
+    
+    public synchronized void terminateContainer(String memberId) throws TerminationException{
+    	try {
+			stub.terminateContainer(memberId);
+		} catch (RemoteException e) {
+            String msg = "Error while updating kubernetes controller, cannot communicate with " +
+                    "cloud controller service";
+            log.error(msg, e);
+            throw new TerminationException(msg, e);
+		} catch (CloudControllerServiceMemberTerminationFailedExceptionException e) {
+            String msg = "Error while terminating container, member not valid for member id : " + memberId;
+            log.error(msg, e);
+            throw new TerminationException(msg, e);
+		}
+    }
 }

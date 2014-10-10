@@ -16,36 +16,33 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.stratos.manager.dto;
+package org.apache.stratos.cloud.controller.exception;
 
-import java.io.Serializable;
-import java.util.Arrays;
 
-public class RepositoryInformation implements Serializable {
+/**
+ * Throws when a member termination fails.
+ *
+ */
+public class MemberTerminationFailedException extends Exception {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -7883324379272628566L;
+    private String message;
+    
+    public MemberTerminationFailedException(String msg) {
+        super(msg);
+        this.setMessage(msg);
+    }
+    
+    public MemberTerminationFailedException(String msg, Exception ex) {
+        super(msg, ex);
+        this.setMessage(msg);
+    }
 
-	private String repoURL;
-	private String[] refName;
-
-	public String getRepoURL() {
-		return repoURL;
+	public String getMessage() {
+		return message;
 	}
 
-	public void setRepoURL(String repoURL) {
-		this.repoURL = repoURL;
+	public void setMessage(String message) {
+		this.message = message;
 	}
-
-	public String[] getRefName() {
-		return refName;
-	}
-
-	public void setRefName(String[] refName) {
-        if(refName == null) {
-            this.refName = new String[0];
-        } else {
-            this.refName = Arrays.copyOf(refName, refName.length);
-        }
-	}
-
 }
