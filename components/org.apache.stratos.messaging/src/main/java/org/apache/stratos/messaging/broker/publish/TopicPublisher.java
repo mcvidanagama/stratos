@@ -45,8 +45,7 @@ public class TopicPublisher {
 
 	private static final int QOS = 2;
 
-	public static TopicPublisher topicPub;
-	private boolean initialized;
+    private boolean initialized;
 	private final String topic;
 	MqttClient mqttClient;
 
@@ -113,14 +112,5 @@ public class TopicPublisher {
 	}
 
 
-	public void close() {
-		synchronized (TopicPublisher.class) {
-			// closes all sessions/connections
-			try {
-
-			} catch (Exception ignore) {
-			}
-		}
-	}
 
 }
