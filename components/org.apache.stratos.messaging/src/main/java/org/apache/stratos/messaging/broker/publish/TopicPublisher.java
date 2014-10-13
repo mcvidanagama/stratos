@@ -45,8 +45,7 @@ public class TopicPublisher {
 
 	private static final int QOS = 2;
 
-    private boolean initialized;
-	private final String topic;
+    private final String topic;
 	MqttClient mqttClient;
 
 	/**
@@ -73,7 +72,7 @@ public class TopicPublisher {
             String message = gson.toJson(messageObj);
             boolean published = false;
             while (!published) {
-                mqttClient = MQTTConnector.getMQTTConClient();
+                mqttClient = MQTTConnector.getMQTTPubClient();
                 MqttMessage mqttMSG = new MqttMessage(message.getBytes());
 
                 mqttMSG.setQos(QOS);
@@ -85,7 +84,6 @@ public class TopicPublisher {
 
                     published = true;
                 } catch (MqttException e) {
-                    initialized = false;
                     if (!retry) {
                         if (log.isDebugEnabled()) {
                             log.debug("Retry disabled for topic " + topic);

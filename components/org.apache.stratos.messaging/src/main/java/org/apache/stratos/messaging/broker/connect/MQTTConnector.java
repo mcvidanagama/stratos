@@ -56,7 +56,7 @@ public class MQTTConnector {
      * Get MQTT conncetion Client
      * @return
      */
-	public static synchronized MqttClient getMQTTConClient() {
+	public static synchronized MqttClient getMQTTPubClient() {
 
 		if (topicClient == null) {
 
