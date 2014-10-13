@@ -16,9 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+
 package org.apache.stratos.cli.commands;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.Options;
 import org.apache.stratos.cli.Command;
 import org.apache.stratos.cli.RestCommandLineService;
 import org.apache.stratos.cli.StratosCommandContext;
@@ -27,39 +28,39 @@ import org.apache.stratos.cli.utils.CliConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PartitionCommand implements Command<StratosCommandContext> {
+public class ListKubernetesGroupsCommand implements Command<StratosCommandContext> {
 
-    private static final Logger logger = LoggerFactory.getLogger(PartitionCommand.class);
+	private static final Logger logger = LoggerFactory.getLogger(ListKubernetesGroupsCommand.class);
 
-    public PartitionCommand(){
-    }
+	public ListKubernetesGroupsCommand() {
+	}
 
-    public String getName() {
-        return CliConstants.LIST_PARTITION;
-    }
+	public String getName() {
+		return "list-kubernetes-groups";
+	}
 
-    public String getDescription() {
-        return "List available partitions";
-    }
+	public String getDescription() {
+		return "List kubernetes groups";
+	}
 
-    public String getArgumentSyntax() {
-        return null;
-    }
+	public String getArgumentSyntax() {
+		return null;
+	}
 
-    public int execute(StratosCommandContext context, String[] args) throws CommandException {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Executing {} command...", getName());
-        }
-        if (args == null || args.length == 0) {
-            RestCommandLineService.getInstance().listPartitions();
-            return CliConstants.SUCCESSFUL_CODE;
-        } else {
-            context.getStratosApplication().printUsage(getName());
-            return CliConstants.BAD_ARGS_CODE;
-        }
-    }
+	public int execute(StratosCommandContext context, String[] args) throws CommandException {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Executing command: ", getName());
+		}
+		if ((args == null) || (args.length == 0)) {
+            RestCommandLineService.getInstance().listKubernetesGroups();
+			return CliConstants.COMMAND_SUCCESSFULL;
+		} else {
+			context.getStratosApplication().printUsage(getName());
+			return CliConstants.COMMAND_FAILED;
+		}
+	}
 
-    public Options getOptions() {
-        return null;
-    }
+	public Options getOptions() {
+		return null;
+	}
 }

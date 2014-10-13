@@ -18,7 +18,7 @@
  */
 package org.apache.stratos.cli.commands;
 
-import org.apache.commons.cli.Options;
+import org.apache.commons.cli.*;
 import org.apache.stratos.cli.Command;
 import org.apache.stratos.cli.RestCommandLineService;
 import org.apache.stratos.cli.StratosCommandContext;
@@ -27,19 +27,19 @@ import org.apache.stratos.cli.utils.CliConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ListDeployServiceCommand implements Command<StratosCommandContext> {
+public class ListPartitionCommand implements Command<StratosCommandContext> {
 
-    private static final Logger logger = LoggerFactory.getLogger(ListDeployServiceCommand.class);
+    private static final Logger logger = LoggerFactory.getLogger(ListPartitionCommand.class);
 
-    public ListDeployServiceCommand() {
+    public ListPartitionCommand(){
     }
 
     public String getName() {
-        return CliConstants.LIST_DEPLOY_SERVICE;
+        return CliConstants.LIST_PARTITION;
     }
 
     public String getDescription() {
-        return "List available deploy services";
+        return "List available partitions";
     }
 
     public String getArgumentSyntax() {
@@ -51,7 +51,7 @@ public class ListDeployServiceCommand implements Command<StratosCommandContext> 
             logger.debug("Executing {} command...", getName());
         }
         if (args == null || args.length == 0) {
-            RestCommandLineService.getInstance().listDeployServices();
+            RestCommandLineService.getInstance().listPartitions();
             return CliConstants.COMMAND_SUCCESSFULL;
         } else {
             context.getStratosApplication().printUsage(getName());

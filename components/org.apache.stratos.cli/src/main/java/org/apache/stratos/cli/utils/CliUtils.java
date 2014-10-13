@@ -18,10 +18,17 @@
  */
 package org.apache.stratos.cli.utils;
 
+import org.apache.http.HttpResponse;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.SocketException;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
-public class CommandLineUtils {
+public class CliUtils {
 	
 	private static final ResourceBundle BUNDLE = ResourceBundle.getBundle("Resources");
 
@@ -91,4 +98,50 @@ public class CommandLineUtils {
 		}
 		return message;
 	}
+
+    public static String readResource(String fileName) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(fileName));
+        try {
+            StringBuilder sb = new StringBuilder();
+            String line = br.readLine();
+
+            while (line != null) {
+                sb.append(line);
+                sb.append("\n");
+                line = br.readLine();
+            }
+            return sb.toString();
+        } finally {
+            br.close();
+        }
+    }
+
+    /**
+     * Extract HTTP response body as a string
+     * @param response
+     * @return
+     */
+    public static String getHttpResponseString (HttpResponse response) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+
+            String output;
+            String result = "";
+
+            while ((output = reader.readLine()) != null) {
+                result += output;
+            }
+
+            return result;
+        } catch (SocketException e) {
+            System.out.println("Connection problem");
+            return null;
+        } catch (NullPointerException e) {
+            System.out.println("Null value return from server");
+            return null;
+        } catch (IOException e) {
+            System.out.println("IO error");
+            return null;
+        }
+    }
 }

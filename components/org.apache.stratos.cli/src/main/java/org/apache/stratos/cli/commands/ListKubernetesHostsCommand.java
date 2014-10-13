@@ -16,60 +16,52 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+
 package org.apache.stratos.cli.commands;
 
+import org.apache.commons.cli.Options;
 import org.apache.stratos.cli.Command;
-import org.apache.stratos.cli.CommandLineService;
+import org.apache.stratos.cli.RestCommandLineService;
 import org.apache.stratos.cli.StratosCommandContext;
 import org.apache.stratos.cli.exception.CommandException;
 import org.apache.stratos.cli.utils.CliConstants;
-import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RemoveDomainMappingCommand implements Command<StratosCommandContext> {
+public class ListKubernetesHostsCommand implements Command<StratosCommandContext> {
 
-	private static final Logger logger = LoggerFactory.getLogger(RemoveDomainMappingCommand.class);
+	private static final Logger logger = LoggerFactory.getLogger(ListKubernetesHostsCommand.class);
 
-	public RemoveDomainMappingCommand() {
+	public ListKubernetesHostsCommand() {
 	}
 
-	@Override
 	public String getName() {
-		return CliConstants.REMOVE_DOMAIN_MAPPING_ACTION;
+		return "list-kubernetes-hosts";
 	}
 
-	@Override
 	public String getDescription() {
-		return "Remove domain mapping for the subscribed cartridge";
+		return "List kubernetes hosts";
 	}
 
-	@Override
 	public String getArgumentSyntax() {
-		return "[Cartridge alias]";
+		return "[group-id]";
 	}
 
-	@Override
 	public int execute(StratosCommandContext context, String[] args) throws CommandException {
 		if (logger.isDebugEnabled()) {
-			logger.debug("Executing {} command...", getName());
+			logger.debug("Executing command: ", getName());
 		}
-		if (args != null && args.length == 1) {
-			String alias = args[0];
-			if (logger.isDebugEnabled()) {
-				logger.debug("Removing domain mapping for {}", alias);
-			}
-			CommandLineService.getInstance().removeDomainMapping(alias);
-			return CliConstants.SUCCESSFUL_CODE;
+		if ((args == null) || (args.length == 0)) {
+            context.getStratosApplication().printUsage(getName());
+            return CliConstants.COMMAND_FAILED;
 		} else {
-			context.getStratosApplication().printUsage(getName());
-			return CliConstants.BAD_ARGS_CODE;
+            String groupId = args[0];
+            RestCommandLineService.getInstance().listKubernetesHosts(groupId);
+            return CliConstants.COMMAND_SUCCESSFULL;
 		}
 	}
 
-	@Override
 	public Options getOptions() {
 		return null;
 	}
-
 }

@@ -19,29 +19,44 @@
 package org.apache.stratos.cli.commands;
 
 import org.apache.commons.cli.Options;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.stratos.cli.Command;
-import org.apache.stratos.cli.CommandLineService;
+import org.apache.stratos.cli.RestCommandLineService;
 import org.apache.stratos.cli.StratosCommandContext;
 import org.apache.stratos.cli.exception.CommandException;
 import org.apache.stratos.cli.utils.CliConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class PoliciesCommand implements Command<StratosCommandContext> {
-
-	private static final Logger logger = LoggerFactory.getLogger(PoliciesCommand.class);
-
-	public PoliciesCommand() {
+public class ListCartridgeSubscriptionsCommand implements Command<StratosCommandContext>{
+	
+	private static final Logger logger = LoggerFactory.getLogger(ListCartridgeSubscriptionsCommand.class);
+	
+	private final Options options;
+	
+	public ListCartridgeSubscriptionsCommand() {
+		options = constructOptions();
 	}
+	
+	/**
+	 * Construct Options.
+	 * 
+	 * @return Options expected from command-line.
+	 */
+	private Options constructOptions() {
 
+		final Options options = new Options();
+		return options;
+	}
+	
 	@Override
 	public String getName() {
-		return CliConstants.POLICIES_ACTION;
+		return "list-cartridge-subscriptions";
 	}
 
 	@Override
 	public String getDescription() {
-		return "List available policies";
+		return "List cartridge subscriptions";
 	}
 
 	@Override
@@ -50,22 +65,31 @@ public class PoliciesCommand implements Command<StratosCommandContext> {
 	}
 
 	@Override
+	public Options getOptions() {
+		return options;
+	}
+
+	@Override
 	public int execute(StratosCommandContext context, String[] args) throws CommandException {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing {} command...", getName());
 		}
-		if (args == null || args.length == 0) {
-			CommandLineService.getInstance().listAvailablePolicies();
-			return CliConstants.SUCCESSFUL_CODE;
-		} else {
-			context.getStratosApplication().printUsage(getName());
-			return CliConstants.BAD_ARGS_CODE;
-		}
-	}
+		
+		if (args != null && args.length > 0) {
+			String alias = args[0];
 
-	@Override
-	public Options getOptions() {
-		return null;
+            if(StringUtils.isBlank(alias)){
+                System.out.println("Please specify a non blank alias");
+                return CliConstants.COMMAND_FAILED;
+            }
+            else{
+                RestCommandLineService.getInstance().listSubscribedCartridgeInfo(alias);
+                return CliConstants.COMMAND_SUCCESSFULL;
+            }
+		}else {
+			context.getStratosApplication().printUsage(getName());
+			return CliConstants.COMMAND_FAILED;
+		}
 	}
 
 }
