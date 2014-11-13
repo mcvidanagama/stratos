@@ -22,7 +22,7 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.metadataservice.annotation.AuthorizationAction;
-import org.apache.stratos.metadataservice.definition.NewProperty;
+import org.apache.stratos.metadataservice.definition.MetaDataProperty;
 import org.apache.stratos.metadataservice.exception.RestAPIException;
 import org.apache.stratos.metadataservice.registry.DataRegistryFactory;
 import org.apache.stratos.metadataservice.registry.DataStore;
@@ -67,12 +67,12 @@ public class MetaDataAdmin {
 	public Response getClusterProperties(@PathParam("application_id") String applicationId,
 	                                     @PathParam("cluster_id") String clusterId) {
 
-		List<NewProperty> properties;
-		NewProperty[] propertiesArr = null;
+		List<MetaDataProperty> properties;
+		MetaDataProperty[] propertiesArr = null;
 		try {
 			properties = registry.getPropertiesOfCluster(applicationId, clusterId);
 			if (properties != null) {
-				propertiesArr = new NewProperty[properties.size()];
+				propertiesArr = new MetaDataProperty[properties.size()];
 				propertiesArr = properties.toArray(propertiesArr);
 			}
 		} catch (Exception e) {
@@ -98,15 +98,15 @@ public class MetaDataAdmin {
 	                                   @PathParam("cluster_id") String clusterId,
 	                                   @PathParam("property_name") String propertyName) {
 
-		List<NewProperty> properties;
-		NewProperty property = null;
+		List<MetaDataProperty> properties;
+		MetaDataProperty property = null;
 
 		try {
 			properties = registry.getPropertiesOfCluster(applicationId, clusterId);
 			if (properties == null) {
 				return Response.status(Response.Status.NOT_FOUND).build();
 			}
-			for (NewProperty p : properties) {
+			for (MetaDataProperty p : properties) {
 				if (propertyName.equals(p.getKey())) {
 					property = p;
 					break;
@@ -132,7 +132,7 @@ public class MetaDataAdmin {
 	@AuthorizationAction("/permission/protected/manage/monitor/tenants")
 	public Response addPropertyToACluster(@PathParam("application_id") String applicationId,
 	                                      @PathParam("cluster_id") String clusterId,
-	                                      NewProperty property)
+	                                      MetaDataProperty property)
 			throws RestAPIException {
 
 		URI url = uriInfo.getAbsolutePathBuilder()
@@ -154,7 +154,7 @@ public class MetaDataAdmin {
 	@AuthorizationAction("/permission/protected/manage/monitor/tenants")
 	public Response addPropertiesToACluster(@PathParam("application_id") String applicationId,
 	                                        @PathParam("cluster_id") String clusterId,
-	                                        NewProperty[] properties)
+	                                        MetaDataProperty[] properties)
 			throws RestAPIException {
 		URI url = uriInfo.getAbsolutePathBuilder().path(applicationId + "/" + clusterId).build();
 

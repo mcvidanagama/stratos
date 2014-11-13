@@ -21,7 +21,7 @@ package org.apache.stratos.metadataservice.registry;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.stratos.metadataservice.definition.NewProperty;
+import org.apache.stratos.metadataservice.definition.MetaDataProperty;
 import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.registry.api.RegistryException;
@@ -55,7 +55,7 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
 	 * @return
 	 * @throws RegistryException
 	 */
-	public List<NewProperty> getPropertiesOfCluster(String applicationName,
+	public List<MetaDataProperty> getPropertiesOfCluster(String applicationName,
 	                                                String clusterId) throws RegistryException {
 		Registry tempRegistry = getGovernanceUserRegistry();
 		String resourcePath = mainResource + applicationName + "/" + clusterId;
@@ -65,14 +65,14 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
 		}
 		Resource regResource = tempRegistry.get(resourcePath);
 
-		ArrayList<NewProperty> newProperties = new ArrayList<NewProperty>();
+		ArrayList<MetaDataProperty> newProperties = new ArrayList<MetaDataProperty>();
 
 		Properties props = regResource.getProperties();
 		Enumeration<?> x = props.propertyNames();
 		while (x.hasMoreElements()) {
 			String key = (String) x.nextElement();
 			List<String> values = regResource.getPropertyValues(key);
-			NewProperty property = new NewProperty();
+			MetaDataProperty property = new MetaDataProperty();
 			property.setKey(key);
 			String[] valueArr = new String[values.size()];
 			property.setValues(values.toArray(valueArr));
@@ -91,7 +91,7 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
 	 * @param property Propertys
 	 * @throws RegistryException
 	 */
-	public void addPropertyToCluster(String applicationId, String clusterId, NewProperty property)
+	public void addPropertyToCluster(String applicationId, String clusterId, MetaDataProperty property)
 			throws RegistryException {
 		Registry tempRegistry = getGovernanceUserRegistry();
 		String resourcePath = mainResource + applicationId + "/" + clusterId;
@@ -135,14 +135,14 @@ public class CarbonRegistry extends AbstractAdmin implements DataStore {
 	 * @param properties Properties of the application
 	 * @throws RegistryException
 	 */
-	public void addPropertiesToCluster(String applicationName, String clusterId, NewProperty[] properties)
+	public void addPropertiesToCluster(String applicationName, String clusterId, MetaDataProperty[] properties)
 			throws RegistryException {
 		Registry tempRegistry = getGovernanceUserRegistry();
 		String resourcePath = mainResource + applicationName + "/" + clusterId;
 		Resource regResource;
 		regResource = createOrGetResourceforCluster(tempRegistry, resourcePath);
 
-		for (NewProperty property : properties) {
+		for (MetaDataProperty property : properties) {
 			regResource.setProperty(property.getKey(), (Arrays.asList(property.getValues())));
 
 		}

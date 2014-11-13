@@ -24,7 +24,7 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.apache.stratos.metadataservice.definition.NewProperty;
+import org.apache.stratos.metadataservice.definition.MetaDataProperty;
 import org.apache.stratos.metadataservice.util.ConfUtil;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.ws.client.registry.WSRegistryServiceClient;
@@ -95,7 +95,7 @@ public class GRegRegistry implements DataStore {
 	 * @param properties Properties
 	 * @throws RegistryException
 	 */
-	public void addPropertiesToCluster(String applicationName, String clusterId, NewProperty[] properties)
+	public void addPropertiesToCluster(String applicationName, String clusterId, MetaDataProperty[] properties)
 			throws RegistryException {
 		//TODO : Implemenattion related to the GREG
 	}
@@ -107,7 +107,7 @@ public class GRegRegistry implements DataStore {
 	 * @return List of properties
 	 * @throws RegistryException
 	 */
-	public List<NewProperty> getPropertiesOfCluster(String applicationName,
+	public List<MetaDataProperty> getPropertiesOfCluster(String applicationName,
 	                                                String clusterId) throws RegistryException {
 		//TODO : Implemenattion related to the GREG
 		return null;
@@ -120,7 +120,7 @@ public class GRegRegistry implements DataStore {
 	 * @param property property
 	 * @throws RegistryException
 	 */
-	public void addPropertyToCluster(String applicationId, String clusterId, NewProperty property)
+	public void addPropertyToCluster(String applicationId, String clusterId, MetaDataProperty property)
 			throws RegistryException {
 		//TODO : Implemenattion related to the GREG
 	}
