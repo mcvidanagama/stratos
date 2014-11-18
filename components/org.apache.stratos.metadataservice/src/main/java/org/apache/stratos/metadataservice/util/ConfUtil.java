@@ -57,7 +57,7 @@ public class ConfUtil {
 
 			config = new XMLConfiguration(confFile);
 		} catch (ConfigurationException e) {
-			log.error("Unable to load autoscaler configuration file", e);
+			log.error("Unable to load configuration file", e);
 			config = new XMLConfiguration(); // continue with default values
 		}
 	}

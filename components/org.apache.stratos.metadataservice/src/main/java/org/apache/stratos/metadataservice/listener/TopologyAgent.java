@@ -43,8 +43,8 @@ public class TopologyAgent implements Runnable {
 
 	@Override
 	public void run() {
-		if (log.isInfoEnabled()) {
-			log.info("Topology agent started");
+		if (log.isDebugEnabled()) {
+			log.debug("Topology agent started");
 		}
 
 		// Start topology event receiver thread
@@ -59,7 +59,7 @@ public class TopologyAgent implements Runnable {
         final String defaultRegType = "carbon";
 
          XMLConfiguration conf;
-        log.info("==================Starting topology event message receiver thread=================");
+        log.info("==Starting topology event message receiver thread==");
 		if (log.isDebugEnabled()) {
 			log.debug("Starting topology event message receiver thread");
 		}
@@ -123,7 +123,7 @@ public class TopologyAgent implements Runnable {
 		Thread thread = new Thread(topologyEventReceiver);
 		thread.start();
 		if (log.isDebugEnabled()) {
-			log.info("Cartridge Agent topology receiver thread started");
+			log.debug("Cartridge Agent topology receiver thread started");
 		}
 	}
 
