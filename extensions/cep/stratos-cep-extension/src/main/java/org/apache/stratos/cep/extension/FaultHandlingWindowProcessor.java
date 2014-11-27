@@ -70,7 +70,7 @@ public class FaultHandlingWindowProcessor extends WindowProcessor implements Run
     private ThreadBarrier threadBarrier;
     private long timeToKeep;
     private ISchedulerSiddhiQueue<StreamEvent> window;
-    private EventPublisher healthStatPublisher = EventPublisherPool.getPublisher(Constants.HEALTH_STAT_TOPIC);
+    private EventPublisher healthStatPublisher = EventPublisherPool.getPublisher(Constants.Topics.HEALTH_STAT_TOPIC.getTopicName());
     private Map<String, Object> MemberFaultEventMap = new HashMap<String, Object>();
     private Map<String, Object> memberFaultEventMessageMap = new HashMap<String, Object>();
 

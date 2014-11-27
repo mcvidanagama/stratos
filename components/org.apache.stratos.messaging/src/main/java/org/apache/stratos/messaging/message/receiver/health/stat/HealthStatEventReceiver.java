@@ -50,7 +50,7 @@ public class HealthStatEventReceiver implements Runnable {
 	public void run() {
 		try {
 			// Start topic subscriber thread
-			subscriber = new Subscriber(Constants.HEALTH_STAT_TOPIC, messageListener);
+			subscriber = new Subscriber(Constants.Topics.HEALTH_STAT_TOPIC.getTopicName(), messageListener);
 //			subscriber.setMessageListener(messageListener);
 			Thread subscriberThread = new Thread(subscriber);
 			subscriberThread.start();

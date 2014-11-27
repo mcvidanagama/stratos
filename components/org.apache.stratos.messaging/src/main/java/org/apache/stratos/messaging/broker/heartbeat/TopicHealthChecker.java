@@ -58,7 +58,7 @@ public class TopicHealthChecker implements Runnable {
 				Thread.sleep(Util.getAveragePingInterval());
 
 				// A ping event is published to detect a session timeout
-				EventPublisherPool.getPublisher(Constants.PING_TOPIC).publish(new PingEvent(),
+				EventPublisherPool.getPublisher(Constants.Topics.PING_TOPIC.getTopicName()).publish(new PingEvent(),
 				                                                              false);
 			} catch (Exception e) {
 				// Implies connection is not established

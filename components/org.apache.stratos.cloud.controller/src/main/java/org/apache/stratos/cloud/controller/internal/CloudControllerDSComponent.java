@@ -82,8 +82,8 @@ public class CloudControllerDSComponent {
 
 
             applicationTopicReceiver = new ApplicationTopicReceiver();
-            Thread tApplicationTopicReceiver = new Thread(applicationTopicReceiver);
-            tApplicationTopicReceiver.start();
+         ;
+            applicationTopicReceiver.run();
 
             if (log.isInfoEnabled()) {
                 log.info("Application Receiver thread started");
@@ -170,7 +170,7 @@ public class CloudControllerDSComponent {
 	
 	protected void deactivate(ComponentContext ctx) {
         // Close event publisher connections to message broker
-        EventPublisherPool.close(Constants.TOPOLOGY_TOPIC);
+        EventPublisherPool.close(Constants.Topics.TOPOLOGY_TOPIC.getTopicName());
 	}
 	
 }

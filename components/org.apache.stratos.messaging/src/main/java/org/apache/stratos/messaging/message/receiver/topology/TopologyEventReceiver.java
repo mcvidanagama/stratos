@@ -50,7 +50,7 @@ public class TopologyEventReceiver implements Runnable {
     public void run() {
         try {
             // Start topic subscriber thread
-            subscriber = new Subscriber(Constants.TOPOLOGY_TOPIC, messageListener);
+            subscriber = new Subscriber(Constants.Topics.TOPOLOGY_TOPIC.getTopicName(), messageListener);
 //            subscriber.setMessageListener(messageListener);
             Thread subscriberThread = new Thread(subscriber);
             subscriberThread.start();

@@ -44,7 +44,7 @@ public class Main {
                 public void run() {
                     try {
                         // Close event publisher connections to message broker
-                        EventPublisherPool.close(Constants.INSTANCE_STATUS_TOPIC);
+                        EventPublisherPool.close(Constants.Topics.INSTANCE_STATUS_TOPIC.getTopicName());
                         mainThread.join();
                     } catch (Exception e) {
                         log.error(e);

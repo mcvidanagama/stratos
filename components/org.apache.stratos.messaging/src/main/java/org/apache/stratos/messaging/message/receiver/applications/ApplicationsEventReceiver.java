@@ -46,7 +46,7 @@ public class ApplicationsEventReceiver implements Runnable {
     public void run() {
         try {
             // Start topic subscriber thread
-            subscriber = new Subscriber(Constants.APPLICATIONS_TOPIC, messageListener);
+            subscriber = new Subscriber(Constants.Topics.APPLICATIONS_TOPIC.getTopicName(), messageListener);
 //            subscriber.setMessageListener(messageListener);
             Thread subscriberThread = new Thread(subscriber);
             subscriberThread.start();

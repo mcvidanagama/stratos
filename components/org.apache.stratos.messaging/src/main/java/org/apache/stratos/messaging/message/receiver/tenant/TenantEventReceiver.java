@@ -50,7 +50,7 @@ public class TenantEventReceiver implements Runnable {
     public void run() {
         try {
             // Start topic subscriber thread
-            subscriber = new Subscriber(Constants.TENANT_TOPIC, messageListener);
+            subscriber = new Subscriber(Constants.Topics.TENANT_TOPIC.getTopicName(), messageListener);
 //            subscriber.setMessageListener(messageListener);
             Thread subscriberThread = new Thread(subscriber);
             subscriberThread.start();

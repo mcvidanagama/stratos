@@ -49,7 +49,7 @@ public class InstanceStatusEventReceiver implements Runnable {
     public void run() {
         try {
             // Start topic subscriber thread
-            subscriber = new Subscriber(Constants.INSTANCE_STATUS_TOPIC, messageListener);
+            subscriber = new Subscriber(Constants.Topics.INSTANCE_STATUS_TOPIC.getTopicName(), messageListener);
 //            subscriber.setMessageListener(messageListener);
             Thread subscriberThread = new Thread(subscriber);
             subscriberThread.start();

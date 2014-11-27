@@ -89,7 +89,7 @@ public class ADCManagementServerComponent {
             if(log.isDebugEnabled()) {
                 log.debug("Starting instance status topic subscriber...");
             }
-            Subscriber subscriber = new Subscriber(Constants.INSTANCE_STATUS_TOPIC, new InstanceStatusListener());
+            Subscriber subscriber = new Subscriber(Constants.Topics.INSTANCE_STATUS_TOPIC.getTopicName(), new InstanceStatusListener());
             Thread tsubscriber = new Thread(subscriber);
 			tsubscriber.start();
 
@@ -198,8 +198,8 @@ public class ADCManagementServerComponent {
 
     protected void deactivate(ComponentContext context) {
         // Close event publisher connections to message broker
-        EventPublisherPool.close(Constants.INSTANCE_NOTIFIER_TOPIC);
-        EventPublisherPool.close(Constants.TENANT_TOPIC);
+        EventPublisherPool.close(Constants.Topics.INSTANCE_NOTIFIER_TOPIC.getTopicName());
+        EventPublisherPool.close(Constants.Topics.TENANT_TOPIC.getTopicName());
 
         //terminate Stratos Manager Topology Receiver
         stratosManagerTopologyEventReceiver.terminate();
