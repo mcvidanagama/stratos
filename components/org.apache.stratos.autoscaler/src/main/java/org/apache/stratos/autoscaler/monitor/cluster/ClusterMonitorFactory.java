@@ -39,7 +39,7 @@ import org.apache.stratos.messaging.domain.topology.Cluster;
 import org.apache.stratos.messaging.domain.topology.ClusterStatus;
 import org.apache.stratos.messaging.domain.topology.Member;
 import org.apache.stratos.messaging.domain.topology.MemberStatus;
-import org.apache.stratos.messaging.util.Constants;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +51,7 @@ import java.util.Random;
 public class ClusterMonitorFactory {
 
     private static final Log log = LogFactory.getLog(ClusterMonitorFactory.class);
-
+	public static final String IS_PRIMARY = "PRIMARY";
     /**
      * @param cluster the cluster to be monitored
      * @return the created cluster monitor
@@ -86,8 +86,8 @@ public class ClusterMonitorFactory {
         java.util.Properties props = cluster.getProperties();
 
         if (props != null) {
-            if (props.containsKey(Constants.LOAD_BALANCER_REF)) {
-                String value = props.getProperty(Constants.LOAD_BALANCER_REF);
+            if (props.containsKey(StratosConstants.LOAD_BALANCER_REF)) {
+                String value = props.getProperty(StratosConstants.LOAD_BALANCER_REF);
                 clusterMonitor.setLbReferenceType(value);
                 if (log.isDebugEnabled()) {
                     log.debug("Set the lb reference type: " + value);
@@ -96,7 +96,7 @@ public class ClusterMonitorFactory {
 
             // set hasPrimary property
             // hasPrimary is true if there are primary members available in that cluster
-            clusterMonitor.setHasPrimary(Boolean.parseBoolean(cluster.getProperties().getProperty(Constants.IS_PRIMARY)));
+            clusterMonitor.setHasPrimary(Boolean.parseBoolean(cluster.getProperties().getProperty(IS_PRIMARY)));
         }
 
 
@@ -208,8 +208,8 @@ public class ClusterMonitorFactory {
         }
 
         // find lb reference type
-        if (properties.containsKey(Constants.LOAD_BALANCER_REF)) {
-            String value = properties.getProperty(Constants.LOAD_BALANCER_REF);
+        if (properties.containsKey(StratosConstants.LOAD_BALANCER_REF)) {
+            String value = properties.getProperty(StratosConstants.LOAD_BALANCER_REF);
             dockerClusterMonitor.setLbReferenceType(value);
             if (log.isDebugEnabled()) {
                 log.debug("Set the lb reference type: " + value);
