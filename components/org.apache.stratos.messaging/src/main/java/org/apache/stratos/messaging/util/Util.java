@@ -37,8 +37,6 @@ import java.util.UUID;
 public class Util {
 	private static final Log log = LogFactory.getLog(Util.class);
 	public static final int BEGIN_INDEX = 35;
-	public static final String TENANT_RANGE_DELIMITER = "-";
-
 
 	// Time interval between each ping message sent to topic.
 	private static int averagePingInterval;
@@ -86,7 +84,7 @@ public class Util {
 			if (tenantRange.equals("*")) {
 				valid = true;
 			} else {
-				String[] array = tenantRange.split(TENANT_RANGE_DELIMITER);
+				String[] array = tenantRange.split(Constants.TENANT_RANGE_DELIMITER);
 				if (array.length == 2) {
 					// Integer-Integer
 					if (isNumber(array[0]) && (isNumber(array[1]))) {
