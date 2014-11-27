@@ -37,12 +37,46 @@ import java.util.UUID;
 public class Util {
 	private static final Log log = LogFactory.getLog(Util.class);
 	public static final int BEGIN_INDEX = 35;
+	public static final String TENANT_RANGE_DELIMITER = "-";
+	public static final String AVERAGE_PING_INTERVAL_PROPERTY ="stratos.messaging.averagePingInterval";
+	public static final String FAILOVER_PING_INTERVAL_PROPERTY ="stratos.messaging.failoverPingInterval";
+	public static final int DEFAULT_AVERAGE_PING_INTERVAL = 1000;
+	public static final int DEFAULT_FAILOVER_PING_INTERVAL = 30000;
 
 	// Time interval between each ping message sent to topic.
 	private static int averagePingInterval;
 	// Time interval between each ping message after an error had occurred.
 	private static int failoverPingInterval;
 
+	/**
+	 * Enum for Messaging topics
+	 */
+	public static enum Topics {
+		TOPOLOGY_TOPIC("topology/#"),
+		HEALTH_STAT_TOPIC("summarized-health-stats"),
+		INSTANCE_STATUS_TOPIC("instance/status/#"),
+		INSTANCE_NOTIFIER_TOPIC("instance/notifier/#"),
+		APPLICATIONS_TOPIC("applications/#"),
+		CLUSTER_STATUS_TOPIC("cluster/status/#"),
+		TENANT_TOPIC("tenant/#"),
+		PING_TOPIC("ping");
+
+		private String topicName;
+
+		private Topics(String topicName) {
+			this.topicName = topicName;
+		}
+
+		/**
+		 * Get the topic name
+		 *
+		 * @return topic name
+		 */
+		public String getTopicName() {
+			return topicName;
+		}
+
+	}
 	/**
 	 * Properties of the given file
 	 * @param filePath path of the property file
@@ -84,7 +118,7 @@ public class Util {
 			if (tenantRange.equals("*")) {
 				valid = true;
 			} else {
-				String[] array = tenantRange.split(Constants.TENANT_RANGE_DELIMITER);
+				String[] array = tenantRange.split(TENANT_RANGE_DELIMITER);
 				if (array.length == 2) {
 					// Integer-Integer
 					if (isNumber(array[0]) && (isNumber(array[1]))) {
@@ -147,8 +181,8 @@ public class Util {
 	public static int getAveragePingInterval() {
 		if (averagePingInterval <= 0) {
 			averagePingInterval =
-			                      Util.getNumericSystemProperty(Constants.DEFAULT_AVERAGE_PING_INTERVAL,
-			                                                    Constants.AVERAGE_PING_INTERVAL_PROPERTY);
+			                      Util.getNumericSystemProperty(DEFAULT_AVERAGE_PING_INTERVAL,
+			                                                    AVERAGE_PING_INTERVAL_PROPERTY);
 		}
 		return averagePingInterval;
 	}
@@ -160,8 +194,8 @@ public class Util {
 	public static int getFailoverPingInterval() {
 		if (failoverPingInterval <= 0) {
 			failoverPingInterval =
-			                       Util.getNumericSystemProperty(Constants.DEFAULT_FAILOVER_PING_INTERVAL,
-			                                                     Constants.FAILOVER_PING_INTERVAL_PROPERTY);
+			                       Util.getNumericSystemProperty(DEFAULT_FAILOVER_PING_INTERVAL,
+			                                                    FAILOVER_PING_INTERVAL_PROPERTY);
 		}
 		return failoverPingInterval;
 	}
@@ -203,8 +237,9 @@ public class Util {
 	 * @param len length of the String
 	 * @return Random String
 	 */
-
 	public static String getRandomString(int len) {
 		return UUID.randomUUID().toString().replace("-","").substring(0,len);
 	}
+
+
 }

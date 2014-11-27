@@ -28,7 +28,6 @@ import org.apache.stratos.messaging.domain.topology.Service;
 import org.apache.stratos.messaging.event.Event;
 import org.apache.stratos.messaging.event.cluster.status.*;
 import org.apache.stratos.messaging.message.receiver.topology.TopologyManager;
-import org.apache.stratos.messaging.util.Constants;
 import org.apache.stratos.messaging.util.Util;
 
 /**

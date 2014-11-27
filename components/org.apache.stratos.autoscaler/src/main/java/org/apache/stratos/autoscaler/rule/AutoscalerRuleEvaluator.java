@@ -203,7 +203,7 @@ public class AutoscalerRuleEvaluator {
     public static String getLbClusterId(PartitionContext partitionContext, String nwpartitionId) {
         Properties props = partitionContext.getProperties();
         String value =
-                       (String) props.get(org.apache.stratos.messaging.util.Constants.LOAD_BALANCER_REF);
+                       (String) props.get(StratosConstants.LOAD_BALANCER_REF);
 
         if (value == null){
             return null;
@@ -212,9 +212,9 @@ public class AutoscalerRuleEvaluator {
         String lbClusterId = null;
 
         NetworkPartitionLbHolder networkPartitionLbHolder = PartitionManager.getInstance().getNetworkPartitionLbHolder(nwpartitionId);
-        if (value.equals(org.apache.stratos.messaging.util.Constants.DEFAULT_LOAD_BALANCER)) {
+        if (value.equals(StratosConstants.DEFAULT_LOAD_BALANCER)) {
             lbClusterId = networkPartitionLbHolder.getDefaultLbClusterId();
-        } else if (value.equals(org.apache.stratos.messaging.util.Constants.SERVICE_AWARE_LOAD_BALANCER)) {
+        } else if (value.equals(StratosConstants.SERVICE_AWARE_LOAD_BALANCER)) {
             String serviceName = partitionContext.getServiceName();
             lbClusterId = networkPartitionLbHolder.getLBClusterIdOfService(serviceName);
         }

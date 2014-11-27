@@ -23,17 +23,9 @@ import org.apache.log4j.Logger;
 import org.apache.stratos.messaging.broker.publish.EventPublisher;
 import org.apache.stratos.messaging.broker.publish.EventPublisherPool;
 import org.apache.stratos.messaging.domain.topology.*;
-import org.apache.stratos.messaging.event.Event;
 import org.apache.stratos.messaging.event.health.stat.MemberFaultEvent;
-import org.apache.stratos.messaging.event.topology.CompleteTopologyEvent;
-import org.apache.stratos.messaging.event.topology.MemberActivatedEvent;
-import org.apache.stratos.messaging.event.topology.MemberTerminatedEvent;
-import org.apache.stratos.messaging.listener.topology.CompleteTopologyEventListener;
-import org.apache.stratos.messaging.listener.topology.MemberActivatedEventListener;
-import org.apache.stratos.messaging.listener.topology.MemberTerminatedEventListener;
-import org.apache.stratos.messaging.message.receiver.topology.TopologyEventReceiver;
 import org.apache.stratos.messaging.message.receiver.topology.TopologyManager;
-import org.apache.stratos.messaging.util.Constants;
+import org.apache.stratos.messaging.util.Util;
 import org.wso2.siddhi.core.config.SiddhiContext;
 import org.wso2.siddhi.core.event.StreamEvent;
 import org.wso2.siddhi.core.event.in.InEvent;
@@ -70,7 +62,7 @@ public class FaultHandlingWindowProcessor extends WindowProcessor implements Run
     private ThreadBarrier threadBarrier;
     private long timeToKeep;
     private ISchedulerSiddhiQueue<StreamEvent> window;
-    private EventPublisher healthStatPublisher = EventPublisherPool.getPublisher(Constants.Topics.HEALTH_STAT_TOPIC.getTopicName());
+    private EventPublisher healthStatPublisher = EventPublisherPool.getPublisher(Util.Topics.HEALTH_STAT_TOPIC.getTopicName());
     private Map<String, Object> MemberFaultEventMap = new HashMap<String, Object>();
     private Map<String, Object> memberFaultEventMessageMap = new HashMap<String, Object>();
 

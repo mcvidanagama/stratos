@@ -29,13 +29,12 @@ import org.apache.stratos.autoscaler.algorithm.OneAfterAnother;
 import org.apache.stratos.autoscaler.algorithm.RoundRobin;
 import org.apache.stratos.autoscaler.client.CloudControllerClient;
 import org.apache.stratos.autoscaler.client.InstanceNotificationClient;
-import org.apache.stratos.autoscaler.exception.SpawningException;
 import org.apache.stratos.autoscaler.exception.TerminationException;
-import org.apache.stratos.autoscaler.monitor.MonitorStatusEventBuilder;
 import org.apache.stratos.autoscaler.monitor.cluster.AbstractClusterMonitor;
 import org.apache.stratos.autoscaler.monitor.cluster.VMServiceClusterMonitor;
 import org.apache.stratos.autoscaler.partition.PartitionManager;
 import org.apache.stratos.cloud.controller.stub.pojo.MemberContext;
+import org.apache.stratos.common.constants.StratosConstants;
 import org.apache.stratos.messaging.domain.topology.Cluster;
 import org.apache.stratos.messaging.domain.topology.Member;
 import org.apache.stratos.messaging.domain.topology.MemberStatus;
@@ -248,10 +247,10 @@ public class RuleTasksDelegator {
        String lbClusterId = null;
 
         if (lbRefType != null) {
-            if (lbRefType.equals(org.apache.stratos.messaging.util.Constants.DEFAULT_LOAD_BALANCER)) {
+            if (lbRefType.equals(StratosConstants.DEFAULT_LOAD_BALANCER)) {
                 lbClusterId = networkPartitionLbHolder.getDefaultLbClusterId();
 //                lbClusterId = nwPartitionCtxt.getDefaultLbClusterId();
-            } else if (lbRefType.equals(org.apache.stratos.messaging.util.Constants.SERVICE_AWARE_LOAD_BALANCER)) {
+            } else if (lbRefType.equals(StratosConstants.SERVICE_AWARE_LOAD_BALANCER)) {
                 String serviceName = partitionCtxt.getServiceName();
                 lbClusterId = networkPartitionLbHolder.getLBClusterIdOfService(serviceName);
 //                lbClusterId = nwPartitionCtxt.getLBClusterIdOfService(serviceName);

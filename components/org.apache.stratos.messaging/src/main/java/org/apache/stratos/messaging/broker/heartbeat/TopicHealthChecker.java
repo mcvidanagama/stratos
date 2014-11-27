@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.messaging.broker.publish.EventPublisherPool;
 import org.apache.stratos.messaging.event.ping.PingEvent;
-import org.apache.stratos.messaging.util.Constants;
 import org.apache.stratos.messaging.util.Util;
 
 /**
@@ -58,7 +57,7 @@ public class TopicHealthChecker implements Runnable {
 				Thread.sleep(Util.getAveragePingInterval());
 
 				// A ping event is published to detect a session timeout
-				EventPublisherPool.getPublisher(Constants.Topics.PING_TOPIC.getTopicName()).publish(new PingEvent(),
+				EventPublisherPool.getPublisher(Util.Topics.PING_TOPIC.getTopicName()).publish(new PingEvent(),
 				                                                                                    false);
 			} catch (Exception e) {
 				// Implies connection is not established

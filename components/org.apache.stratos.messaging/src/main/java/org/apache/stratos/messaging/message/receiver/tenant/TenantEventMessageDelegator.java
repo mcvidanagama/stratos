@@ -25,10 +25,6 @@ import org.apache.stratos.messaging.domain.Message;
 import org.apache.stratos.messaging.listener.EventListener;
 import org.apache.stratos.messaging.message.processor.MessageProcessorChain;
 import org.apache.stratos.messaging.message.processor.tenant.TenantMessageProcessorChain;
-import org.apache.stratos.messaging.util.Constants;
-
-import javax.jms.TextMessage;
-
 
 /**
  * Implements logic for processing topology event messages based on a given
