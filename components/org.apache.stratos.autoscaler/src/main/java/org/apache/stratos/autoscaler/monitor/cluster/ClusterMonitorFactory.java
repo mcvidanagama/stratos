@@ -50,9 +50,10 @@ import java.util.Random;
  */
 public class ClusterMonitorFactory {
 
-    private static final Log log = LogFactory.getLog(ClusterMonitorFactory.class);
+	private static final Log log = LogFactory.getLog(ClusterMonitorFactory.class);
 	public static final String IS_PRIMARY = "PRIMARY";
-    /**
+
+	/**
      * @param cluster the cluster to be monitored
      * @return the created cluster monitor
      * @throws PolicyValidationException    when deployment policy is not valid
