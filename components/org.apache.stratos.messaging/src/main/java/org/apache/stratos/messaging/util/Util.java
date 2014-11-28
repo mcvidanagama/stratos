@@ -58,8 +58,8 @@ public class Util {
 		INSTANCE_NOTIFIER_TOPIC("instance/notifier/#"),
 		APPLICATIONS_TOPIC("applications/#"),
 		CLUSTER_STATUS_TOPIC("cluster/status/#"),
-		TENANT_TOPIC("tenant/#"),
-		PING_TOPIC("ping");
+		TENANT_TOPIC("tenant/#");
+
 
 		private String topicName;
 
