@@ -60,6 +60,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @scr.component name="org.apache.stratos.load.balancer.internal.LoadBalancerServiceComponent" immediate="true"
@@ -88,6 +89,9 @@ public class LoadBalancerServiceComponent {
     private LoadBalancerTopologyEventReceiver topologyReceiver;
     private LoadBalancerTenantEventReceiver tenantReceiver;
     private LoadBalancerStatisticsNotifier statisticsNotifier;
+	private static final String STRATOS_MANAGER = "Stratos_manager";
+	private static final int THREAD_POOL_SIZE = 20;
+	private ExecutorService executorService;
 
     protected void activate(ComponentContext ctxt) {
         try {
@@ -110,8 +114,8 @@ public class LoadBalancerServiceComponent {
             if (configuration.isMultiTenancyEnabled()) {
 
                 tenantReceiver = new LoadBalancerTenantEventReceiver();
-                Thread tenantReceiverThread = new Thread(tenantReceiver);
-                tenantReceiverThread.start();
+				tenantReceiver.execute();
+
                 if (log.isInfoEnabled()) {
                     log.info("Tenant receiver thread started");
                 }
@@ -121,8 +125,7 @@ public class LoadBalancerServiceComponent {
 
                 // Start topology receiver
                 topologyReceiver = new LoadBalancerTopologyEventReceiver();
-                Thread topologyReceiverThread = new Thread(topologyReceiver);
-                topologyReceiverThread.start();
+                topologyReceiver.execute();
                 if (log.isInfoEnabled()) {
                     log.info("Topology receiver thread started");
                 }
@@ -203,6 +206,8 @@ public class LoadBalancerServiceComponent {
         topologyReceiver.terminate();
         // Terminate statistics notifier
         statisticsNotifier.terminate();
+
+
     }
 
     /**
