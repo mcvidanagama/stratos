@@ -20,7 +20,6 @@ package org.apache.stratos.cloud.controller.internal;
  *
 */
 
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.cloud.controller.receiver.application.ApplicationTopicReceiver;
@@ -47,121 +46,121 @@ import org.wso2.carbon.utils.ConfigurationContextService;
  *
  * @scr.component name="org.apache.stratos.cloud.controller" immediate="true"
  * @scr.reference name="distributedMapProvider" interface="org.wso2.carbon.caching.impl.DistributedMapProvider"
- *                cardinality="1..1" policy="dynamic" bind="setDistributedMapProvider" unbind="unsetDistributedMapProvider"
+ * cardinality="1..1" policy="dynamic" bind="setDistributedMapProvider" unbind="unsetDistributedMapProvider"
  * @scr.reference name="ntask.component"
- *                interface="org.wso2.carbon.ntask.core.service.TaskService"
- *                cardinality="1..1" policy="dynamic" bind="setTaskService" unbind="unsetTaskService"
+ * interface="org.wso2.carbon.ntask.core.service.TaskService"
+ * cardinality="1..1" policy="dynamic" bind="setTaskService" unbind="unsetTaskService"
  * @scr.reference name="registry.service"
- *                interface="org.wso2.carbon.registry.core.service.RegistryService"
- *                cardinality="1..1" policy="dynamic" bind="setRegistryService" unbind="unsetRegistryService"
+ * interface="org.wso2.carbon.registry.core.service.RegistryService"
+ * cardinality="1..1" policy="dynamic" bind="setRegistryService" unbind="unsetRegistryService"
  * @scr.reference name="config.context.service"
- *                interface="org.wso2.carbon.utils.ConfigurationContextService"
- *                cardinality="1..1" policy="dynamic" bind="setConfigurationContextService" unbind="unsetConfigurationContextService"
+ * interface="org.wso2.carbon.utils.ConfigurationContextService"
+ * cardinality="1..1" policy="dynamic" bind="setConfigurationContextService" unbind="unsetConfigurationContextService"
  */
 public class CloudControllerServiceComponent {
 
-    private static final Log log = LogFactory.getLog(CloudControllerServiceComponent.class);
-    private ClusterStatusTopicReceiver clusterStatusTopicReceiver;
-    private InstanceStatusTopicReceiver instanceStatusTopicReceiver;
-    private ApplicationTopicReceiver applicationTopicReceiver;
+	private static final Log log = LogFactory.getLog(CloudControllerServiceComponent.class);
+	private ClusterStatusTopicReceiver clusterStatusTopicReceiver;
+	private InstanceStatusTopicReceiver instanceStatusTopicReceiver;
+	private ApplicationTopicReceiver applicationTopicReceiver;
 
-    protected void activate(ComponentContext context) {
-        try {
-            applicationTopicReceiver = new ApplicationTopicReceiver();
-            applicationTopicReceiver.execute();
+	protected void activate(ComponentContext context) {
+		try {
+			applicationTopicReceiver = new ApplicationTopicReceiver();
+			applicationTopicReceiver.execute();
 
-            if (log.isInfoEnabled()) {
-                log.info("Application Receiver thread started");
-            }
+			if (log.isInfoEnabled()) {
+				log.info("Application Receiver thread started");
+			}
 
-            clusterStatusTopicReceiver = new ClusterStatusTopicReceiver();
-	        clusterStatusTopicReceiver.execute();
+			clusterStatusTopicReceiver = new ClusterStatusTopicReceiver();
+			clusterStatusTopicReceiver.execute();
 
-            if (log.isInfoEnabled()) {
-                log.info("Cluster status Receiver thread started");
-            }
+			if (log.isInfoEnabled()) {
+				log.info("Cluster status Receiver thread started");
+			}
 
-            instanceStatusTopicReceiver = new InstanceStatusTopicReceiver();
-            instanceStatusTopicReceiver.execute();
+			instanceStatusTopicReceiver = new InstanceStatusTopicReceiver();
+			instanceStatusTopicReceiver.execute();
 
-            if(log.isInfoEnabled()) {
-                log.info("Instance status message receiver thread started");
-            }
+			if (log.isInfoEnabled()) {
+				log.info("Instance status message receiver thread started");
+			}
 
-        	// Register cloud controller service
-            BundleContext bundleContext = context.getBundleContext();
-            bundleContext.registerService(CloudControllerService.class.getName(),
-                    new CloudControllerServiceImpl(), null);
+			// Register cloud controller service
+			BundleContext bundleContext = context.getBundleContext();
+			bundleContext.registerService(CloudControllerService.class.getName(),
+			                              new CloudControllerServiceImpl(), null);
 
-            if(log.isInfoEnabled()) {
-                log.info("Scheduling tasks");
-            }
-            
+			if (log.isInfoEnabled()) {
+				log.info("Scheduling tasks");
+			}
+
 			TopologySynchronizerTaskScheduler
-						.schedule(ServiceReferenceHolder.getInstance()
-								.getTaskService());
-			
-        } catch (Throwable e) {
-            log.error("******* Cloud Controller Service bundle is failed to activate ****", e);
-        }
-    }
-    
-    protected void setTaskService(TaskService taskService) {
-        if (log.isDebugEnabled()) {
-            log.debug("Setting the Task Service");
-        }
-        ServiceReferenceHolder.getInstance().setTaskService(taskService);
-    }
+					.schedule(ServiceReferenceHolder.getInstance()
+					                                .getTaskService());
 
-    protected void unsetTaskService(TaskService taskService) {
-        if (log.isDebugEnabled()) {
-            log.debug("Unsetting the Task Service");
-        }
-        ServiceReferenceHolder.getInstance().setTaskService(null);
-    }
-    
+		} catch (Throwable e) {
+			log.error("******* Cloud Controller Service bundle is failed to activate ****", e);
+		}
+	}
+
+	protected void setTaskService(TaskService taskService) {
+		if (log.isDebugEnabled()) {
+			log.debug("Setting the Task Service");
+		}
+		ServiceReferenceHolder.getInstance().setTaskService(taskService);
+	}
+
+	protected void unsetTaskService(TaskService taskService) {
+		if (log.isDebugEnabled()) {
+			log.debug("Unsetting the Task Service");
+		}
+		ServiceReferenceHolder.getInstance().setTaskService(null);
+	}
+
 	protected void setRegistryService(RegistryService registryService) {
 		if (log.isDebugEnabled()) {
 			log.debug("Setting the Registry Service");
 		}
-		
-		try {			
+
+		try {
 			UserRegistry registry = registryService.getGovernanceSystemRegistry();
-	        ServiceReferenceHolder.getInstance()
-	                                             .setRegistry(registry);
-        } catch (RegistryException e) {
-        	String msg = "Failed when retrieving Governance System Registry.";
-        	log.error(msg, e);
-        	throw new CloudControllerException(msg, e);
-        } 
+			ServiceReferenceHolder.getInstance()
+			                      .setRegistry(registry);
+		} catch (RegistryException e) {
+			String msg = "Failed when retrieving Governance System Registry.";
+			log.error(msg, e);
+			throw new CloudControllerException(msg, e);
+		}
 	}
 
 	protected void unsetRegistryService(RegistryService registryService) {
 		if (log.isDebugEnabled()) {
-            log.debug("Unsetting the Registry Service");
-        }
-        ServiceReferenceHolder.getInstance().setRegistry(null);
+			log.debug("Unsetting the Registry Service");
+		}
+		ServiceReferenceHolder.getInstance().setRegistry(null);
 	}
-	
+
 	protected void setConfigurationContextService(ConfigurationContextService cfgCtxService) {
-        ServiceReferenceHolder.getInstance().setAxisConfiguration(
-                cfgCtxService.getServerConfigContext().getAxisConfiguration());
-    }
+		ServiceReferenceHolder.getInstance().setAxisConfiguration(
+				cfgCtxService.getServerConfigContext().getAxisConfiguration());
+	}
 
-    protected void unsetConfigurationContextService(ConfigurationContextService cfgCtxService) {
-        ServiceReferenceHolder.getInstance().setAxisConfiguration(null);
-    }
+	protected void unsetConfigurationContextService(ConfigurationContextService cfgCtxService) {
+		ServiceReferenceHolder.getInstance().setAxisConfiguration(null);
+	}
 
-    protected void setDistributedMapProvider(DistributedMapProvider mapProvider) {
-        ServiceReferenceHolder.getInstance().setDistributedMapProvider(mapProvider);
-    }
+	protected void setDistributedMapProvider(DistributedMapProvider mapProvider) {
+		ServiceReferenceHolder.getInstance().setDistributedMapProvider(mapProvider);
+	}
 
-    protected void unsetDistributedMapProvider(DistributedMapProvider mapProvider) {
-        ServiceReferenceHolder.getInstance().setDistributedMapProvider(null);
-    }
-	
+	protected void unsetDistributedMapProvider(DistributedMapProvider mapProvider) {
+		ServiceReferenceHolder.getInstance().setDistributedMapProvider(null);
+	}
+
 	protected void deactivate(ComponentContext ctx) {
-        // Close event publisher connections to message broker
-        EventPublisherPool.close(Util.Topics.TOPOLOGY_TOPIC.getTopicName());
+		// Close event publisher connections to message broker
+		EventPublisherPool.close(Util.Topics.TOPOLOGY_TOPIC.getTopicName());
 	}
 }
