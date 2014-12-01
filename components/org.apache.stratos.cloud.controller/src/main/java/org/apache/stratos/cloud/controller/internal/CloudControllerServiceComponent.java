@@ -21,6 +21,7 @@ package org.apache.stratos.cloud.controller.internal;
 */
 
 
+import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.cloud.controller.receiver.application.ApplicationTopicReceiver;
@@ -31,6 +32,8 @@ import org.apache.stratos.cloud.controller.interfaces.CloudControllerService;
 import org.apache.stratos.cloud.controller.publisher.TopologySynchronizerTaskScheduler;
 import org.apache.stratos.cloud.controller.receiver.instance.status.InstanceStatusTopicReceiver;
 import org.apache.stratos.cloud.controller.util.ServiceReferenceHolder;
+import org.apache.stratos.common.threading.StratosThreadPool;
+import org.apache.stratos.common.util.ConfUtil;
 import org.apache.stratos.messaging.broker.publish.EventPublisherPool;
 import org.apache.stratos.messaging.util.Util;
 import org.osgi.framework.BundleContext;
@@ -41,6 +44,8 @@ import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.utils.ConfigurationContextService;
+
+import java.util.concurrent.ExecutorService;
 
 /**
  * Registering Cloud Controller Service.
@@ -64,10 +69,21 @@ public class CloudControllerServiceComponent {
 	private ClusterStatusTopicReceiver clusterStatusTopicReceiver;
 	private InstanceStatusTopicReceiver instanceStatusTopicReceiver;
 	private ApplicationTopicReceiver applicationTopicReceiver;
+	private static final String THREAD_IDENTIFIER_KEY = "threadPool.autoscaler.identifier";
+	private static final String DEFAULT_IDENTIFIER = "Auto-Scaler";
+	private static final String THREAD_POOL_SIZE_KEY = "threadPool.autoscaler.threadPoolSize";
+	private static final String COMPONENTS_CONFIG = "stratos-config";
+	private static final int THREAD_POOL_SIZE = 10;
 
 	protected void activate(ComponentContext context) {
 		try {
+
+			XMLConfiguration conf = ConfUtil.getInstance(COMPONENTS_CONFIG).getConfiguration();
+			int threadPoolSize = conf.getInt(THREAD_POOL_SIZE_KEY, THREAD_POOL_SIZE);
+			String threadIdentifier = conf.getString(THREAD_IDENTIFIER_KEY, DEFAULT_IDENTIFIER);
+			ExecutorService executorService = StratosThreadPool.getExecutorService(threadIdentifier, threadPoolSize);
 			applicationTopicReceiver = new ApplicationTopicReceiver();
+			applicationTopicReceiver.setExecutorService(executorService);
 			applicationTopicReceiver.execute();
 
 			if (log.isInfoEnabled()) {
@@ -75,6 +91,7 @@ public class CloudControllerServiceComponent {
 			}
 
 			clusterStatusTopicReceiver = new ClusterStatusTopicReceiver();
+			clusterStatusTopicReceiver.setExecutorService(executorService);
 			clusterStatusTopicReceiver.execute();
 
 			if (log.isInfoEnabled()) {
