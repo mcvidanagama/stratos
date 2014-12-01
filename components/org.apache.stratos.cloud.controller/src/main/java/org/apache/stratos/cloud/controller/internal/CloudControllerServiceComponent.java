@@ -20,6 +20,7 @@ package org.apache.stratos.cloud.controller.internal;
  *
 */
 
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.cloud.controller.receiver.application.ApplicationTopicReceiver;
@@ -46,16 +47,16 @@ import org.wso2.carbon.utils.ConfigurationContextService;
  *
  * @scr.component name="org.apache.stratos.cloud.controller" immediate="true"
  * @scr.reference name="distributedMapProvider" interface="org.wso2.carbon.caching.impl.DistributedMapProvider"
- * cardinality="1..1" policy="dynamic" bind="setDistributedMapProvider" unbind="unsetDistributedMapProvider"
+ *                cardinality="1..1" policy="dynamic" bind="setDistributedMapProvider" unbind="unsetDistributedMapProvider"
  * @scr.reference name="ntask.component"
- * interface="org.wso2.carbon.ntask.core.service.TaskService"
- * cardinality="1..1" policy="dynamic" bind="setTaskService" unbind="unsetTaskService"
+ *                interface="org.wso2.carbon.ntask.core.service.TaskService"
+ *                cardinality="1..1" policy="dynamic" bind="setTaskService" unbind="unsetTaskService"
  * @scr.reference name="registry.service"
- * interface="org.wso2.carbon.registry.core.service.RegistryService"
- * cardinality="1..1" policy="dynamic" bind="setRegistryService" unbind="unsetRegistryService"
+ *                interface="org.wso2.carbon.registry.core.service.RegistryService"
+ *                cardinality="1..1" policy="dynamic" bind="setRegistryService" unbind="unsetRegistryService"
  * @scr.reference name="config.context.service"
- * interface="org.wso2.carbon.utils.ConfigurationContextService"
- * cardinality="1..1" policy="dynamic" bind="setConfigurationContextService" unbind="unsetConfigurationContextService"
+ *                interface="org.wso2.carbon.utils.ConfigurationContextService"
+ *                cardinality="1..1" policy="dynamic" bind="setConfigurationContextService" unbind="unsetConfigurationContextService"
  */
 public class CloudControllerServiceComponent {
 
