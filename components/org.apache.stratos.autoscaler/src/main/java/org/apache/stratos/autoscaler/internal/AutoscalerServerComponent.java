@@ -73,7 +73,6 @@ public class AutoscalerServerComponent {
 	private AutoscalerTopologyEventReceiver asTopologyReceiver;
 	private AutoscalerHealthStatEventReceiver autoscalerHealthStatEventReceiver;
 
-
 	protected void activate(ComponentContext componentContext) throws Exception {
 		try {
 			// Start topology receiver
