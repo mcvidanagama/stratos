@@ -48,45 +48,36 @@ import org.apache.stratos.messaging.listener.topology.*;
 import org.apache.stratos.messaging.message.receiver.topology.TopologyEventReceiver;
 import org.apache.stratos.messaging.message.receiver.topology.TopologyManager;
 
+import java.util.concurrent.ExecutorService;
+
 /**
  * Autoscaler topology receiver.
  */
-public class AutoscalerTopologyEventReceiver implements Runnable {
+public class AutoscalerTopologyEventReceiver{
 
     private static final Log log = LogFactory.getLog(AutoscalerTopologyEventReceiver.class);
 
     private TopologyEventReceiver topologyEventReceiver;
     private boolean terminated;
     private boolean topologyInitialized;
+	private ExecutorService executorService;
 
     public AutoscalerTopologyEventReceiver() {
         this.topologyEventReceiver = new TopologyEventReceiver();
         addEventListeners();
     }
 
-    @Override
-    public void run() {
+
+    public void execute() {
         //FIXME this activated before autoscaler deployer activated.
-        /*try {
-            Thread.sleep(15000);
-        } catch (InterruptedException ignore) {
-        }*/
-        Thread thread = new Thread(topologyEventReceiver);
-        thread.start();
-        if (log.isInfoEnabled()) {
+
+	    topologyEventReceiver.setExecutorService(executorService);
+	    topologyEventReceiver.execute();
+
+	    if (log.isInfoEnabled()) {
             log.info("Autoscaler topology receiver thread started");
         }
 
-        // Keep the thread live until terminated
-        while (!terminated) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ignore) {
-            }
-        }
-        if (log.isInfoEnabled()) {
-            log.info("Autoscaler topology receiver thread terminated");
-        }
     }
 
     private boolean allClustersInitialized(Application application) {
@@ -523,7 +514,15 @@ public class AutoscalerTopologyEventReceiver implements Runnable {
         }
     }
 
-    private class ApplicationMonitorAdder implements Runnable {
+	public ExecutorService getExecutorService() {
+		return executorService;
+	}
+
+	public void setExecutorService(ExecutorService executorService) {
+		this.executorService = executorService;
+	}
+
+	private class ApplicationMonitorAdder implements Runnable {
         private String appId;
 
         public ApplicationMonitorAdder(String appId) {
