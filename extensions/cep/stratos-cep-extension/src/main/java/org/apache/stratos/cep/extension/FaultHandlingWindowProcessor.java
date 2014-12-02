@@ -18,9 +18,11 @@
  */
 package org.apache.stratos.cep.extension;
 
+import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.stratos.common.threading.StratosThreadPool;
+import org.apache.stratos.common.util.ConfUtil;
 import org.apache.stratos.messaging.broker.publish.EventPublisher;
 import org.apache.stratos.messaging.broker.publish.EventPublisherPool;
 import org.apache.stratos.messaging.domain.topology.*;
@@ -68,7 +70,11 @@ public class FaultHandlingWindowProcessor extends WindowProcessor implements Run
 
 	private static final int TIME_OUT = 60 * 1000;
 	static final Logger log = Logger.getLogger(FaultHandlingWindowProcessor.class);
-	public static final String IDENTIFIER = "AutoScaler";
+	private static final String THREAD_IDENTIFIER_KEY = "threadPool.cepExtension.identifier";
+	private static final String DEFAULT_IDENTIFIER = "cep-extension";
+	private static final String THREAD_POOL_SIZE_KEY = "threadPool.cepExtension.threadPoolSize";
+	private static final String COMPONENTS_CONFIG = "stratos-config";
+	private static final int THREAD_POOL_SIZE = 10;
 	private ScheduledExecutorService faultHandleScheduler;
 	private ThreadBarrier threadBarrier;
 	private long timeToKeep;
@@ -286,7 +292,10 @@ public class FaultHandlingWindowProcessor extends WindowProcessor implements Run
 		MemberFaultEventMap
 				.put("org.apache.stratos.messaging.event.health.stat.MemberFaultEvent", memberFaultEventMessageMap);
 
-		ExecutorService executorService = StratosThreadPool.getExecutorService(IDENTIFIER, 10);
+		XMLConfiguration conf = ConfUtil.getInstance(COMPONENTS_CONFIG).getConfiguration();
+		int threadPoolSize = conf.getInt(THREAD_POOL_SIZE_KEY, THREAD_POOL_SIZE);
+		String threadIdentifier = conf.getString(THREAD_IDENTIFIER_KEY, DEFAULT_IDENTIFIER);
+		ExecutorService executorService = StratosThreadPool.getExecutorService(threadIdentifier, threadPoolSize);
 		cepTopologyEventReceiver.setExecutorService(executorService);
 		executorService.execute(cepTopologyEventReceiver);
 
