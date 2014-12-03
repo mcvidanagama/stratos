@@ -18,9 +18,11 @@
  */
 package org.apache.stratos.cep.extension;
 
+import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.stratos.common.threading.StratosThreadPool;
+import org.apache.stratos.common.util.ConfUtil;
 import org.apache.stratos.messaging.broker.publish.EventPublisher;
 import org.apache.stratos.messaging.broker.publish.EventPublisherPool;
 import org.apache.stratos.messaging.domain.topology.*;
@@ -221,9 +223,8 @@ public class FaultHandlingWindowProcessor extends WindowProcessor implements Run
 		}
 		log.info("Publishing member fault event for [member-id] " + memberId);
 
-		MemberFaultEvent memberFaultEvent =
-				new MemberFaultEvent(member.getClusterId(), member.getInstanceId(), member.getMemberId(),
-				                     member.getPartitionId(), 0);
+        MemberFaultEvent memberFaultEvent = new MemberFaultEvent(member.getClusterId(), member.getInstanceId(), member.getMemberId(),
+                member.getPartitionId(), member.getNetworkPartitionId(), 0);
 
 		memberFaultEventMessageMap.put("message", memberFaultEvent);
 		healthStatPublisher.publish(MemberFaultEventMap, true);
