@@ -760,8 +760,7 @@ public class StratosApiV41Utils {
 					}
 
 
-
-					if (cartridgeInfo.getProvider().equals(provider)) {
+					if (!cartridgeInfo.getProvider().equals(provider)) {
 						continue;
 					}
 
@@ -790,20 +789,6 @@ public class StratosApiV41Utils {
 					}
 					//cartridge.setActiveInstances(0);
 					cartridges.add(cartridge);
-
-					if (cartridgeInfo.getMultiTenant() && !allowMultipleSubscription) {
-						// If the cartridge is multi-tenant. We should not let users
-						// createSubscription twice.
-						if (isAlreadySubscribed(cartridgeType,
-						                        ApplicationManagementUtil.getTenantId(configurationContext))) {
-							if (log.isDebugEnabled()) {
-								log.debug("Already subscribed to " + cartridgeType
-								          +
-								          ". This multi-tenant cartridge will not be available to createSubscription");
-							}
-							//cartridge.setStatus(CartridgeConstants.SUBSCRIBED);
-						}
-					}
 				}
 			} else {
 				if (log.isDebugEnabled()) {
