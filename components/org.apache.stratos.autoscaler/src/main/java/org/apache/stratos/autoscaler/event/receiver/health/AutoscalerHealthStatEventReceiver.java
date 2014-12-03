@@ -87,6 +87,7 @@ public class AutoscalerHealthStatEventReceiver {
             Thread.sleep(15000);
         } catch (InterruptedException ignore) {
         }
+	    healthStatEventReceiver.setExecutorService(executorService);
         healthStatEventReceiver.execute();
 
         if(log.isInfoEnabled()) {

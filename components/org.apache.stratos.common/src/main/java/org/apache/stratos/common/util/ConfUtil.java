@@ -29,7 +29,7 @@ import org.wso2.carbon.utils.CarbonUtils;
 import java.io.File;
 
 /**
- * This class contains utility methods for read Autoscaler configuration file.
+ * This class contains utility methods for read Common configuration file.
  */
 public class ConfUtil {
 
@@ -54,7 +54,7 @@ public class ConfUtil {
 
             config = new XMLConfiguration(confFile);
         } catch (ConfigurationException e) {
-            log.error("Unable to load autoscaler configuration file",e);
+            log.error("Unable to load common configuration file",e);
             config = new XMLConfiguration();  // continue with default values
         }
     }

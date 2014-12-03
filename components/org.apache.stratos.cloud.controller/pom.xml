@@ -60,6 +60,7 @@
                             org.apache.commons.logging; version=0.0.0,
                             org.apache.commons.io.*,
                             org.wso2.carbon.utils.*,
+                            org.apache.commons.configuration; version=0.0.0,
                             <!--org.jclouds.compute*;version="${jclouds.version}";resolution:=optional,
                             org.jclouds*;version="${jclouds.version}",-->
                             *; resolution:=optional
@@ -305,6 +306,11 @@
             <groupId>org.apache.stratos</groupId>
             <artifactId>org.apache.stratos.metadata.client</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+            <version>1.9</version>
         </dependency>
     </dependencies>
     <properties>

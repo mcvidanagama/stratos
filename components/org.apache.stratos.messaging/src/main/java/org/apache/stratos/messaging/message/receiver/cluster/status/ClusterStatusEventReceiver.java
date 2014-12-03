@@ -54,7 +54,7 @@ public class ClusterStatusEventReceiver{
         try {
             // Start topic subscriber thread
             subscriber = new Subscriber(Util.Topics.CLUSTER_STATUS_TOPIC.getTopicName(), messageListener);
-            executorService.execute(subscriber);
+	        executorService.execute(subscriber);
 
             if (log.isDebugEnabled()) {
                 log.debug("InstanceNotifier event message receiver thread started");

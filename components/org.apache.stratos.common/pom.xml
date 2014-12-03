@@ -47,7 +47,8 @@
                         <Export-Package>
                             org.apache.stratos.common.*,
                             org.apache.stratos.common.clustering.*
-                            org.apache.stratos.common.statistics.publisher.*,
+                            org.apache.stratos.common.statistics.publisher.*
+                            org.apache.commons.configuration.*,
                         </Export-Package>
                         <Import-Package>
                             org.wso2.carbon.registry.core.*;version=1.0.1,

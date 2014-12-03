@@ -54,27 +54,17 @@ public class HealthStatEventReceiver {
 		try {
 			// Start topic subscriber thread
 			subscriber = new Subscriber(Util.Topics.HEALTH_STAT_TOPIC.getTopicName(), messageListener);
-//			subscriber.setMessageListener(messageListener);
-			Thread subscriberThread = new Thread(subscriber);
-			subscriberThread.start();
+			executorService.execute(subscriber);
 			if (log.isDebugEnabled()) {
 				log.debug("Health stats event message receiver thread started");
 			}
 
 			// Start health stat event message delegator thread
-			Thread receiverThread = new Thread(messageDelegator);
-			receiverThread.start();
+			executorService.execute(messageDelegator);
 			if (log.isDebugEnabled()) {
 				log.debug("Health stats event message delegator thread started");
 			}
 
-			// Keep the thread live until terminated
-			while (!terminated) {
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException ignore) {
-				}
-			}
 		} catch (Exception e) {
 			if (log.isErrorEnabled()) {
 				log.error("Topology receiver failed", e);

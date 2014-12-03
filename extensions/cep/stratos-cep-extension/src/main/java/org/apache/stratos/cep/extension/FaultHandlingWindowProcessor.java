@@ -18,11 +18,10 @@
  */
 package org.apache.stratos.cep.extension;
 
-import org.apache.commons.configuration.XMLConfiguration;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.stratos.common.threading.StratosThreadPool;
-import org.apache.stratos.common.util.ConfUtil;
 import org.apache.stratos.messaging.broker.publish.EventPublisher;
 import org.apache.stratos.messaging.broker.publish.EventPublisherPool;
 import org.apache.stratos.messaging.domain.topology.*;
@@ -283,10 +282,7 @@ public class FaultHandlingWindowProcessor extends WindowProcessor implements Run
 		MemberFaultEventMap
 				.put("org.apache.stratos.messaging.event.health.stat.MemberFaultEvent", memberFaultEventMessageMap);
 
-		XMLConfiguration conf = ConfUtil.getInstance(COMPONENTS_CONFIG).getConfiguration();
-		int threadPoolSize = conf.getInt(THREAD_POOL_SIZE_KEY, THREAD_POOL_SIZE);
-		String threadIdentifier = conf.getString(THREAD_IDENTIFIER_KEY, DEFAULT_IDENTIFIER);
-		ExecutorService executorService = StratosThreadPool.getExecutorService(threadIdentifier, threadPoolSize);
+		ExecutorService executorService = StratosThreadPool.getExecutorService(DEFAULT_IDENTIFIER, THREAD_POOL_SIZE);
 		cepTopologyEventReceiver.setExecutorService(executorService);
 		executorService.execute(cepTopologyEventReceiver);
 
