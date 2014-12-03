@@ -78,10 +78,7 @@ public class AutoscalerServerComponent {
 	protected void activate(ComponentContext componentContext) throws Exception {
 		try {
 			// Start topology receiver
-			XMLConfiguration conf = ConfUtil.getInstance(COMPONENTS_CONFIG).getConfiguration();
-			int threadPoolSize = conf.getInt(THREAD_POOL_SIZE_KEY, THREAD_POOL_SIZE);
-			String threadIdentifier = conf.getString(THREAD_IDENTIFIER_KEY, DEFAULT_IDENTIFIER);
-			ExecutorService executorService = StratosThreadPool.getExecutorService(threadIdentifier, threadPoolSize);
+			ExecutorService executorService = StratosThreadPool.getExecutorService(DEFAULT_IDENTIFIER, THREAD_POOL_SIZE);
 			asTopologyReceiver = new AutoscalerTopologyEventReceiver();
 			asTopologyReceiver.setExecutorService(executorService);
 			asTopologyReceiver.execute();
