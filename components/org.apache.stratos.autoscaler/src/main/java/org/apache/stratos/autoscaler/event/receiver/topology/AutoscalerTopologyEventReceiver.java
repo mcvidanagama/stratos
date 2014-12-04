@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.autoscaler.applications.ApplicationHolder;
 import org.apache.stratos.autoscaler.context.AutoscalerContext;
+import org.apache.stratos.autoscaler.context.cluster.AbstractClusterContext;
 import org.apache.stratos.autoscaler.context.cluster.ClusterContextFactory;
 import org.apache.stratos.autoscaler.context.cluster.VMClusterContext;
 import org.apache.stratos.autoscaler.event.publisher.ClusterStatusEventPublisher;
@@ -84,46 +85,6 @@ public class AutoscalerTopologyEventReceiver {
 
 	}
 
-    private boolean allClustersInitialized(Application application) {
-        boolean allClustersInitialized = false;
-        for (ClusterDataHolder holder : application.getClusterDataRecursively()) {
-            TopologyManager.acquireReadLockForCluster(holder.getServiceType(),
-                    holder.getClusterId());
-
-            try {
-                Topology topology = TopologyManager.getTopology();
-                if (topology != null) {
-                    Service service = topology.getService(holder.getServiceType());
-                    if (service != null) {
-                        if (service.clusterExists(holder.getClusterId())) {
-                            allClustersInitialized = true;
-                            return allClustersInitialized;
-                        } else {
-                            if (log.isDebugEnabled()) {
-                                log.debug("[Cluster] " + holder.getClusterId() + " is not found in " +
-                                        "the Topology");
-                            }
-                            allClustersInitialized = false;
-                        }
-                    } else {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Service is null in the CompleteTopologyEvent");
-                        }
-                    }
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Topology is null in the CompleteTopologyEvent");
-                    }
-                }
-            } finally {
-                TopologyManager.releaseReadLockForCluster(holder.getServiceType(),
-                        holder.getClusterId());
-            }
-        }
-        return allClustersInitialized;
-    }
-
-
     private void addEventListeners() {
         // Listen to topology events that affect clusters
         topologyEventReceiver.addEventListener(new CompleteTopologyEventListener() {
@@ -136,7 +97,7 @@ public class AutoscalerTopologyEventReceiver {
                         Applications applications = ApplicationHolder.getApplications();
                         if (applications != null) {
                             for (Application application : applications.getApplications().values()) {
-                                if (allClustersInitialized(application)) {
+                                if (AutoscalerUtil.allClustersInitialized(application)) {
                                     DeploymentPolicy policy = PolicyManager.getInstance().
                                             getDeploymentPolicyByApplication(
                                                     application.getUniqueIdentifier());
@@ -178,8 +139,13 @@ public class AutoscalerTopologyEventReceiver {
                     try {
                         //acquire read lock
                         ApplicationHolder.acquireReadLock();
-                        //start the application monitor
-                        //startApplicationMonitor(appId);
+                        //start the application monitor if the policy exists
+                        DeploymentPolicy policy = PolicyManager.getInstance().
+                                getDeploymentPolicyByApplication(appId);
+                        if(policy != null && !AutoscalerContext.getInstance().
+                                                containsPendingMonitor(appId)) {
+                            AutoscalerUtil.getInstance().startApplicationMonitor(appId);
+                        }
                     } catch (Exception e) {
                         String msg = "Error processing event " + e.getLocalizedMessage();
                         log.error(msg, e);
@@ -476,10 +442,11 @@ public class AutoscalerTopologyEventReceiver {
                                        VMClusterContext clusterContext =
                                                (VMClusterContext) clusterMonitor.getClusterContext();
                                        if (clusterContext == null) {
-                                           clusterMonitor.setClusterContext(
-                                                   ClusterContextFactory.
-                                                           getVMClusterContext(instanceId,
-                                                                   cluster));
+                                           clusterContext = ClusterContextFactory.
+                                                   getVMClusterContext(instanceId,
+                                                           cluster);
+                                           clusterMonitor.setClusterContext(clusterContext);
+
                                        }
                                        clusterContext.addInstanceContext(instanceId, cluster);
                                        if(clusterMonitor.getInstance(instanceId) == null) {

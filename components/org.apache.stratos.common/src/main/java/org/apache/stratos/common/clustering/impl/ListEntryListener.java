@@ -17,25 +17,21 @@
  * under the License.
  */
 
-package org.apache.stratos.autoscaler.rule;
+package org.apache.stratos.common.clustering.impl;
 
-import org.apache.stratos.autoscaler.context.cluster.ClusterInstanceContext;
+/**
+ * List entry listener interface.
+ */
+public interface ListEntryListener {
+    /**
+     * Invoked when an item is added to the distributed list.
+     * @param item
+     */
+    void itemAdded(Object item);
 
-global org.apache.stratos.autoscaler.rule.RuleLog log;
-global java.lang.String clusterId;
-global Integer roundedRequiredInstanceCount;
-
-rule "Dependent Scaling Rule"
-dialect "mvel"
-	when
-
-       clusterInstanceContext : ClusterInstanceContext ()
-
-	then
-
-
-end
-
-
-
-
+    /**
+     * Invoked when an item is removed from the distributed list.
+     * @param item
+     */
+    void itemRemoved(Object item);
+}
