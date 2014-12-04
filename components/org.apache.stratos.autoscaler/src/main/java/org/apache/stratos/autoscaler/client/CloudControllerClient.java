@@ -89,14 +89,13 @@ public class CloudControllerClient {
      * This will validate the given partitions against the given cartridge type.
      */
 
-    public synchronized boolean validateDeploymentPolicy(String cartridgeType, DeploymentPolicy deploymentPolicy) throws PartitionValidationException {
+    public synchronized boolean validateDeploymentPolicy(String cartridgeType, org.apache.stratos.autoscaler.pojo.policy.deployment.partition.network.Partition[] partitions) throws PartitionValidationException {
         try {
             if (log.isInfoEnabled()) {
-                log.info(String.format("Validating partitions of policy via cloud controller: [id] %s", deploymentPolicy.getId()));
+                log.info(String.format("Validating partitions of policy via cloud controller: [cartridge-type] %s", cartridgeType));
             }
             long startTime = System.currentTimeMillis();
-            boolean result = stub.validateDeploymentPolicy(cartridgeType, getAllCCPartitions(deploymentPolicy.
-                    getAllPartitions()));
+            boolean result = stub.validateDeploymentPolicy(cartridgeType, getAllCCPartitions(partitions));
             if (log.isDebugEnabled()) {
                 long endTime = System.currentTimeMillis();
                 log.debug(String.format("Service call validateDeploymentPolicy() returned in %dms", (endTime - startTime)));
@@ -173,7 +172,8 @@ public class CloudControllerClient {
                                                       int minMemberCount) throws SpawningException {
         try {
             if (log.isInfoEnabled()) {
-                log.info(String.format("Trying to spawn an instance via cloud controller: [cluster] %s [partition] %s [lb-cluster] %s [network-partition-id] %s",
+                log.info(String.format("Trying to spawn an instance via cloud controller: " +
+                                "[cluster] %s [partition] %s [network-partition-id] %s",
                         clusterId, partition.getId(), networkPartitionId));
             }
 

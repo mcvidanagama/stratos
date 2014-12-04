@@ -34,9 +34,9 @@ import org.apache.stratos.autoscaler.monitor.events.MonitorScalingEvent;
 import org.apache.stratos.autoscaler.monitor.events.MonitorStatusEvent;
 import org.apache.stratos.autoscaler.monitor.events.builder.MonitorStatusEventBuilder;
 import org.apache.stratos.autoscaler.rule.AutoscalerRuleEvaluator;
-import org.apache.stratos.autoscaler.status.processor.cluster.ClusterStatusTerminatedProcessor;
 import org.apache.stratos.autoscaler.status.processor.cluster.ClusterStatusActiveProcessor;
 import org.apache.stratos.autoscaler.status.processor.cluster.ClusterStatusInActiveProcessor;
+import org.apache.stratos.autoscaler.status.processor.cluster.ClusterStatusTerminatedProcessor;
 import org.apache.stratos.autoscaler.util.AutoScalerConstants;
 import org.apache.stratos.autoscaler.util.AutoscalerUtil;
 import org.apache.stratos.autoscaler.util.ConfUtil;
@@ -47,6 +47,7 @@ import org.apache.stratos.common.Property;
 import org.apache.stratos.common.constants.StratosConstants;
 import org.apache.stratos.messaging.domain.applications.ApplicationStatus;
 import org.apache.stratos.messaging.domain.applications.GroupStatus;
+import org.apache.stratos.messaging.domain.instance.ClusterInstance;
 import org.apache.stratos.messaging.domain.topology.Cluster;
 import org.apache.stratos.messaging.domain.topology.ClusterStatus;
 import org.apache.stratos.messaging.domain.topology.Member;
@@ -54,7 +55,6 @@ import org.apache.stratos.messaging.domain.topology.Service;
 import org.apache.stratos.messaging.event.health.stat.*;
 import org.apache.stratos.messaging.event.topology.*;
 import org.apache.stratos.messaging.message.receiver.topology.TopologyManager;
-import org.drools.runtime.StatefulKnowledgeSession;
 
 import java.util.*;
 
@@ -138,19 +138,10 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
     public void run() {
         while (!isDestroyed()) {
             try {
-                /* TODO ***********if  (((getStatus().getCode() <= ClusterStatus.Active.getCode()) ||
-                        (getStatus() == ClusterStatus.Inactive && !hasStartupDependents)) && !this.hasFaultyMember
-                        && !stop) {*/
                 if (log.isDebugEnabled()) {
                     log.debug("Cluster monitor is running.. " + this.toString());
                 }
                 monitor();
-                /*} else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Cluster monitor is suspended as the cluster is in " +
-                                ClusterStatus.Inactive + " mode......");
-                    }
-                }*/
             } catch (Exception e) {
                 log.error("Cluster monitor: Monitor failed." + this.toString(), e);
             }
@@ -184,24 +175,27 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
 
     public void monitor() {
 
-        final Collection<ClusterLevelNetworkPartitionContext> clusterLevelNetworkPartitionContexts =
-                ((VMClusterContext) this.clusterContext).getNetworkPartitionCtxts().values();
+        for (ClusterLevelNetworkPartitionContext networkPartitionContext : getNetworkPartitionCtxts()) {
 
-        Runnable monitoringRunnable = new Runnable() {
-            @Override
-            public void run() {
+            final Collection<ClusterInstanceContext> clusterInstanceContexts = networkPartitionContext.
+                    getClusterInstanceContextMap().values();
 
-                for (ClusterLevelNetworkPartitionContext networkPartitionContext :
-                        clusterLevelNetworkPartitionContexts) {
+            for (final ClusterInstanceContext instanceContext : clusterInstanceContexts) {
+                ClusterInstance instance = (ClusterInstance) this.instanceIdToInstanceMap.
+                        get(instanceContext.getId());
+                if ((instance.getStatus().getCode() <= ClusterStatus.Active.getCode()) ||
+                        (getStatus() == ClusterStatus.Inactive && !hasStartupDependents) && !this.hasFaultyMember
+                                && !stop) {
 
-                    for (ClusterInstanceContext instanceContext : networkPartitionContext.
-                            getClusterInstanceContextMap().values()) {
+                    Runnable monitoringRunnable = new Runnable() {
+                        @Override
+                        public void run() {
 
-                        // store primary members in the cluster instance context
-                        List<String> primaryMemberListInClusterInstance = new ArrayList<String>();
-
-                        //FIXME to check the status of the instance
-                        if (true) {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Monitor is running for [cluster] : " + getClusterId());
+                            }
+                            // store primary members in the cluster instance context
+                            List<String> primaryMemberListInClusterInstance = new ArrayList<String>();
 
                             for (ClusterLevelPartitionContext partitionContext : instanceContext.getPartitionCtxts()) {
 
@@ -223,7 +217,7 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
                             getMinCheckKnowledgeSession().setGlobal("clusterId", getClusterId());
                             getMinCheckKnowledgeSession().setGlobal("isPrimary", hasPrimary);
                             getMinCheckKnowledgeSession().setGlobal("algorithmName",
-                                    networkPartitionContext.getPartitionAlgorithm());
+                                    instanceContext.getPartitionAlgorithm());
 
                             if (log.isDebugEnabled()) {
                                 log.debug(String.format("Running minimum check for cluster instance %s ",
@@ -242,9 +236,9 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
                             boolean loadAverageReset = instanceContext.isLoadAverageReset();
 
                             if (log.isDebugEnabled()) {
-                                log.debug("Is rif Reset: " + rifReset
-                                        + " Is memoryConsumption Reset: " + memoryConsumptionReset
-                                        + " Is loadAverage Reset: " + loadAverageReset);
+                                log.debug("Execution point of scaling Rule, [Is rif Reset] : " + rifReset
+                                        + " [Is memoryConsumption Reset] : " + memoryConsumptionReset
+                                        + " [Is loadAverage Reset] : " + loadAverageReset);
                             }
                             if (rifReset || memoryConsumptionReset || loadAverageReset) {
 
@@ -261,11 +255,11 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
                                 getScaleCheckKnowledgeSession().setGlobal("isPrimary", false);
                                 getScaleCheckKnowledgeSession().setGlobal("primaryMembers", primaryMemberListInClusterInstance);
                                 getMinCheckKnowledgeSession().setGlobal("algorithmName",
-                                        networkPartitionContext.getPartitionAlgorithm());
+                                        instanceContext.getPartitionAlgorithm());
 
                                 if (log.isDebugEnabled()) {
-                                    log.debug(String.format("Running scale check for network partition %s ",
-                                            networkPartitionContext.getId()));
+                                    log.debug(String.format("Running scale check for [cluster instance context] %s ",
+                                            instanceContext.getId()));
                                     log.debug(" Primary members : " + primaryMemberListInClusterInstance);
                                 }
 
@@ -277,18 +271,16 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
                                 instanceContext.setLoadAverageReset(false);
                             } else if (log.isDebugEnabled()) {
                                 log.debug(String.format("Scale rule will not run since the LB statistics have not " +
-                                                "received before this cycle for network partition %s",
-                                        networkPartitionContext.getId()));
+                                                "received before this cycle for [cluster instance context] %s ",
+                                        instanceContext.getId()));
                             }
 
-
                         }
-                    }
+                    };
+                    monitoringRunnable.run();
                 }
-
             }
-        };
-        monitoringRunnable.run();
+        }
     }
 
     @Override
