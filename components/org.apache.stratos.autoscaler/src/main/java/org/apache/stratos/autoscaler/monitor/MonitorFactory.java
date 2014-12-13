@@ -101,6 +101,7 @@ public class MonitorFactory {
         boolean initialStartup = false;
         //acquiring read lock to create the monitor
         ApplicationHolder.acquireReadLock();
+<<<<<<< HEAD
         try {
             Group group = ApplicationHolder.getApplications().
                     getApplication(appId).getGroupRecursively(context.getId());
@@ -129,8 +130,36 @@ public class MonitorFactory {
             }
         } finally {
             ApplicationHolder.releaseReadLock();
+=======
+	    try {
+		    Group group = ApplicationHolder.getApplications().
+				    getApplication(appId).getGroupRecursively(context.getId());
+		    groupMonitor = new GroupMonitor(group, appId, instanceIds);
+		    groupMonitor.setAppId(appId);
+		    if (parentMonitor != null) {
+			    groupMonitor.setParent(parentMonitor);
+			    //Setting the dependent behaviour of the monitor
+			    if (parentMonitor.hasStartupDependents() || (context.hasStartupDependents() &&
+			                                                 context.hasChild())) {
+				    groupMonitor.setHasStartupDependents(true);
+			    } else {
+				    groupMonitor.setHasStartupDependents(false);
+			    }
+			    groupMonitor.startScheduler();
+		    }
 
-        }
+		    if (group.isGroupScalingEnabled()) {
+			    groupMonitor.setGroupScalingEnabled(true);
+		    } else if (parentMonitor instanceof GroupMonitor) {
+                /*if (parentMonitor.hasGroupScalingDependent() || parentMonitor.getList --> not empty) {
+                    groupMonitor.setHasGroupScalingDependent(true);
+                }*/
+		    }
+	    } finally {
+		    ApplicationHolder.releaseReadLock();
+>>>>>>> a660464... Make group monitor as a schedular
+
+	    }
 
         Group group = ApplicationHolder.getApplications().
                 getApplication(appId).getGroupRecursively(context.getId());
