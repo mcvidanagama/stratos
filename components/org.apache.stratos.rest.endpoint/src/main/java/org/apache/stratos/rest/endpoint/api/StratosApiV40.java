@@ -21,8 +21,8 @@ package org.apache.stratos.rest.endpoint.api;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.stratos.common.beans.TenantInfoBean;
-import org.apache.stratos.common.exception.ApacheStratosException;
+import org.apache.stratos.common.beans.TenantInfoBean;
+import org.apache.stratos.common.exception.StratosException;
 import org.apache.stratos.common.util.ClaimsMgtUtil;
 import org.apache.stratos.common.util.CommonUtil;
 import org.apache.stratos.manager.dto.Cartridge;
@@ -31,21 +31,21 @@ import org.apache.stratos.rest.endpoint.ServiceHolder;
 import org.apache.stratos.rest.endpoint.Utils;
 import org.apache.stratos.rest.endpoint.annotation.AuthorizationAction;
 import org.apache.stratos.rest.endpoint.annotation.SuperTenantService;
-import org.apache.stratos.common.beans.CartridgeInfoBean;
-import org.apache.stratos.common.beans.StratosApiResponse;
-import org.apache.stratos.common.beans.SubscriptionDomainRequest;
-import org.apache.stratos.common.beans.autoscaler.partition.ApplicationLevelNetworkPartition;
-import org.apache.stratos.common.beans.autoscaler.partition.Partition;
-import org.apache.stratos.common.beans.autoscaler.policy.autoscale.AutoscalePolicy;
-import org.apache.stratos.common.beans.autoscaler.policy.deployment.DeploymentPolicy;
-import org.apache.stratos.common.beans.cartridge.definition.CartridgeDefinitionBean;
-import org.apache.stratos.common.beans.cartridge.definition.ServiceDefinitionBean;
-import org.apache.stratos.common.beans.repositoryNotificationInfoBean.Payload;
-import org.apache.stratos.common.beans.subscription.domain.SubscriptionDomainBean;
-import org.apache.stratos.common.beans.topology.Cluster;
+import org.apache.stratos.rest.endpoint.bean.CartridgeInfoBean;
+import org.apache.stratos.rest.endpoint.bean.StratosApiResponse;
+import org.apache.stratos.rest.endpoint.bean.SubscriptionDomainRequest;
+import org.apache.stratos.rest.endpoint.bean.autoscaler.partition.ApplicationLevelNetworkPartition;
+import org.apache.stratos.rest.endpoint.bean.autoscaler.partition.Partition;
+import org.apache.stratos.rest.endpoint.bean.autoscaler.policy.autoscale.AutoscalePolicy;
+import org.apache.stratos.rest.endpoint.bean.autoscaler.policy.deployment.DeploymentPolicy;
+import org.apache.stratos.rest.endpoint.bean.cartridge.definition.CartridgeDefinitionBean;
+import org.apache.stratos.rest.endpoint.bean.cartridge.definition.ServiceDefinitionBean;
+import org.apache.stratos.rest.endpoint.bean.repositoryNotificationInfoBean.Payload;
+import org.apache.stratos.rest.endpoint.bean.subscription.domain.SubscriptionDomainBean;
+import org.apache.stratos.rest.endpoint.bean.topology.Cluster;
 import org.apache.stratos.rest.endpoint.exception.RestAPIException;
-import org.wso2.carbon.tenant.mgt.core.TenantPersistor;
-import org.wso2.carbon.tenant.mgt.util.TenantMgtUtil;
+import org.apache.stratos.tenant.mgt.core.TenantPersistor;
+import org.apache.stratos.tenant.mgt.util.TenantMgtUtil;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
@@ -56,7 +56,6 @@ import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.tenant.Tenant;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-import org.wso2.carbon.stratos.common.exception.StratosException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -167,10 +166,10 @@ public class StratosApiV40 extends AbstractApi {
     @Consumes("application/json")
     @AuthorizationAction("/permission/protected/manage/monitor/tenants")
     @SuperTenantService(true)
-    public Response deployDeploymentPolicyDefinition(DeploymentPolicy deploymentPolicy)
+    public StratosApiResponse deployDeploymentPolicyDefinition (DeploymentPolicy deploymentPolicy)
             throws RestAPIException {
-        // Not supported in 4.1.0
-        return Response.status(Response.Status.GONE).build();
+
+        return StratosApiV40Utils.deployDeploymentPolicy(deploymentPolicy);
     }
 
     @GET
@@ -178,9 +177,9 @@ public class StratosApiV40 extends AbstractApi {
     @Produces("application/json")
     @Consumes("application/json")
     @AuthorizationAction("/permission/protected/manage/monitor/tenants")
-    public Response getPartitions() throws RestAPIException {
-        // Not supported in 4.1.0
-        return Response.status(Response.Status.GONE).build();
+    public Partition[] getPartitions () throws RestAPIException {
+
+        return StratosApiV40Utils.getAvailablePartitions();
     }
 
     @GET
@@ -252,9 +251,9 @@ public class StratosApiV40 extends AbstractApi {
     @Produces("application/json")
     @Consumes("application/json")
     @AuthorizationAction("/permission/protected/manage/monitor/tenants")
-    public Response getDeploymentPolicies() throws RestAPIException {
-        // Not supported in 4.1.0
-        return Response.status(Response.Status.GONE).build();
+    public DeploymentPolicy[] getDeploymentPolicies () throws RestAPIException {
+
+        return StratosApiV40Utils.getDeploymentPolicies();
     }
 
     @GET
@@ -262,10 +261,10 @@ public class StratosApiV40 extends AbstractApi {
     @Produces("application/json")
     @Consumes("application/json")
     @AuthorizationAction("/permission/protected/manage/monitor/tenants")
-    public Response getDeploymentPolicies(@PathParam("deploymentPolicyId") String deploymentPolicyId)
+    public DeploymentPolicy getDeploymentPolicies (@PathParam("deploymentPolicyId") String deploymentPolicyId)
             throws RestAPIException {
-        // Not supported in 4.1.0
-        return Response.status(Response.Status.GONE).build();
+
+        return StratosApiV40Utils.getDeploymentPolicy(deploymentPolicyId);
     }
 
     @GET
@@ -273,10 +272,10 @@ public class StratosApiV40 extends AbstractApi {
     @Produces("application/json")
     @Consumes("application/json")
     @AuthorizationAction("/permission/protected/manage/monitor/tenants")
-    public Response getValidDeploymentPolicies(@PathParam("cartridgeType") String cartridgeType)
+    public DeploymentPolicy[] getValidDeploymentPolicies (@PathParam("cartridgeType") String cartridgeType)
             throws RestAPIException {
-        // Not supported in 4.1.0
-        return Response.status(Response.Status.GONE).build();
+
+        return StratosApiV40Utils.getDeploymentPolicies(cartridgeType);
     }
 
     @GET
@@ -438,7 +437,7 @@ public class StratosApiV40 extends AbstractApi {
             }
         }
         for (Cluster clusterObj : clusters) {
-            if (clusterObj.getClusterId().equals(clusterId)){
+            if (clusterObj.clusterId.equals(clusterId)){
                 cluster = clusterObj;
                 break;
             }
@@ -1076,7 +1075,7 @@ public class StratosApiV40 extends AbstractApi {
     public Response getSubscriptionDomain(@PathParam("cartridgeType") String cartridgeType,
                                           @PathParam("subscriptionAlias") String subscriptionAlias, @PathParam("domainName") String domainName) throws RestAPIException {
         SubscriptionDomainBean subscriptionDomainBean = StratosApiV40Utils.getSubscriptionDomain(getConfigContext(), cartridgeType, subscriptionAlias, domainName);
-        if(subscriptionDomainBean.getDomainName() == null){
+        if(subscriptionDomainBean.domainName == null){
             return Response.status(Response.Status.NOT_FOUND).build();
         }else{
             return Response.ok().entity(subscriptionDomainBean).build();

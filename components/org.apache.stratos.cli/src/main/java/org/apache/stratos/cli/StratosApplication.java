@@ -18,7 +18,23 @@
  */
 package org.apache.stratos.cli;
 
-import org.apache.commons.cli.*;
+import static org.apache.stratos.cli.utils.CliConstants.STRATOS_DIR;
+import static org.apache.stratos.cli.utils.CliConstants.STRATOS_HISTORY_DIR;
+
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.TreeMap;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrTokenizer;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -30,16 +46,6 @@ import org.apache.stratos.cli.exception.CommandException;
 import org.apache.stratos.cli.utils.CliConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.TreeMap;
-
-import static org.apache.stratos.cli.utils.CliConstants.STRATOS_DIR;
-import static org.apache.stratos.cli.utils.CliConstants.STRATOS_HISTORY_DIR;
 
 public class StratosApplication extends CommandLineApplication<StratosCommandContext> {
 
@@ -102,10 +108,10 @@ public class StratosApplication extends CommandLineApplication<StratosCommandCon
         command = new DeleteUserCommand();
         commands.put(command.getName(), command);
 
-        command = new ListUsers();
+        command = new ListAllUsers();
         commands.put(command.getName(), command);
 
-        command = new ListTenants();
+        command = new ListAllTenants();
         commands.put(command.getName(), command);
 
         command = new DeactivateTenantCommand();
@@ -114,22 +120,49 @@ public class StratosApplication extends CommandLineApplication<StratosCommandCon
         command = new ActivateTenantCommand();
         commands.put(command.getName(), command);
 
-        command = new AddCartridgeCommand();
+        command = new DeployCartridgeCommand();
         commands.put(command.getName(), command);
 
-        command = new AddAutoscalingPolicyCommand();
+        command = new DeployPartitionCommand();
         commands.put(command.getName(), command);
+
+        command = new DeployAutoscalingPolicyCommand();
+        commands.put(command.getName(), command);
+
+        /*command = new DeployServiceCommand();
+        commands.put(command.getName(), command);
+
+        command = new UndeployServiceDefinitionCommand();
+        commands.put(command.getName(), command);*/
 
         command = new ListApplicationsCommand();
         commands.put(command.getName(), command);
 
+        /*command = new ListServicesCommand();
+        commands.put(command.getName(), command);*/
+
         command = new UndeployCartridgeDefinitionCommand();
+        commands.put(command.getName(), command);
+
+        command = new DeployDeploymentPolicyCommand();
+        commands.put(command.getName(), command);
+
+        command = new ListPartitionCommand();
         commands.put(command.getName(), command);
 
         command = new ListAutoscalePolicyCommand();
         commands.put(command.getName(), command);
 
+        command = new ListDeploymentPolicyCommand();
+        commands.put(command.getName(), command);
+		
+		command = new ListMemberCommand();
+		commands.put(command.getName(), command);
+
         command = new DescribeCartridgeCommand();
+        commands.put(command.getName(), command);
+
+        command = new DescribePartitionCommand();
         commands.put(command.getName(), command);
 
         command = new DescribeDeploymentPolicyCommand();
@@ -137,11 +170,14 @@ public class StratosApplication extends CommandLineApplication<StratosCommandCon
 
         command = new DescribeAutoScalingPolicyCommand();
         commands.put(command.getName(), command);
+        
+        command = new DescribeCartridgeSubscriptionCommand();
+        commands.put(command.getName(), command);
 		
 		command = new SyncCommand();
 		commands.put(command.getName(), command);
 
-        command = new AddKubernetesGroupCommand();
+        command = new DeployKubernetesGroupCommand();
         commands.put(command.getName(), command);
 
         command = new ListKubernetesGroupsCommand();
@@ -150,7 +186,7 @@ public class StratosApplication extends CommandLineApplication<StratosCommandCon
         command = new ListKubernetesHostsCommand();
         commands.put(command.getName(), command);
 
-        command = new AddKubernetesHostCommand();
+        command = new DeployKubernetesHostCommand();
         commands.put(command.getName(), command);
 
         command = new UnDeployKubernetesGroupCommand();
@@ -164,8 +200,17 @@ public class StratosApplication extends CommandLineApplication<StratosCommandCon
 
         command = new UpdateKubernetesHostCommand();
         commands.put(command.getName(), command);
+        
+        command = new UpdateSubscriptionPropertiesCommand();
+        commands.put(command.getName(), command);
 
-        command = new AddCartridgeGroupCommand();
+        /*command = new UpdateAutoscalingPolicyCommand();
+        commands.put(command.getName(), command);
+
+        command = new UpdateDeploymentPolicyCommand();
+        commands.put(command.getName(), command);*/
+
+        command = new DeployServiceGroupCommand();
         commands.put(command.getName(), command);
 
         command = new DescribeServiceGroupCommand();

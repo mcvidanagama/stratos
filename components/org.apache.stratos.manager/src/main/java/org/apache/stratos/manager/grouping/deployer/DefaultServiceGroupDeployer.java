@@ -26,6 +26,7 @@ import org.apache.stratos.autoscaler.stub.AutoScalerServiceAutoScalerExceptionEx
 import org.apache.stratos.autoscaler.stub.AutoScalerServiceInvalidServiceGroupExceptionException;
 import org.apache.stratos.autoscaler.stub.pojo.Dependencies;
 import org.apache.stratos.autoscaler.stub.pojo.ServiceGroup;
+import org.apache.stratos.autoscaler.stub.exception.*;
 import org.apache.stratos.cloud.controller.stub.CloudControllerServiceUnregisteredCartridgeExceptionException;
 import org.apache.stratos.manager.client.AutoscalerServiceClient;
 import org.apache.stratos.manager.client.CloudControllerServiceClient;
@@ -35,6 +36,7 @@ import org.apache.stratos.manager.exception.ServiceGroupDefinitioException;
 import org.apache.stratos.manager.grouping.definitions.DependencyDefinitions;
 import org.apache.stratos.manager.grouping.definitions.ServiceGroupDefinition;
 
+import java.lang.reflect.Array;
 import java.rmi.RemoteException;
 import java.util.*;
 
@@ -197,7 +199,7 @@ public class DefaultServiceGroupDeployer implements ServiceGroupDeployer {
                 return null;
             }
 
-            ServiceGroupDefinition serviceGroupDef = convertServiceGroupToServiceGroupDefinition(serviceGroup);
+            ServiceGroupDefinition serviceGroupDef = populateServiceGroupDefinitionPojo(serviceGroup);
             return serviceGroupDef;
 
         } catch (AxisFault axisFault) {
@@ -225,7 +227,7 @@ public class DefaultServiceGroupDeployer implements ServiceGroupDeployer {
 
             ServiceGroupDefinition[] serviceGroupDefinitions = new ServiceGroupDefinition[serviceGroups.length];
             for (int i = 0; i < serviceGroups.length; i++) {
-                serviceGroupDefinitions[i] = convertServiceGroupToServiceGroupDefinition(serviceGroups[i]);
+                serviceGroupDefinitions[i] = populateServiceGroupDefinitionPojo(serviceGroups[i]);
             }
             return serviceGroupDefinitions;
 
@@ -270,7 +272,7 @@ public class DefaultServiceGroupDeployer implements ServiceGroupDeployer {
         ServiceGroup servicegroup = new ServiceGroup();
 
         // implement conversion (mostly List -> Array)
-        servicegroup.setGroupscalingEnabled(serviceGroupDefinition.isGroupScalingEnabled);
+        servicegroup.setGroupscalingEnabled(serviceGroupDefinition.isGroupScalingEnabled());
         List<ServiceGroupDefinition> groupsDef = serviceGroupDefinition.getGroups();
         List<String> cartridgesDef = serviceGroupDefinition.getCartridges();
 
@@ -320,11 +322,7 @@ public class DefaultServiceGroupDeployer implements ServiceGroupDeployer {
         return servicegroup;
     }
 
-    private ServiceGroupDefinition convertServiceGroupToServiceGroupDefinition(ServiceGroup serviceGroup) {
-        if(serviceGroup == null) {
-            return null;
-        }
-
+    private ServiceGroupDefinition populateServiceGroupDefinitionPojo(ServiceGroup serviceGroup) {
         ServiceGroupDefinition servicegroupDef = new ServiceGroupDefinition();
         servicegroupDef.setName(serviceGroup.getName());
         String[] cartridges = serviceGroup.getCartridges();
@@ -334,7 +332,7 @@ public class DefaultServiceGroupDeployer implements ServiceGroupDeployer {
         List<ServiceGroupDefinition> groupDefinitions = new ArrayList<ServiceGroupDefinition>(groups.length);
         for (ServiceGroup group : groups) {
             if (group != null) {
-                groupDefinitions.add(convertServiceGroupToServiceGroupDefinition(group));
+                groupDefinitions.add(populateServiceGroupDefinitionPojo(group));
             }
         }
 

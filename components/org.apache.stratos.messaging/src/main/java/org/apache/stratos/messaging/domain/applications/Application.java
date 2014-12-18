@@ -36,8 +36,6 @@ public class Application extends ParentComponent<ApplicationInstance> {
     private static final long serialVersionUID = -5092959597171649688L;
     // Unique id for the Application, defined in Application Definition
     private String id;
-    private String name;
-    private String description;
     // Key used for authentication (with metadata service, etc.)
     private String key;
     // tenant id
@@ -137,21 +135,5 @@ public class Application extends ParentComponent<ApplicationInstance> {
 
         return null;
 
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 }

@@ -28,7 +28,7 @@ public class DependencyOrder implements Serializable {
 
 	private Set<StartupOrder> startupOrders;
 
-	private Set<ScalingDependentList> scalingDependents;
+	private Set<String> scalingDependents;
 
     private String terminationBehaviour;
 
@@ -52,11 +52,11 @@ public class DependencyOrder implements Serializable {
 		this.startupOrders = startupOrders;
 	}
 
-	public Set<ScalingDependentList> getScalingDependents() {
+	public Set<String> getScalingDependents() {
 		return scalingDependents;
 	}
 
-	public void setScalingDependents(Set<ScalingDependentList> scalingDependents) {
+	public void setScalingDependents(Set<String> scalingDependents) {
 		this.scalingDependents = scalingDependents;
 	}
 

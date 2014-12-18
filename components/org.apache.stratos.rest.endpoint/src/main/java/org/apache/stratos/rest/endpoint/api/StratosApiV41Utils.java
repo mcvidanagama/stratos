@@ -29,8 +29,6 @@ import org.apache.stratos.autoscaler.stub.pojo.ApplicationContext;
 import org.apache.stratos.cloud.controller.stub.*;
 import org.apache.stratos.cloud.controller.stub.domain.CartridgeConfig;
 import org.apache.stratos.cloud.controller.stub.domain.CartridgeInfo;
-import org.apache.stratos.cloud.controller.stub.domain.Persistence;
-import org.apache.stratos.cloud.controller.stub.domain.Volume;
 import org.apache.stratos.manager.client.AutoscalerServiceClient;
 import org.apache.stratos.manager.client.CloudControllerServiceClient;
 import org.apache.stratos.manager.composite.application.beans.ApplicationDefinition;
@@ -56,19 +54,17 @@ import org.apache.stratos.messaging.domain.topology.Cluster;
 import org.apache.stratos.messaging.domain.topology.Member;
 import org.apache.stratos.messaging.message.receiver.applications.ApplicationManager;
 import org.apache.stratos.messaging.message.receiver.topology.TopologyManager;
-import org.apache.stratos.common.beans.ApplicationBean;
-import org.apache.stratos.common.beans.GroupBean;
-import org.apache.stratos.common.beans.autoscaler.partition.ApplicationLevelNetworkPartition;
-import org.apache.stratos.common.beans.autoscaler.policy.autoscale.AutoscalePolicy;
-import org.apache.stratos.common.beans.cartridge.definition.CartridgeDefinitionBean;
-import org.apache.stratos.common.beans.cartridge.definition.PersistenceBean;
-import org.apache.stratos.common.beans.cartridge.definition.PropertyBean;
-import org.apache.stratos.common.beans.cartridge.definition.VolumeBean;
-import org.apache.stratos.common.beans.kubernetes.KubernetesGroup;
-import org.apache.stratos.common.beans.kubernetes.KubernetesHost;
-import org.apache.stratos.common.beans.kubernetes.KubernetesMaster;
-import org.apache.stratos.common.beans.repositoryNotificationInfoBean.Payload;
-import org.apache.stratos.rest.endpoint.util.converter.ObjectConverter;
+import org.apache.stratos.rest.endpoint.bean.ApplicationBean;
+import org.apache.stratos.rest.endpoint.bean.GroupBean;
+import org.apache.stratos.rest.endpoint.bean.autoscaler.partition.ApplicationLevelNetworkPartition;
+import org.apache.stratos.rest.endpoint.bean.autoscaler.policy.autoscale.AutoscalePolicy;
+import org.apache.stratos.rest.endpoint.bean.cartridge.definition.CartridgeDefinitionBean;
+import org.apache.stratos.rest.endpoint.bean.cartridge.definition.PropertyBean;
+import org.apache.stratos.rest.endpoint.bean.kubernetes.KubernetesGroup;
+import org.apache.stratos.rest.endpoint.bean.kubernetes.KubernetesHost;
+import org.apache.stratos.rest.endpoint.bean.kubernetes.KubernetesMaster;
+import org.apache.stratos.rest.endpoint.bean.repositoryNotificationInfoBean.Payload;
+import org.apache.stratos.rest.endpoint.bean.util.converter.PojoConverter;
 import org.apache.stratos.rest.endpoint.exception.RestAPIException;
 
 import java.rmi.RemoteException;
@@ -82,7 +78,6 @@ public class StratosApiV41Utils {
     public static final String DEVICE_NAME = "volume.device.name";
     public static final String VOLUME_ID = "volume.id";
     public static final String TENANT_RANGE_ALL = "*";
-    public static final String APPLICATION_STATUS_DEPLOYED = "Deployed";
 
     private static Log log = LogFactory.getLog(StratosApiV41Utils.class);
     private static CartridgeSubscriptionManager cartridgeSubsciptionManager = new CartridgeSubscriptionManager();
@@ -93,9 +88,9 @@ public class StratosApiV41Utils {
     public static void createCartridgeDefinition(CartridgeDefinitionBean cartridgeDefinitionBean, ConfigurationContext ctxt,
                                        String userName, String tenantDomain) throws RestAPIException {
 
-        log.info("Starting to deploy a cartridge: [type] " + cartridgeDefinitionBean.getType());
+        log.info("Starting to deploy a cartridge: [type] " + cartridgeDefinitionBean.type);
 
-        CartridgeConfig cartridgeConfig = ObjectConverter.populateCartridgeConfigPojo(cartridgeDefinitionBean);
+        CartridgeConfig cartridgeConfig = PojoConverter.populateCartridgeConfigPojo(cartridgeDefinitionBean);
         if (cartridgeConfig == null) {
             throw new RestAPIException("Could not read cartridge definition, cartridge deployment failed");
         }
@@ -103,13 +98,13 @@ public class StratosApiV41Utils {
 		    throw new RestAPIException("Category is not specified, cartridge deployment failed");
 	    }
         try {
-            CartridgeDeploymentManager.getDeploymentManager(cartridgeDefinitionBean.getDeployerType()).deploy(cartridgeConfig);
+            CartridgeDeploymentManager.getDeploymentManager(cartridgeDefinitionBean.deployerType).deploy(cartridgeConfig);
         } catch (ADCException e) {
             throw new RestAPIException(e);
         }
-        log.info("Successfully deployed cartridge: [type] " + cartridgeDefinitionBean.getType());
+        log.info("Successfully deployed cartridge: [type] " + cartridgeDefinitionBean.type);
     }
-
+    
     public static void deleteCartridgeDefinition(String cartridgeType) throws RestAPIException {
 
         CloudControllerServiceClient cloudControllerServiceClient = getCloudControllerServiceClient();
@@ -186,11 +181,11 @@ public class StratosApiV41Utils {
             throw new RestAPIException(msg, e);
         }
     }
-
-    public static List<CartridgeDefinitionBean> getCartridgesByFilter(String filter, String criteria, ConfigurationContext configurationContext)
+    
+    public static List<Cartridge> getCartridgesByFilter(String filter, String criteria, ConfigurationContext configurationContext) 
 			throws RestAPIException {
-		List<CartridgeDefinitionBean> cartridges = null;
-
+		List<Cartridge> cartridges = null;
+		
 		if (filter.equals("singleTenant")) {
 			cartridges = getAvailableCartridges(null, false, configurationContext);
 		} else if (filter.equals("multiTenant")) {
@@ -200,16 +195,16 @@ public class StratosApiV41Utils {
 		} else if (filter.equals("provider")) {
 			cartridges = getAvailableCartridgesByProvider(criteria, configurationContext);
 		}
-
+		
 		return cartridges;
 	}
-
-	public static CartridgeDefinitionBean getCartridgeByFilter(String filter, String cartridgeType, ConfigurationContext configurationContext)
+	
+	public static Cartridge getCartridgeByFilter(String filter, String cartridgeType, ConfigurationContext configurationContext) 
 	throws RestAPIException {
-		List<CartridgeDefinitionBean> cartridges = getCartridgesByFilter(filter, null, configurationContext);
-
-		for (CartridgeDefinitionBean cartridge : cartridges) {
-			if (cartridge.getType().equals(cartridgeType)) {
+		List<Cartridge> cartridges = getCartridgesByFilter(filter, null, configurationContext);
+		
+		for (Cartridge cartridge : cartridges) {
+			if (cartridge.getCartridgeType().equals(cartridgeType)) {
 				return cartridge;
 			}
 		}
@@ -217,28 +212,36 @@ public class StratosApiV41Utils {
 		log.error(msg);
 		throw new RestAPIException(msg);
 	}
-
-    private static List<CartridgeDefinitionBean> getAvailableLbCartridges(Boolean multiTenant,
+    
+    private static List<Cartridge> getAvailableLbCartridges(Boolean multiTenant,
                                                     ConfigurationContext configurationContext) throws RestAPIException {
-        List<CartridgeDefinitionBean> cartridges = getAvailableCartridges(null, multiTenant,
+        List<Cartridge> cartridges = getAvailableCartridges(null, multiTenant,
                 configurationContext);
-        List<CartridgeDefinitionBean> lbCartridges = new ArrayList<CartridgeDefinitionBean>();
-        for (CartridgeDefinitionBean cartridge : cartridges) {
-            if ("loadbalancer".equalsIgnoreCase(cartridge.getCategory())) {
+        List<Cartridge> lbCartridges = new ArrayList<Cartridge>();
+        for (Cartridge cartridge : cartridges) {
+            if (cartridge.isLoadBalancer()) {
                 lbCartridges.add(cartridge);
             }
         }
+
+		/*if(lbCartridges == null || lbCartridges.isEmpty()) {
+            String msg = "Load balancer Cartridges are not available.";
+	        log.error(msg);
+	        throw new RestAPIException(msg) ;
+		}*/
         return lbCartridges;
     }
 
-	private static List<CartridgeDefinitionBean> getAvailableCartridgesByProvider(String provider, ConfigurationContext configurationContext) throws RestAPIException {
-		List<CartridgeDefinitionBean> cartridges = new ArrayList<CartridgeDefinitionBean>();
+	private static List<Cartridge> getAvailableCartridgesByProvider(String provider, ConfigurationContext configurationContext) throws RestAPIException {
+		List<Cartridge> cartridges = new ArrayList<Cartridge>();
 
 		if (log.isDebugEnabled()) {
-			log.debug("Reading cartridges: [provider-name] " + provider );
+			log.debug("Getting available cartridges. Privider name : " + provider );
 		}
 
 		try {
+
+
 			String[] availableCartridges = CloudControllerServiceClient.getServiceClient().getRegisteredCartridges();
 
 			if (availableCartridges != null) {
@@ -265,7 +268,31 @@ public class StratosApiV41Utils {
 						continue;
 					}
 
-                    CartridgeDefinitionBean cartridge = convertCartridgeToCartridgeDefinitionBean(cartridgeInfo);
+					Cartridge cartridge = new Cartridge();
+					cartridge.setCartridgeType(cartridgeType);
+					cartridge.setProvider(cartridgeInfo.getProvider());
+					cartridge.setCategory(cartridgeInfo.getCategory());
+					cartridge.setDisplayName(cartridgeInfo.getDisplayName());
+					cartridge.setDescription(cartridgeInfo.getDescription());
+					cartridge.setVersion(cartridgeInfo.getVersion());
+					cartridge.setMultiTenant(cartridgeInfo.getMultiTenant());
+					cartridge.setHostName(cartridgeInfo.getHostName());
+					cartridge.setDefaultAutoscalingPolicy(cartridgeInfo.getDefaultAutoscalingPolicy());
+					cartridge.setDefaultDeploymentPolicy(cartridgeInfo.getDefaultDeploymentPolicy());
+					//cartridge.setStatus(CartridgeConstants.NOT_SUBSCRIBED);
+					cartridge.setCartridgeAlias("-");
+					cartridge.setPersistence(cartridgeInfo.getPersistence());
+					cartridge.setServiceGroup(cartridgeInfo.getServiceGroup());
+
+					if (cartridgeInfo.getProperties() != null) {
+						for (org.apache.stratos.cloud.controller.stub.Property property : cartridgeInfo
+								.getProperties()) {
+							if (property.getName().equals("load.balancer")) {
+								cartridge.setLoadBalancer(true);
+							}
+						}
+					}
+					//cartridge.setActiveInstances(0);
 					cartridges.add(cartridge);
 				}
 			} else {
@@ -279,7 +306,7 @@ public class StratosApiV41Utils {
 			throw new RestAPIException(msg, e);
 		}
 
-		//Collections.sort(cartridges);
+		Collections.sort(cartridges);
 
 		if (log.isDebugEnabled()) {
 			log.debug("Returning available cartridges " + cartridges.size());
@@ -288,8 +315,8 @@ public class StratosApiV41Utils {
 		return cartridges;
     }
 
-    public static List<CartridgeDefinitionBean> getAvailableCartridges(String cartridgeSearchString, Boolean multiTenant, ConfigurationContext configurationContext) throws RestAPIException {
-        List<CartridgeDefinitionBean> cartridges = new ArrayList<CartridgeDefinitionBean>();
+    public static List<Cartridge> getAvailableCartridges(String cartridgeSearchString, Boolean multiTenant, ConfigurationContext configurationContext) throws RestAPIException {
+        List<Cartridge> cartridges = new ArrayList<Cartridge>();
 
         if (log.isDebugEnabled()) {
             log.debug("Getting available cartridges. Search String: " + cartridgeSearchString + ", Multi-Tenant: " + multiTenant);
@@ -310,8 +337,7 @@ public class StratosApiV41Utils {
                         cartridgeInfo = CloudControllerServiceClient.getServiceClient().getCartridgeInfo(cartridgeType);
                     } catch (Exception e) {
                         if (log.isWarnEnabled()) {
-                            log.warn("Error when calling getCartridgeInfo for " + cartridgeType + ", Error: "
-                                    + e.getMessage());
+                            log.warn("Error when calling getCartridgeInfo for " + cartridgeType, e);
                         }
                     }
                     if (cartridgeInfo == null) {
@@ -334,8 +360,32 @@ public class StratosApiV41Utils {
                         continue;
                     }
 
-                    CartridgeDefinitionBean cartridge = convertCartridgeToCartridgeDefinitionBean(cartridgeInfo);
-                    cartridges.add(cartridge);
+	                Cartridge cartridge = new Cartridge();
+	                cartridge.setCartridgeType(cartridgeType);
+	                cartridge.setProvider(cartridgeInfo.getProvider());
+	                cartridge.setCategory(cartridgeInfo.getCategory());
+	                cartridge.setDisplayName(cartridgeInfo.getDisplayName());
+	                cartridge.setDescription(cartridgeInfo.getDescription());
+	                cartridge.setVersion(cartridgeInfo.getVersion());
+	                cartridge.setMultiTenant(cartridgeInfo.getMultiTenant());
+	                cartridge.setHostName(cartridgeInfo.getHostName());
+	                cartridge.setDefaultAutoscalingPolicy(cartridgeInfo.getDefaultAutoscalingPolicy());
+	                cartridge.setDefaultDeploymentPolicy(cartridgeInfo.getDefaultDeploymentPolicy());
+	                //cartridge.setStatus(CartridgeConstants.NOT_SUBSCRIBED);
+	                cartridge.setCartridgeAlias("-");
+	                cartridge.setPersistence(cartridgeInfo.getPersistence());
+	                cartridge.setServiceGroup(cartridgeInfo.getServiceGroup());
+
+	                if (cartridgeInfo.getProperties() != null) {
+		                for (org.apache.stratos.cloud.controller.stub.Property property : cartridgeInfo
+				                .getProperties()) {
+			                if (property.getName().equals("load.balancer")) {
+				                cartridge.setLoadBalancer(true);
+			                }
+		                }
+	                }
+	                //cartridge.setActiveInstances(0);
+	                cartridges.add(cartridge);
 
 
                     if (cartridgeInfo.getMultiTenant() && !allowMultipleSubscription) {
@@ -362,72 +412,13 @@ public class StratosApiV41Utils {
             throw new RestAPIException(msg, e);
         }
 
-        //Collections.sort(cartridges);
+        Collections.sort(cartridges);
 
         if (log.isDebugEnabled()) {
             log.debug("Returning available cartridges " + cartridges.size());
         }
 
         return cartridges;
-    }
-
-    public static CartridgeDefinitionBean getCartridge(String cartridgeType) throws RestAPIException {
-        try {
-            CartridgeInfo cartridgeInfo = CloudControllerServiceClient.getServiceClient().getCartridgeInfo(cartridgeType);
-            if(cartridgeInfo == null) {
-                return null;
-            }
-            return convertCartridgeToCartridgeDefinitionBean(cartridgeInfo);
-        } catch (RemoteException e) {
-            String message = e.getMessage();
-            log.error(message, e);
-            throw new RestAPIException(message, e);
-        } catch (CloudControllerServiceUnregisteredCartridgeExceptionException e) {
-            String message = e.getMessage();
-            log.error(message, e);
-            throw new RestAPIException(message, e);
-        }
-    }
-
-    private static CartridgeDefinitionBean convertCartridgeToCartridgeDefinitionBean(CartridgeInfo cartridgeInfo) {
-        CartridgeDefinitionBean cartridge = new CartridgeDefinitionBean();
-        cartridge.setType(cartridgeInfo.getType());
-        cartridge.setProvider(cartridgeInfo.getProvider());
-        cartridge.setCategory(cartridgeInfo.getCategory());
-        cartridge.setDisplayName(cartridgeInfo.getDisplayName());
-        cartridge.setDescription(cartridgeInfo.getDescription());
-        cartridge.setVersion(cartridgeInfo.getVersion());
-        cartridge.setMultiTenant(cartridgeInfo.getMultiTenant());
-        cartridge.setHost(cartridgeInfo.getHostName());
-        cartridge.setDefaultAutoscalingPolicy(cartridgeInfo.getDefaultAutoscalingPolicy());
-        cartridge.setDefaultDeploymentPolicy(cartridgeInfo.getDefaultDeploymentPolicy());
-        cartridge.setPersistence(convertPersistenceToPersistenceBean(cartridgeInfo.getPersistence()));
-        cartridge.setServiceGroup(cartridgeInfo.getServiceGroup());
-        return cartridge;
-    }
-
-    private static PersistenceBean convertPersistenceToPersistenceBean(Persistence persistence) {
-        if(persistence == null) {
-            return null;
-        }
-
-        PersistenceBean persistenceBean = new PersistenceBean();
-        persistenceBean.setRequired(persistence.isPersistanceRequiredSpecified());
-        persistenceBean.setVolume(convertVolumesToVolumeBeans(persistence.getVolumes()));
-        return persistenceBean;
-    }
-
-    private static List<VolumeBean> convertVolumesToVolumeBeans(Volume[] volumes) {
-        List<VolumeBean> list = new ArrayList<VolumeBean>();
-        for(Volume volume : volumes) {
-            VolumeBean volumeBean = new VolumeBean();
-            volumeBean.setId(volume.getId());
-            volumeBean.setDevice(volume.getDevice());
-            volumeBean.setSize(String.valueOf(volume.getSize()));
-            volumeBean.setSnapshotId(volume.getSnapshotId());
-            list.add(volumeBean);
-        }
-        return list;
     }
 
     private static boolean isAlreadySubscribed(String cartridgeType,
@@ -492,9 +483,9 @@ public class StratosApiV41Utils {
         }
         return true;
     }
-
+    	
     // Util methods to get the service clients
-
+    
     private static CloudControllerServiceClient getCloudControllerServiceClient() throws RestAPIException {
 
         try {
@@ -509,8 +500,10 @@ public class StratosApiV41Utils {
     }
 
     private static AutoscalerServiceClient getAutoscalerServiceClient() throws RestAPIException {
+
         try {
             return AutoscalerServiceClient.getServiceClient();
+
         } catch (AxisFault axisFault) {
             String errorMsg = "Error while getting AutoscalerServiceClient instance to connect to the "
                     + "Autoscaler. Cause: " + axisFault.getMessage();
@@ -528,7 +521,7 @@ public class StratosApiV41Utils {
         AutoscalerServiceClient autoscalerServiceClient = getAutoscalerServiceClient();
         if (autoscalerServiceClient != null) {
 
-            org.apache.stratos.autoscaler.stub.autoscale.policy.AutoscalePolicy autoscalePolicy = ObjectConverter.
+            org.apache.stratos.autoscaler.stub.autoscale.policy.AutoscalePolicy autoscalePolicy = PojoConverter.
                     convertToCCAutoscalerPojo(autoscalePolicyBean);
 
             try {
@@ -553,7 +546,7 @@ public class StratosApiV41Utils {
         AutoscalerServiceClient autoscalerServiceClient = getAutoscalerServiceClient();
         if (autoscalerServiceClient != null) {
 
-            org.apache.stratos.autoscaler.stub.autoscale.policy.AutoscalePolicy autoscalePolicy = ObjectConverter.
+            org.apache.stratos.autoscaler.stub.autoscale.policy.AutoscalePolicy autoscalePolicy = PojoConverter.
                     convertToCCAutoscalerPojo(autoscalePolicyBean);
 
             try {
@@ -583,7 +576,7 @@ public class StratosApiV41Utils {
                 throw new RestAPIException(errorMsg, e);
             }
         }
-        return ObjectConverter.populateAutoscalePojos(autoscalePolicies);
+        return PojoConverter.populateAutoscalePojos(autoscalePolicies);
     }
 
     public static AutoscalePolicy getAutoScalePolicy(String autoscalePolicyId) throws RestAPIException {
@@ -602,21 +595,54 @@ public class StratosApiV41Utils {
             }
         }
 
-        return ObjectConverter.populateAutoscalePojo(autoscalePolicy);
+        return PojoConverter.populateAutoscalePojo(autoscalePolicy);
+    }
+    
+    // Util methods for Deployment policies
+    
+    public static org.apache.stratos.rest.endpoint.bean.autoscaler.policy.deployment.DeploymentPolicy[]
+    getDeploymentPolicies() throws RestAPIException {
+
+        DeploymentPolicy[] deploymentPolicies = null;
+        AutoscalerServiceClient autoscalerServiceClient = getAutoscalerServiceClient();
+        if (autoscalerServiceClient != null) {
+            try {
+                deploymentPolicies = autoscalerServiceClient.getDeploymentPolicies();
+            } catch (RemoteException e) {
+                String errorMsg = "Error getting available deployment policies. Cause : " + e.getMessage();
+                log.error(errorMsg, e);
+                throw new RestAPIException(errorMsg, e);
+            }
+        }
+
+
+        return PojoConverter.populateDeploymentPolicyPojos(deploymentPolicies);
     }
 
-    public static org.apache.stratos.common.beans.autoscaler.policy.deployment.DeploymentPolicy
-        getDeploymentPolicy(String applicationId) throws RestAPIException {
+    public static org.apache.stratos.rest.endpoint.bean.autoscaler.policy.deployment.DeploymentPolicy
+    getDeploymentPolicy(String deploymentPolicyId) throws RestAPIException {
 
-        try {
-            AutoscalerServiceClient autoscalerServiceClient = getAutoscalerServiceClient();
-            DeploymentPolicy deploymentPolicy = autoscalerServiceClient.getDeploymentPolicy(applicationId);
-            return ObjectConverter.convertStubDeploymentPolicyToDeploymentPolicy(deploymentPolicy);
-        } catch (RemoteException e) {
-            String errorMsg = "Could not read deployment policy: [application-id] " + applicationId;
-            log.error(errorMsg, e);
-            throw new RestAPIException(errorMsg, e);
+        DeploymentPolicy deploymentPolicy = null;
+        AutoscalerServiceClient autoscalerServiceClient = getAutoscalerServiceClient();
+        if (autoscalerServiceClient != null) {
+            try {
+                deploymentPolicy = autoscalerServiceClient.getDeploymentPolicy(deploymentPolicyId);
+
+            } catch (RemoteException e) {
+                String errorMsg = "Error while getting deployment policy with id " +
+                        deploymentPolicyId + ". Cause: " + e.getMessage();
+                log.error(errorMsg, e);
+                throw new RestAPIException(errorMsg, e);
+            }
         }
+
+        if (deploymentPolicy == null) {
+            String errorMsg = "Cannot find a matching deployment policy for [id] " + deploymentPolicyId;
+            log.error(errorMsg);
+            throw new RestAPIException(errorMsg);
+        }
+
+        return PojoConverter.populateDeploymentPolicyPojo(deploymentPolicy);
     }
 
     public static ApplicationLevelNetworkPartition[] getPartitionGroups(String deploymentPolicyId)
@@ -636,9 +662,9 @@ public class StratosApiV41Utils {
             }
         }
 
-        return ObjectConverter.populatePartitionGroupPojos(partitionGroups);
+        return PojoConverter.populatePartitionGroupPojos(partitionGroups);
     }
-
+    
     // Util methods for services and subscriptions
 
     public static List<Cartridge> getSubscriptions(String cartridgeSearchString, String serviceGroup, ConfigurationContext configurationContext) throws RestAPIException {
@@ -717,7 +743,7 @@ public class StratosApiV41Utils {
 
         return cartridges;
     }
-
+    
     private static Cartridge getCartridgeFromSubscription(CartridgeSubscription subscription) throws RestAPIException {
 
         if (subscription == null) {
@@ -785,37 +811,37 @@ public class StratosApiV41Utils {
     public static CartridgeSubscription getCartridgeSubscription(String alias, ConfigurationContext configurationContext) {
         return CartridgeSubscriptionManager.getCartridgeSubscription(ApplicationManagementUtil.getTenantId(configurationContext), alias);
     }
-
+       
     // Util methods for clusters
-
-    public static org.apache.stratos.common.beans.topology.Cluster[] getClustersForTenant(ConfigurationContext configurationContext) {
+    
+    public static org.apache.stratos.rest.endpoint.bean.topology.Cluster[] getClustersForTenant(ConfigurationContext configurationContext) {
 
         Set<Cluster> clusterSet = TopologyClusterInformationModel.getInstance().getClusters(ApplicationManagementUtil.
                 getTenantId(configurationContext), null);
-        ArrayList<org.apache.stratos.common.beans.topology.Cluster> clusters =
-                new ArrayList<org.apache.stratos.common.beans.topology.Cluster>();
+        ArrayList<org.apache.stratos.rest.endpoint.bean.topology.Cluster> clusters =
+                new ArrayList<org.apache.stratos.rest.endpoint.bean.topology.Cluster>();
         for (Cluster cluster : clusterSet) {
-            clusters.add(ObjectConverter.populateClusterPojos(cluster, null));
+            clusters.add(PojoConverter.populateClusterPojos(cluster, null));
         }
-        org.apache.stratos.common.beans.topology.Cluster[] arrCluster =
-                new org.apache.stratos.common.beans.topology.Cluster[clusters.size()];
+        org.apache.stratos.rest.endpoint.bean.topology.Cluster[] arrCluster =
+                new org.apache.stratos.rest.endpoint.bean.topology.Cluster[clusters.size()];
         arrCluster = clusters.toArray(arrCluster);
         return arrCluster;
 
     }
 
-    public static org.apache.stratos.common.beans.topology.Cluster[] getClustersForTenantAndCartridgeType(ConfigurationContext configurationContext,
+    public static org.apache.stratos.rest.endpoint.bean.topology.Cluster[] getClustersForTenantAndCartridgeType(ConfigurationContext configurationContext,
                                                                                                                 String cartridgeType) {
 
         Set<Cluster> clusterSet = TopologyClusterInformationModel.getInstance().getClusters(ApplicationManagementUtil.
                 getTenantId(configurationContext), cartridgeType);
-        List<org.apache.stratos.common.beans.topology.Cluster> clusters =
-                new ArrayList<org.apache.stratos.common.beans.topology.Cluster>();
+        List<org.apache.stratos.rest.endpoint.bean.topology.Cluster> clusters =
+                new ArrayList<org.apache.stratos.rest.endpoint.bean.topology.Cluster>();
         for (Cluster cluster : clusterSet) {
-            clusters.add(ObjectConverter.populateClusterPojos(cluster, null));
+            clusters.add(PojoConverter.populateClusterPojos(cluster, null));
         }
-        org.apache.stratos.common.beans.topology.Cluster[] arrCluster =
-                new org.apache.stratos.common.beans.topology.Cluster[clusters.size()];
+        org.apache.stratos.rest.endpoint.bean.topology.Cluster[] arrCluster =
+                new org.apache.stratos.rest.endpoint.bean.topology.Cluster[clusters.size()];
         arrCluster = clusters.toArray(arrCluster);
         return arrCluster;
 
@@ -848,7 +874,7 @@ public class StratosApiV41Utils {
     }
 
     // Util methods for service groups
-
+    
     public static void createServiceGroupDefinition(ServiceGroupDefinition serviceGroupDefinition) throws RestAPIException {
 
         try {
@@ -905,29 +931,27 @@ public class StratosApiV41Utils {
 
     // Util methods for Applications
 
-    /**
-     * Verify the existence of the application and add it.
-     * @param appDefinition
-     * @param ctxt
-     * @param userName
-     * @param tenantDomain
-     * @throws RestAPIException
-     */
-    public static void addApplication(ApplicationDefinition appDefinition, ConfigurationContext ctxt,
+    public static void createApplicationDefinition(ApplicationDefinition appDefinition, ConfigurationContext ctxt,
                                                    String userName, String tenantDomain)
             throws RestAPIException {
 
         // check if an application with same id already exists
+        // check if application with same appId / tenant already exists
+        CartridgeSubscriptionManager subscriptionMgr = new CartridgeSubscriptionManager();
+        int tenantId = ApplicationManagementUtil.getTenantId(ctxt);
+        String appId = appDefinition.getApplicationId();
+
         try {
-            if (AutoscalerServiceClient.getServiceClient().getApplication(appDefinition.getApplicationId()) != null) {
-                String msg = "Application already exists: [application-id]" + appDefinition.getApplicationId();
+            if (subscriptionMgr.getApplicationSubscription(appId, tenantId) != null) {
+                String msg = "Duplicate application appId: " + appId + " for tenant " + tenantId;
                 throw new RestAPIException(msg);
             }
-        } catch (RemoteException e) {
-            throw new RestAPIException("Could not read application", e);
+        } catch (ApplicationSubscriptionException e1) {
+            throw new RestAPIException(e1);
         }
 
-        ApplicationContext applicationContext = ObjectConverter.convertApplicationDefinitionToApplicationContext(appDefinition);
+        ApplicationContext applicationContext =
+                PojoConverter.convertApplicationBeanToApplicationContext(appDefinition);
         applicationContext.setTenantId(ApplicationManagementUtil.getTenantId(ctxt));
         applicationContext.setTenantDomain(tenantDomain);
         applicationContext.setTeantAdminUsername(userName);
@@ -944,7 +968,7 @@ public class StratosApiV41Utils {
         }
 
         try {
-            AutoscalerServiceClient.getServiceClient().addApplication(applicationContext);
+            AutoscalerServiceClient.getServiceClient().deployApplication(applicationContext);
         } catch (AutoScalerServiceApplicationDefinitionExceptionException e) {
             throw new RestAPIException(e);
         } catch (RemoteException e) {
@@ -954,59 +978,38 @@ public class StratosApiV41Utils {
 
     /**
      * Deploy application with a deployment policy.
-     *
-     * @param applicationId
-     * @param deploymentPolicy
+     * @param deploymentPolicyBean
      * @throws RestAPIException
      */
     public static void deployApplication(
-            String applicationId,
-            org.apache.stratos.common.beans.autoscaler.policy.deployment.DeploymentPolicy deploymentPolicy)
+            org.apache.stratos.rest.endpoint.bean.autoscaler.policy.deployment.DeploymentPolicy deploymentPolicyBean)
             throws RestAPIException {
 
-        try {
-            if (log.isInfoEnabled()) {
-                log.info(String.format("Starting to deploy application: [application-id] %s", applicationId));
-            }
+        if (log.isInfoEnabled()) {
+            log.info(String.format("Starting to deploy application: [application-id] %s [deployment-policy-id] %s",
+                    deploymentPolicyBean.applicationPolicy.applicationId, deploymentPolicyBean.id));
+        }
 
-            AutoscalerServiceClient autoscalerServiceClient = getAutoscalerServiceClient();
-            ApplicationContext application = autoscalerServiceClient.getApplication(applicationId);
-            if(application == null) {
-                String message = String.format("Application is not found: [application-id] %s", applicationId);
-                log.error(message);
-                throw new RestAPIException(message);
-            }
-            if ((application != null) && (application.getStatus().equals(APPLICATION_STATUS_DEPLOYED))) {
-                String message = String.format("Application is already deployed: [application-id] %s", applicationId);
-                log.error(message);
-                throw new RestAPIException(message);
-            }
+        AutoscalerServiceClient autoscalerServiceClient = getAutoscalerServiceClient();
+        if (autoscalerServiceClient != null) {
 
-            if (!applicationId.equals(deploymentPolicy.getApplicationId())) {
-                String message = String.format("Application id %s does not match with the deployment policy %s",
-                        applicationId, deploymentPolicy.getApplicationId());
-                log.error(message);
-                throw new RestAPIException(message);
-            }
+            org.apache.stratos.autoscaler.stub.deployment.policy.DeploymentPolicy deploymentPolicy =
+                    PojoConverter.convetToASDeploymentPolicyPojo(deploymentPolicyBean);
 
-            org.apache.stratos.autoscaler.stub.deployment.policy.DeploymentPolicy stubDeploymentPolicy =
-                    ObjectConverter.convetToASDeploymentPolicyPojo(deploymentPolicy);
-
-            autoscalerServiceClient.deployApplication(applicationId, stubDeploymentPolicy);
-            if (log.isInfoEnabled()) {
-                log.info(String.format("Application deployed successfully: [application-id] %s", applicationId));
+            try {
+                autoscalerServiceClient.deployDeploymentPolicy(deploymentPolicy);
+                if(log.isInfoEnabled()) {
+                    log.info(String.format("Application deployed successfully: [application-id] %s [deployment-policy-id] %s",
+                            deploymentPolicy.getApplicationId(), deploymentPolicy.getId()));
+                }
+            } catch (RemoteException e) {
+                log.error(e.getMessage(), e);
+                throw new RestAPIException(e.getMessage(), e);
+            } catch (AutoScalerServiceInvalidPolicyExceptionException e) {
+                String message = e.getFaultMessage().getInvalidPolicyException().getMessage();
+                log.error(message, e);
+                throw new RestAPIException(message, e);
             }
-        } catch (RemoteException e) {
-            log.error(e.getMessage(), e);
-            throw new RestAPIException(e.getMessage(), e);
-        } catch (AutoScalerServiceInvalidPolicyExceptionException e) {
-            String message = e.getFaultMessage().getInvalidPolicyException().getMessage();
-            log.error(message, e);
-            throw new RestAPIException(message, e);
-        } catch (AutoScalerServiceApplicationDefinitionExceptionException e) {
-            String message = e.getMessage();
-            log.error(message, e);
-            throw new RestAPIException(message, e);
         }
     }
 
@@ -1019,73 +1022,40 @@ public class StratosApiV41Utils {
         }
     }
 
-    public static void deleteApplication(String applicationId) throws RestAPIException {
+    public static void removeApplicationDefinition(String appId, ConfigurationContext ctxt,
+                                         String userName, String tenantDomain) throws RestAPIException {
 
         try {
-            AutoscalerServiceClient.getServiceClient().deleteApplication(applicationId);
-        } catch (RemoteException e) {
-            String message = "Could not delete application: [application-id] " + applicationId;
-            log.error(message, e);
-            throw new RestAPIException(message, e);
-        }
-    }
+            int tenantId = ApplicationManagementUtil.getTenantId(ctxt);
+            AutoscalerServiceClient.getServiceClient().undeployApplication(appId, tenantId, tenantDomain);
 
-    public static ApplicationDefinition getApplication(String applicationId) throws RestAPIException {
-        try {
-            return ObjectConverter.convertApplicationContextToApplicationDefinition(
-                    AutoscalerServiceClient.getServiceClient().getApplication(applicationId));
         } catch (RemoteException e) {
-            String message = "Could not read application: [application-id] " + applicationId;
-            log.error(message, e);
-            throw new RestAPIException(message, e);
+            throw new RestAPIException(e);
+        } catch (AutoScalerServiceApplicationDefinitionExceptionException e) {
+            throw new RestAPIException(e);
         }
-    }
 
-    public static List<ApplicationDefinition> getApplications() throws RestAPIException {
-        try {
-            List<ApplicationDefinition> applicationDefinitions = new ArrayList<ApplicationDefinition>();
-            ApplicationContext[] applicationContexts = AutoscalerServiceClient.getServiceClient().getApplications();
-            if(applicationContexts != null) {
-                for (ApplicationContext applicationContext : applicationContexts) {
-                    if(applicationContext != null) {
-                        ApplicationDefinition applicationDefinition =
-                                ObjectConverter.convertApplicationContextToApplicationDefinition(applicationContext);
-                        applicationDefinitions.add(applicationDefinition);
-                    }
-                }
-            }
-            return applicationDefinitions;
-        } catch (RemoteException e) {
-            String message = "Could not read applications";
-            log.error(message, e);
-            throw new RestAPIException(message, e);
-        }
     }
 
     public static void undeployApplication(String applicationId) throws RestAPIException {
         AutoscalerServiceClient autoscalerServiceClient = getAutoscalerServiceClient();
         if (autoscalerServiceClient != null) {
             try {
-                autoscalerServiceClient.undeployApplication(applicationId);
+                autoscalerServiceClient.unDeployDeploymentPolicy(applicationId);
             } catch (RemoteException e) {
-                String message = "Could not undeploy application: [application-id] " + applicationId;
-                log.error(message, e);
-                throw new RestAPIException(message, e);
-            } catch (AutoScalerServiceApplicationDefinitionExceptionException e) {
-                String message = "Could not undeploy application: [application-id] " + applicationId;
-                log.error(message, e);
-                throw new RestAPIException(message, e);
+                log.error("Error while unDeploying the Deployment Policy for  " + applicationId);
+                throw new RestAPIException(e);
             }
         }
     }
     
-    public static ApplicationBean[] getApplicationRuntimes() {
+    public static ApplicationBean[] getApplications() {
         List<ApplicationBean> applicationBeanList = new ArrayList<ApplicationBean>();
         try {
             ApplicationManager.acquireReadLockForApplications();
             ApplicationBean applicationBean;
             for (Application application : ApplicationManager.getApplications().getApplications().values()) {
-                applicationBean = ObjectConverter.applicationToBean(application);
+                applicationBean = PojoConverter.applicationToBean(application);
                 addClustersToApplicationBean(applicationBean, application);
                 addGroupsToApplicationBean(applicationBean, application);
                 applicationBeanList.add(applicationBean);
@@ -1097,7 +1067,7 @@ public class StratosApiV41Utils {
         return applicationBeanList.toArray(new ApplicationBean[applicationBeanList.size()]);
     }
 
-    public static ApplicationBean getApplicationRuntime(String applicationId) {
+    public static ApplicationBean getApplication(String applicationId) {
         ApplicationBean applicationBean = null;
         try {
             ApplicationManager.acquireReadLockForApplication(applicationId);
@@ -1105,7 +1075,7 @@ public class StratosApiV41Utils {
             if (application == null) {
                 return null;
             }
-            applicationBean = ObjectConverter.applicationToBean(application);
+            applicationBean = PojoConverter.applicationToBean(application);
             addClustersToApplicationBean(applicationBean, application);
             addGroupsToApplicationBean(applicationBean, application);
         } finally {
@@ -1117,7 +1087,7 @@ public class StratosApiV41Utils {
     private static void addGroupsToApplicationBean(ApplicationBean applicationBean, Application application) {
         Collection<Group> groups = application.getGroups();
         for (Group group : groups) {
-            GroupBean groupBean = ObjectConverter.toGroupBean(group);
+            GroupBean groupBean = PojoConverter.toGroupBean(group);
             setSubGroups(group, groupBean);
             applicationBean.addGroup(groupBean);
         }
@@ -1130,8 +1100,15 @@ public class StratosApiV41Utils {
             String clusterId = clusterDataHolder.getClusterId();
             String serviceType = clusterDataHolder.getServiceType();
             TopologyManager.acquireReadLockForCluster(serviceType, clusterId);
-            Cluster topLevelCluster = TopologyManager.getTopology().getService(serviceType).getCluster(clusterId);
-            applicationBean.getClusters().add(ObjectConverter.populateClusterPojos(topLevelCluster, entry.getKey()));
+            Cluster topLevelCluster;
+
+            try {
+                TopologyManager.acquireReadLockForCluster(serviceType, clusterId);
+                topLevelCluster = TopologyManager.getTopology().getService(serviceType).getCluster(clusterId);
+            } finally {
+                TopologyManager.releaseReadLockForCluster(serviceType, clusterId);
+            }
+            applicationBean.clusters.add(PojoConverter.populateClusterPojos(topLevelCluster, entry.getKey()));
         }
     }
 
@@ -1139,7 +1116,7 @@ public class StratosApiV41Utils {
         Collection<Group> subgroups = group.getGroups();
         addClustersToGroupBean(group, groupBean);
         for (Group subGroup : subgroups) {
-            GroupBean subGroupBean = ObjectConverter.toGroupBean(subGroup);
+            GroupBean subGroupBean = PojoConverter.toGroupBean(subGroup);
 
             setSubGroups(subGroup, subGroupBean);
             groupBean.addGroup(subGroupBean);
@@ -1151,7 +1128,7 @@ public class StratosApiV41Utils {
         for (Map.Entry<String, ClusterDataHolder> x : clustersDatamap.entrySet()) {
             ClusterDataHolder clusterHolder = x.getValue();
             Cluster topLevelCluster = TopologyManager.getTopology().getService(clusterHolder.getServiceType()).getCluster(clusterHolder.getClusterId());
-            groupBean.addCluster(ObjectConverter.populateClusterPojos(topLevelCluster, null));
+            groupBean.addCluster(PojoConverter.populateClusterPojos(topLevelCluster, null));
         }
     }
 
@@ -1162,7 +1139,7 @@ public class StratosApiV41Utils {
         CloudControllerServiceClient cloudControllerServiceClient = getCloudControllerServiceClient();
         if (cloudControllerServiceClient != null) {
             org.apache.stratos.cloud.controller.stub.kubernetes.KubernetesGroup kubernetesGroup =
-                    ObjectConverter.convertToCCKubernetesGroupPojo(kubernetesGroupBean);
+                    PojoConverter.convertToCCKubernetesGroupPojo(kubernetesGroupBean);
 
             try {
                 return cloudControllerServiceClient.deployKubernetesGroup(kubernetesGroup);
@@ -1184,7 +1161,7 @@ public class StratosApiV41Utils {
         CloudControllerServiceClient cloudControllerServiceClient = getCloudControllerServiceClient();
         if (cloudControllerServiceClient != null) {
             org.apache.stratos.cloud.controller.stub.kubernetes.KubernetesHost kubernetesHost =
-                    ObjectConverter.convertToCCKubernetesHostPojo(kubernetesHostBean);
+                    PojoConverter.convertToCCKubernetesHostPojo(kubernetesHostBean);
 
             try {
                 return cloudControllerServiceClient.deployKubernetesHost(kubernetesGroupId, kubernetesHost);
@@ -1209,7 +1186,7 @@ public class StratosApiV41Utils {
         CloudControllerServiceClient cloudControllerServiceClient = getCloudControllerServiceClient();
         if (cloudControllerServiceClient != null) {
             org.apache.stratos.cloud.controller.stub.kubernetes.KubernetesMaster kubernetesMaster =
-                    ObjectConverter.convertToCCKubernetesMasterPojo(kubernetesMasterBean);
+                    PojoConverter.convertToCCKubernetesMasterPojo(kubernetesMasterBean);
 
             try {
                 return cloudControllerServiceClient.updateKubernetesMaster(kubernetesMaster);
@@ -1236,7 +1213,7 @@ public class StratosApiV41Utils {
             try {
                 org.apache.stratos.cloud.controller.stub.kubernetes.KubernetesGroup[]
                         kubernetesGroups = cloudControllerServiceClient.getAvailableKubernetesGroups();
-                return ObjectConverter.populateKubernetesGroupsPojo(kubernetesGroups);
+                return PojoConverter.populateKubernetesGroupsPojo(kubernetesGroups);
 
             } catch (RemoteException e) {
                 log.error(e.getMessage(), e);
@@ -1253,7 +1230,7 @@ public class StratosApiV41Utils {
             try {
                 org.apache.stratos.cloud.controller.stub.kubernetes.KubernetesGroup
                         kubernetesGroup = cloudControllerServiceClient.getKubernetesGroup(kubernetesGroupId);
-                return ObjectConverter.populateKubernetesGroupPojo(kubernetesGroup);
+                return PojoConverter.populateKubernetesGroupPojo(kubernetesGroup);
 
             } catch (RemoteException e) {
                 log.error(e.getMessage(), e);
@@ -1313,7 +1290,7 @@ public class StratosApiV41Utils {
                 org.apache.stratos.cloud.controller.stub.kubernetes.KubernetesHost[]
                         kubernetesHosts = cloudControllerServiceClient.getKubernetesHosts(kubernetesGroupId);
 
-                List<KubernetesHost> arrayList = ObjectConverter.populateKubernetesHostsPojo(kubernetesHosts);
+                List<KubernetesHost> arrayList = PojoConverter.populateKubernetesHostsPojo(kubernetesHosts);
                 KubernetesHost[] array = new KubernetesHost[arrayList.size()];
                 array = arrayList.toArray(array);
                 return array;
@@ -1335,7 +1312,7 @@ public class StratosApiV41Utils {
             try {
                 org.apache.stratos.cloud.controller.stub.kubernetes.KubernetesMaster
                         kubernetesMaster = cloudControllerServiceClient.getKubernetesMaster(kubernetesGroupId);
-                return ObjectConverter.populateKubernetesMasterPojo(kubernetesMaster);
+                return PojoConverter.populateKubernetesMasterPojo(kubernetesMaster);
 
             } catch (RemoteException e) {
                 log.error(e.getMessage(), e);
@@ -1353,7 +1330,7 @@ public class StratosApiV41Utils {
         CloudControllerServiceClient cloudControllerServiceClient = getCloudControllerServiceClient();
         if (cloudControllerServiceClient != null) {
             org.apache.stratos.cloud.controller.stub.kubernetes.KubernetesHost kubernetesHost =
-                    ObjectConverter.convertToCCKubernetesHostPojo(kubernetesHostBean);
+                    PojoConverter.convertToCCKubernetesHostPojo(kubernetesHostBean);
             try {
                 return cloudControllerServiceClient.updateKubernetesHost(kubernetesHost);
             } catch (RemoteException e) {
@@ -1382,7 +1359,7 @@ public class StratosApiV41Utils {
                     throw new RestAPIException("No matching cluster found for [alias] " + alias);
                 }
                 if (property != null) {
-                    autoscalerServiceClient.updateClusterMonitor(cluster.getClusterId(), ObjectConverter.getProperties(property));
+                    autoscalerServiceClient.updateClusterMonitor(cluster.getClusterId(), PojoConverter.getProperties(property));
                 }
             } catch (AutoScalerServiceInvalidArgumentExceptionException e) {
                 String message = e.getFaultMessage().getInvalidArgumentException().getMessage();

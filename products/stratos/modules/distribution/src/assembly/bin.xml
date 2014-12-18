@@ -270,6 +270,7 @@
            </includes>
 	    <excludes>
                 <exclude>**/jmx.xml</exclude>
+		<exclude>**/tenant-axis2.xml</exclude>
 		<exclude>**/authenticators.xml</exclude>
 		<exclude>**/logging-config.xml</exclude>
             </excludes>
@@ -681,12 +682,6 @@
             <fileMode>600</fileMode>
         </file>
         <file>
-            <source>src/main/conf/axis2/tenant-axis2.xml</source>
-            <outputDirectory>${pom.artifactId}-${pom.version}/repository/conf/axis2/</outputDirectory>
-            <filtered>true</filtered>
-            <fileMode>600</fileMode>
-        </file>
-        <file>
             <source>src/main/conf/metadataservice.xml</source>
             <outputDirectory>${pom.artifactId}-${pom.version}/repository/conf</outputDirectory>
             <filtered>true</filtered>
@@ -949,17 +944,6 @@
         <!-- REST endpoint webapp -->
         <file>
             <source>../p2-profile-gen/target/wso2carbon-core-${carbon.kernel.version}/repository/deployment/server/webapps/api.war</source>
-            <outputDirectory>${pom.artifactId}-${pom.version}/repository/deployment/server/webapps/</outputDirectory>
-            <fileMode>644</fileMode>
-        </file>
-	<!--oauth2.war and authenticationendpoint.war is related to oAuth feature  -->
-        <file>
-            <source>../p2-profile-gen/target/wso2carbon-core-${carbon.kernel.version}/repository/deployment/server/webapps/oauth2.war</source>
-            <outputDirectory>${pom.artifactId}-${pom.version}/repository/deployment/server/webapps/</outputDirectory>
-            <fileMode>644</fileMode>
-        </file>
-        <file>
-            <source>../p2-profile-gen/target/wso2carbon-core-${carbon.kernel.version}/repository/deployment/server/webapps/authenticationendpoint.war</source>
             <outputDirectory>${pom.artifactId}-${pom.version}/repository/deployment/server/webapps/</outputDirectory>
             <fileMode>644</fileMode>
         </file>

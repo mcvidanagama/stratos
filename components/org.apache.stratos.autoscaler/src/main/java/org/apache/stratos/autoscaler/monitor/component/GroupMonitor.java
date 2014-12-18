@@ -22,29 +22,30 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.autoscaler.algorithm.AutoscaleAlgorithm;
 import org.apache.stratos.autoscaler.applications.ApplicationHolder;
+import org.apache.stratos.autoscaler.applications.dependency.context.ApplicationChildContext;
+import org.apache.stratos.autoscaler.applications.dependency.context.GroupChildContext;
 import org.apache.stratos.autoscaler.applications.topic.ApplicationBuilder;
-import org.apache.stratos.autoscaler.context.InstanceContext;
 import org.apache.stratos.autoscaler.context.group.GroupInstanceContext;
 import org.apache.stratos.autoscaler.context.partition.GroupLevelPartitionContext;
 import org.apache.stratos.autoscaler.context.partition.PartitionContext;
 import org.apache.stratos.autoscaler.context.partition.network.GroupLevelNetworkPartitionContext;
-import org.apache.stratos.autoscaler.context.partition.network.NetworkPartitionContext;
 import org.apache.stratos.autoscaler.exception.application.DependencyBuilderException;
 import org.apache.stratos.autoscaler.exception.application.MonitorNotFoundException;
 import org.apache.stratos.autoscaler.exception.application.TopologyInConsistentException;
 import org.apache.stratos.autoscaler.monitor.Monitor;
-import org.apache.stratos.autoscaler.monitor.cluster.VMClusterMonitor;
 import org.apache.stratos.autoscaler.monitor.events.GroupStatusEvent;
+import org.apache.stratos.autoscaler.monitor.events.MonitorScalingEvent;
 import org.apache.stratos.autoscaler.monitor.events.MonitorStatusEvent;
-import org.apache.stratos.autoscaler.monitor.events.ScalingEvent;
-import org.apache.stratos.autoscaler.monitor.events.ScalingOverMaxEvent;
 import org.apache.stratos.autoscaler.monitor.events.builder.MonitorStatusEventBuilder;
 import org.apache.stratos.autoscaler.pojo.policy.PolicyManager;
 import org.apache.stratos.autoscaler.pojo.policy.deployment.ChildPolicy;
 import org.apache.stratos.autoscaler.pojo.policy.deployment.partition.network.ChildLevelNetworkPartition;
 import org.apache.stratos.autoscaler.pojo.policy.deployment.partition.network.ChildLevelPartition;
 import org.apache.stratos.autoscaler.util.ServiceReferenceHolder;
-import org.apache.stratos.messaging.domain.applications.*;
+import org.apache.stratos.messaging.domain.applications.Application;
+import org.apache.stratos.messaging.domain.applications.ApplicationStatus;
+import org.apache.stratos.messaging.domain.applications.Group;
+import org.apache.stratos.messaging.domain.applications.GroupStatus;
 import org.apache.stratos.messaging.domain.instance.GroupInstance;
 import org.apache.stratos.messaging.domain.instance.Instance;
 import org.apache.stratos.messaging.domain.topology.ClusterStatus;
@@ -54,115 +55,100 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This is GroupMonitor to monitor the group which consists of
  * groups and clusters
  */
-public class GroupMonitor extends ParentComponentMonitor {
+public class GroupMonitor extends ParentComponentMonitor implements Runnable {
 
-    private static final Log log = LogFactory.getLog(GroupMonitor.class);
-    //has scaling dependents
-    protected boolean hasScalingDependents;
-    //Indicates whether groupScaling enabled or not
-    private boolean groupScalingEnabled;
+	private static final Log log = LogFactory.getLog(GroupMonitor.class);
 
-    /**
-     * Constructor of GroupMonitor
-     *
-     * @param group Takes the group from the Topology
-     * @throws DependencyBuilderException    throws when couldn't build the Topology
-     * @throws TopologyInConsistentException throws when topology is inconsistent
-     */
-    public GroupMonitor(Group group, String appId, List<String> parentInstanceId,
-                        boolean hasScalingDependents) throws DependencyBuilderException,
-            TopologyInConsistentException {
-        super(group);
-        this.groupScalingEnabled = group.isGroupScalingEnabled();
-        this.appId = appId;
-        this.hasScalingDependents = hasScalingDependents;
-    }
+	//Indicates whether groupScaling enabled or not
+	private boolean groupScalingEnabled;
+	//Network partition context
+	private Map<String, GroupLevelNetworkPartitionContext> networkPartitionCtxts;
+
+	private Map<String, MonitorScalingEvent> mapScalingEvent;
+
+	//Indicates whether the monitor is destroyed or not
+	private boolean isDestroyed;
+	//Monitoring interval of the monitor
+	private int monitoringIntervalMilliseconds = 60000;     //TODO get this from config file
+
+	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+	/**
+	 * Constructor of GroupMonitor
+	 *
+	 * @param group Takes the group from the Topology
+	 * @throws DependencyBuilderException    throws when couldn't build the Topology
+	 * @throws TopologyInConsistentException throws when topology is inconsistent
+	 */
+	public GroupMonitor(Group group, String appId, List<String> parentInstanceId) throws DependencyBuilderException,
+	                                                                                     TopologyInConsistentException {
+		super(group);
+		this.appId = appId;
+		networkPartitionCtxts = new HashMap<String, GroupLevelNetworkPartitionContext>();
+		mapScalingEvent = new HashMap<String, MonitorScalingEvent>();
+	}
 
     @Override
     public void run() {
-        try {
-            if (log.isDebugEnabled()) {
-                log.debug("Group monitor is running : " + this.toString());
-            }
-            monitor();
-        } catch (Exception e) {
-            log.error("Group monitor failed : " + this.toString(), e);
-        }
+	    try {
+
+		    if (log.isDebugEnabled()) {
+			    log.debug("Group monitor is running : " + this.toString());
+		    }
+		    monitor();
+	    } catch (Exception e) {
+		    log.error("Group monitor failed : " + this.toString(), e);
+	    }
     }
 
-    public synchronized void monitor() {
-        final Collection<NetworkPartitionContext> networkPartitionContexts =
-                this.networkPartitionCtxts.values();
+	public void startScheduler() {
+		scheduler.scheduleAtFixedRate(this, 0, monitoringIntervalMilliseconds, TimeUnit.MILLISECONDS);
+	}
 
-        Runnable monitoringRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (log.isDebugEnabled()) {
-                    log.debug("Group monitor is running====== : " + this.toString());
-                }
-                for (NetworkPartitionContext networkPartitionContext : networkPartitionContexts) {
-
-                    for (InstanceContext instanceContext : networkPartitionContext.
-                            getInstanceIdToInstanceContextMap().values()) {
-                        GroupInstance instance = (GroupInstance) instanceIdToInstanceMap.
-                                get(instanceContext.getId());
-                        //stopping the monitoring when the group is inactive/Terminating/Terminated
-                        if (instance.getStatus().getCode() <= GroupStatus.Active.getCode()) {
-                            //Gives priority to scaling max out rather than dependency scaling
-                            if (!instanceContext.getIdToScalingOverMaxEvent().isEmpty()) {
-                                //handling the group scaling
-                                if (groupScalingEnabled) {
-                                    //one of the child is loaded and max out.
-                                    // Hence creating new group instance
-                                    boolean createOnDemand = createInstanceOnDemand(instanceContext.
-                                            getParentInstanceId());
-                                    if (!createOnDemand) {
-                                        //couldn't create new instance. Hence notifying the parent
-                                        MonitorStatusEventBuilder.handleScalingOverMaxEvent(parent,
-                                                networkPartitionContext.getId(),
-                                                instanceContext.getId(),
-                                                appId);
-                                    } else {
-                                        //Resetting the max events
-                                        instanceContext.setIdToScalingOverMaxEvent(
-                                                new HashMap<String, ScalingOverMaxEvent>());
-                                    }
-                                } else {
-                                    //notifying the parent if no group scaling enabled here
-                                    MonitorStatusEventBuilder.handleScalingOverMaxEvent(parent,
-                                            networkPartitionContext.getId(),
-                                            instanceContext.getId(),
-                                            appId);
-                                }
-                            } else {
-                                handleDependentScaling(instanceContext, networkPartitionContext);
-                            }
-                        }
-
-
-                    }
-
-
-                }
-            }
-        };
-        monitoringRunnable.run();
+	protected void stopScheduler() {
+		scheduler.shutdownNow();
     }
+
+	public void monitor() {
+
+		Runnable monitoringRunnable = new Runnable() {
+			@Override
+			public void run() {
+				float finalFactor = 1;
+				if (log.isInfoEnabled()) {
+					log.info("Group monitor is running====== : " + this.toString());
+				}
+
+				Collection<MonitorScalingEvent> events = mapScalingEvent.values();
+				for (MonitorScalingEvent event : events) {
+					log.info("Monitor Scaling Event"+event.getId());
+				}
+				//TODO : call the on demand group scaling
+				mapScalingEvent.clear();
+			}
+		};
+		monitoringRunnable.run();
+	}
 
     /**
      * Will set the status of the monitor based on Topology Group status/child status like scaling
      *
      * @param status status of the group
      */
-    public void setStatus(GroupStatus status, String instanceId, String parentInstanceId) {
+    public void setStatus(GroupStatus status, String instanceId) {
         GroupInstance groupInstance = (GroupInstance) this.instanceIdToInstanceMap.get(instanceId);
         if (groupInstance == null) {
-            if (status != GroupStatus.Terminated) {
+            if(status != GroupStatus.Terminated) {
                 log.warn("The required group [instance] " + instanceId + " not found in the GroupMonitor");
             }
         } else {
@@ -170,10 +156,11 @@ public class GroupMonitor extends ParentComponentMonitor {
                 groupInstance.setStatus(status);
             }
         }
-
+        // notify parent
+        log.info("[Group] " + this.id + "is notifying the [parent] " + this.parent.getId());
         if (this.isGroupScalingEnabled()) {
+            ApplicationHolder.acquireReadLock();
             try {
-                ApplicationHolder.acquireReadLock();
                 Application application = ApplicationHolder.getApplications().
                         getApplication(this.appId);
                 if (application != null) {
@@ -182,23 +169,19 @@ public class GroupMonitor extends ParentComponentMonitor {
                     Group group = application.getGroupRecursively(this.id);
                     if (group != null) {
                         GroupInstance context = group.getInstanceContexts(instanceId);
-                        // notify parent
-                        log.info("[Group] " + this.id + "is notifying the [parent] " + this.parent.getId() +
-                                " [instance] " + context.getParentId());
                         MonitorStatusEventBuilder.handleGroupStatusEvent(this.parent,
-                                status, this.id, parentInstanceId);
+                                status, this.id, context.getParentId());
+
                     }
                 }
             } finally {
                 ApplicationHolder.releaseReadLock();
             }
         } else {
-            // notifying the parent
-            log.info("[Group] " + this.id + "is notifying the [parent] " + this.parent.getId() +
-                    " [instance] " + instanceId);
             MonitorStatusEventBuilder.handleGroupStatusEvent(this.parent,
                     status, this.id, instanceId);
         }
+        //}
         //notify the children about the state change
         try {
             MonitorStatusEventBuilder.notifyChildren(this, new GroupStatusEvent(status, this.id, instanceId));
@@ -210,67 +193,51 @@ public class GroupMonitor extends ParentComponentMonitor {
 
     @Override
     public void onChildStatusEvent(MonitorStatusEvent statusEvent) {
-        String childId = statusEvent.getId();
-        String instanceId = statusEvent.getInstanceId();
-        LifeCycleState status1 = statusEvent.getStatus();
-        //Events coming from parent are In_Active(in faulty detection), Scaling events, termination
-        if (status1 == GroupStatus.Active) {
-            //Verifying whether all the minimum no of instances of child
-            // became active to take next action
-            boolean isChildActive = verifyGroupStatus(childId, instanceId, GroupStatus.Active);
-            if (isChildActive) {
-                onChildActivatedEvent(childId, instanceId);
-            } else {
-                log.info("Waiting for other group instances to be active");
-            }
 
-        } else if (status1 == ClusterStatus.Active) {
+         String childId = statusEvent.getId();
+         String instanceId = statusEvent.getInstanceId();
+         LifeCycleState status1 = statusEvent.getStatus();
+         String id = this.id;
+
+        //Events coming from parent are In_Active(in faulty detection), Scaling events, termination
+
+        if (status1 == ClusterStatus.Active || status1 == GroupStatus.Active) {
             onChildActivatedEvent(childId, instanceId);
 
         } else if (status1 == ClusterStatus.Inactive || status1 == GroupStatus.Inactive) {
-            //TODO handling restart of stratos when group is inactive
-            markInstanceAsInactive(childId, instanceId);
-            onChildInactiveEvent(childId, instanceId);
+            //TODO handling restart of stratos
+            /*if (!aliasToActiveMonitorsMap.get(childId).hasStartupDependents()) {
+                onChildActivatedEvent(childId, instanceId);
+            } else {*/
+                markInstanceAsInactive(childId, instanceId);
+                onChildInactiveEvent(childId, instanceId);
+            //}
 
         } else if (status1 == ClusterStatus.Terminating || status1 == GroupStatus.Terminating) {
             //mark the child monitor as inactive in the map
             markInstanceAsTerminating(childId, instanceId);
 
         } else if (status1 == ClusterStatus.Terminated || status1 == GroupStatus.Terminated) {
-            //Verifying whether all the minimum no of instances of child
-            // became active to take next action
-            if (status1 == GroupStatus.Terminated) {
-                /*boolean childTerminated = verifyGroupStatus(instanceId, (GroupStatus) status1);
-                if (childTerminated) {*/
-                onTerminationOfInstance(childId, instanceId);
-                /*} else {
-                    log.info("Waiting for other group instances to be terminated");
-                }*/
+            //Check whether all dependent goes Terminated and then start them in parallel.
+            removeInstanceFromFromInactiveMap(childId, instanceId);
+            removeInstanceFromFromTerminatingMap(childId, instanceId);
+
+            GroupInstance instance = (GroupInstance) instanceIdToInstanceMap.get(instanceId);
+            if (instance != null) {
+                if (instance.getStatus() == GroupStatus.Terminating || instance.getStatus() == GroupStatus.Terminated) {
+                    ServiceReferenceHolder.getInstance().getGroupStatusProcessorChain().process(id,
+                            appId, instanceId);
+                } else {
+                    onChildTerminatedEvent(childId, instanceId);
+                }
             } else {
-                onTerminationOfInstance(childId, instanceId);
+                log.warn("The required instance cannot be found in the the [GroupMonitor] " +
+                        id);
             }
         }
     }
 
-    private void onTerminationOfInstance(String childId, String instanceId) {
-        //Check whether all dependent goes Terminated and then start them in parallel.
-        removeInstanceFromFromInactiveMap(childId, instanceId);
-        removeInstanceFromFromTerminatingMap(childId, instanceId);
 
-        GroupInstance instance = (GroupInstance) instanceIdToInstanceMap.get(instanceId);
-        if (instance != null) {
-            if (instance.getStatus() == GroupStatus.Terminating ||
-                    instance.getStatus() == GroupStatus.Terminated) {
-                ServiceReferenceHolder.getInstance().getGroupStatusProcessorChain().process(id,
-                        appId, instanceId);
-            } else {
-                onChildTerminatedEvent(childId, instanceId);
-            }
-        } else {
-            log.warn("The required instance cannot be found in the the [GroupMonitor] " +
-                    id);
-        }
-    }
 
 
     @Override
@@ -283,21 +250,12 @@ public class GroupMonitor extends ParentComponentMonitor {
             //Get all the instances which related to this instanceId
             GroupInstance instance = (GroupInstance) this.instanceIdToInstanceMap.get(instanceId);
             if (instance != null) {
-                if (log.isInfoEnabled()) {
-                    log.info("Publishing Cluster terminating event for [application] " + appId +
-                            " [group] " + id + " [instance] " + instanceId);
-                }
                 ApplicationBuilder.handleGroupTerminatingEvent(appId, id, instanceId);
             } else {
-                //Using parentId need to get the all the children and ask them to terminate
-                // as they can't exist without the parent
+                //Using parentId need to get the children
                 List<String> instanceIds = this.getInstancesByParentInstanceId(instanceId);
                 if (!instanceIds.isEmpty()) {
                     for (String instanceId1 : instanceIds) {
-                        if (log.isInfoEnabled()) {
-                            log.info("Publishing Cluster terminating event for [application] " + appId +
-                                    " [group] " + id + " [instance] " + instanceId1);
-                        }
                         ApplicationBuilder.handleGroupTerminatingEvent(appId, id, instanceId1);
                     }
                 }
@@ -305,40 +263,64 @@ public class GroupMonitor extends ParentComponentMonitor {
             }
         } else if (statusEvent.getStatus() == ClusterStatus.Created ||
                 statusEvent.getStatus() == GroupStatus.Created) {
+            Application application = ApplicationHolder.getApplications().getApplication(this.appId);
+            Group group = application.getGroupRecursively(statusEvent.getId());
             //starting a new instance of this monitor
             createInstanceOnDemand(statusEvent.getInstanceId());
         }
     }
 
+	@Override
+	public void onChildScalingEvent(MonitorScalingEvent scalingEvent) {
+
+		if (hasGroupScalingDependent) {
+
+			//notify parent
+			parent.onChildScalingEvent(scalingEvent);
+		}
+
+		if (log.isDebugEnabled()) {
+			log.debug("Child scaling event received to [group]: " + this.getId()
+			          + ", [network partition]: " + scalingEvent.getNetworkPartitionId()
+			          + ", [event] " + scalingEvent.getId() + ", [group instance] " + scalingEvent.getInstanceId());
+		}
+
+		//find the child context of this group,
+		//Notifying children, if this group has scaling dependencies
+		if (scalingDependencies != null && !scalingDependencies.isEmpty()) {
+			// has dependencies. Notify children
+			if (aliasToActiveMonitorsMap != null
+			    && !aliasToActiveMonitorsMap.values().isEmpty()) {
+				for (String dependent : scalingDependencies) {
+					Monitor monitor = aliasToActiveMonitorsMap.get(dependent);
+					if (monitor instanceof GroupMonitor || monitor instanceof ApplicationMonitor) {
+						monitor.onParentScalingEvent(scalingEvent);
+					}
+				}
+			}
+		}
+		if (scalingEvent.getId().equals(appId)) {
+			mapScalingEvent.put(scalingEvent.getInstanceId(), scalingEvent);
+		}
+	}
+
     @Override
-    public void onParentScalingEvent(ScalingEvent scalingEvent) {
-        //TODO group scaling, if there are enough spaces else notify the parent with max out
-        //Notifying children, if this group has scaling dependencies
-        if (scalingDependencies != null && !scalingDependencies.isEmpty()) {
-            for (ScalingDependentList scalingDependentList : scalingDependencies) {
-                if (scalingDependentList.getScalingDependentListComponents().
-                        contains(scalingEvent.getId())) {
-                    for (String scalingDependentListComponent : scalingDependentList
-                            .getScalingDependentListComponents()) {
-                        Monitor monitor = aliasToActiveMonitorsMap.get(
-                                scalingDependentListComponent);
-                        if (monitor instanceof GroupMonitor ||
-                                monitor instanceof VMClusterMonitor) {
-                            ScalingEvent childScalingEvent = new ScalingEvent(monitor.getId(),
-                                    monitor.getId(),
-                                    scalingEvent.getInstanceId(),
-                                    scalingEvent.getFactor());
-                            monitor.onParentScalingEvent(childScalingEvent);
-                        }
-                    }
-                }
-                break;
-            }
-        }
+    public void onParentScalingEvent(MonitorScalingEvent scalingEvent) {
+
+        //Notify all children about scaling
+    }
+
+    @Override
+    public void onEvent(MonitorScalingEvent scalingEvent) {
+
     }
 
     public boolean isGroupScalingEnabled() {
         return groupScalingEnabled;
+    }
+
+    public void setGroupScalingEnabled(boolean groupScalingEnabled) {
+        this.groupScalingEnabled = groupScalingEnabled;
     }
 
     /**
@@ -379,7 +361,7 @@ public class GroupMonitor extends ParentComponentMonitor {
 
         String networkPartitionId = parentInstanceContext.getNetworkPartitionId();
         if (this.networkPartitionCtxts.containsKey(parentInstanceContext)) {
-            groupLevelNetworkPartitionContext = (GroupLevelNetworkPartitionContext) this.networkPartitionCtxts.
+            groupLevelNetworkPartitionContext = this.networkPartitionCtxts.
                     get(networkPartitionId);
         } else {
             if (policy != null) {
@@ -443,7 +425,7 @@ public class GroupMonitor extends ParentComponentMonitor {
                 childPartitionContexts = new ArrayList<GroupLevelPartitionContext>();
 
                 for (ChildLevelPartition childLevelPartition : childLevelPartitions) {
-                    if (networkPartitionContext.
+                    if(networkPartitionContext.
                             getPartitionCtxt(childLevelPartition.getPartitionId()) == null) {
                         partitionContext = new GroupLevelPartitionContext(childLevelPartition.getMax(),
                                 childLevelPartition.getPartitionId(), networkPartitionId);
@@ -474,12 +456,10 @@ public class GroupMonitor extends ParentComponentMonitor {
                                                       GroupLevelNetworkPartitionContext groupLevelNetworkPartitionContext,
                                                       GroupInstance groupInstance) {
 
-        String partitionId = null;
+        String partitionId;
 
         if (groupInstance == null) {
-            if (partitionContext != null) {
-                partitionId = partitionContext.getPartitionId();
-            }
+            partitionId = partitionContext.getPartitionId();
 
             groupInstance = createGroupInstance(group, parentInstanceContext.getNetworkPartitionId(),
                     parentInstanceContext.getInstanceId(), partitionId);
@@ -489,7 +469,6 @@ public class GroupMonitor extends ParentComponentMonitor {
 
         String instanceId = groupInstance.getInstanceId();
         GroupInstanceContext groupInstanceContext = new GroupInstanceContext(instanceId);
-        groupInstanceContext.setParentInstanceId(groupInstance.getParentId());
 
         groupInstanceContext.addPartitionContext((GroupLevelPartitionContext) partitionContext);
         groupLevelNetworkPartitionContext.addInstanceContext(groupInstanceContext);
@@ -536,8 +515,6 @@ public class GroupMonitor extends ParentComponentMonitor {
 
             // Create GroupInstance for partition instance and add to required contexts for minimum instance count
             int groupMin = group.getGroupMinInstances();
-            //Setting the networkpartition minimum instances as group min instances
-            groupLevelNetworkPartitionContext.setMinInstanceCount(groupMin);
 
             //Have to check whether group has generated its own instances
             List<Instance> existingGroupInstances = group.getInstanceContextsWithParentId(parentInstanceId);
@@ -560,7 +537,7 @@ public class GroupMonitor extends ParentComponentMonitor {
                 for (int i = 0; i < groupMin - existingGroupInstances.size(); i++) {
                     // Get partitionContext to create instance in
                     partitionContext = getPartitionContext(groupLevelNetworkPartitionContext,
-                            parentPartitionId);
+                                                            parentPartitionId);
                     groupInstanceId = createGroupInstanceAndAddToMonitor(group, parentInstanceContext,
                             partitionContext,
                             groupLevelNetworkPartitionContext,
@@ -578,21 +555,19 @@ public class GroupMonitor extends ParentComponentMonitor {
     }
 
     private PartitionContext getPartitionContext(
-            GroupLevelNetworkPartitionContext groupLevelNetworkPartitionContext,
-            String parentPartitionId) {
-        PartitionContext partitionContext = null;
+                                GroupLevelNetworkPartitionContext groupLevelNetworkPartitionContext,
+                                String parentPartitionId) {
+        PartitionContext partitionContext;
         // Get partitionContext to create instance in
         List<GroupLevelPartitionContext> partitionContexts = groupLevelNetworkPartitionContext.
                 getPartitionCtxts();
         GroupLevelPartitionContext[] groupLevelPartitionContexts =
                 new GroupLevelPartitionContext[partitionContexts.size()];
         if (parentPartitionId == null) {
-            if (!partitionContexts.isEmpty()) {
-                AutoscaleAlgorithm algorithm = this.getAutoscaleAlgorithm(
-                        groupLevelNetworkPartitionContext.getPartitionAlgorithm());
-                partitionContext = algorithm.getNextScaleUpPartitionContext(
-                        (partitionContexts.toArray(groupLevelPartitionContexts)));
-            }
+            AutoscaleAlgorithm algorithm = this.getAutoscaleAlgorithm(
+                    groupLevelNetworkPartitionContext.getPartitionAlgorithm());
+            partitionContext = algorithm.getNextScaleUpPartitionContext(
+                    (partitionContexts.toArray(groupLevelPartitionContexts)));
         } else {
             partitionContext = groupLevelNetworkPartitionContext.
                     getPartitionContextById(parentPartitionId);
@@ -608,7 +583,7 @@ public class GroupMonitor extends ParentComponentMonitor {
      * @param parentInstanceId
      * @throws org.apache.stratos.autoscaler.exception.application.MonitorNotFoundException
      */
-    public boolean createInstanceOnDemand(String parentInstanceId) {
+    public void createInstanceOnDemand(String parentInstanceId) {
         // Get parent instance context
         Instance parentInstanceContext = getParentInstanceContext(parentInstanceId);
         List<String> instanceIdsToStart = new ArrayList<String>();
@@ -631,9 +606,9 @@ public class GroupMonitor extends ParentComponentMonitor {
         int groupMax = group.getGroupMaxInstances();
         int groupMin = group.getGroupMinInstances();
         List<Instance> instances = group.getInstanceContextsWithParentId(parentInstanceId);
-        if (instances.isEmpty()) {
+        if(instances.isEmpty()) {
             //Need to create totally new group instance
-            for (int i = 0; i < groupMin; i++) {
+            for (int i = 0; i < groupMin ; i++) {
                 // Get partitionContext to create instance in
                 partitionContext = getPartitionContext(groupLevelNetworkPartitionContext,
                         parentPartitionId);
@@ -664,12 +639,8 @@ public class GroupMonitor extends ParentComponentMonitor {
                         "[max] " + groupMax + ". Hence trying to notify the parent.");
             }
         }
-        boolean startedOnDemand = false;
-        if (!instanceIdsToStart.isEmpty()) {
-            startedOnDemand = true;
-        }
         //TODO Starting all the instances, can do in parallel
-        for (String instanceId : instanceIdsToStart) {
+        for(String instanceId : instanceIdsToStart) {
             try {
                 startDependency(group, instanceId);
             } catch (MonitorNotFoundException e) {
@@ -677,7 +648,6 @@ public class GroupMonitor extends ParentComponentMonitor {
                 log.error("Error while creating the group/cluster instance", e);
             }
         }
-        return startedOnDemand;
     }
 
 
@@ -692,59 +662,70 @@ public class GroupMonitor extends ParentComponentMonitor {
      */
     private GroupInstance createGroupInstance(Group group, String networkPartitionId,
                                               String parentInstanceId, String partitionId) {
-
+        String instanceId = parentInstanceId;
+        int minGroupInstances = group.getGroupMinInstances();
+        int maxGroupInstances = group.getGroupMaxInstances();
+        /*
+        * When min != 1 or max != 1, we need to generate
+        * instance ids as it is having more than one group instances
+        */
+        if (minGroupInstances > 1 || maxGroupInstances > 1) {
+            instanceId = this.generateInstanceId(group);
+        }
         return ApplicationBuilder.handleGroupInstanceCreatedEvent(appId, group.getUniqueIdentifier(),
-                parentInstanceId, networkPartitionId, partitionId);
+                parentInstanceId, networkPartitionId, instanceId, partitionId);
+    }
+
+    public Map<String, GroupLevelNetworkPartitionContext> getNetworkPartitionCtxts() {
+        return networkPartitionCtxts;
+    }
+
+    public void setNetworkPartitionCtxts(Map<String, GroupLevelNetworkPartitionContext> networkPartitionCtxts) {
+        this.networkPartitionCtxts = networkPartitionCtxts;
+    }
+
+    public GroupLevelNetworkPartitionContext getNetworkPartitionContext(String networkPartitionId) {
+        return this.networkPartitionCtxts.get(networkPartitionId);
     }
 
     public void addNetworkPartitionContext(GroupLevelNetworkPartitionContext clusterLevelNetworkPartitionContext) {
         this.networkPartitionCtxts.put(clusterLevelNetworkPartitionContext.getId(), clusterLevelNetworkPartitionContext);
     }
 
+    public void setDestroyed(boolean isDestroyed) {
+        this.isDestroyed = isDestroyed;
+    }
 
-    public boolean verifyGroupStatus(String childId, String instanceId, GroupStatus requiredStatus) {
-        Monitor monitor = this.getMonitor(childId);
-        List<String> groupInstances;
-        GroupInstance groupInstance = (GroupInstance) monitor.getInstance(instanceId);
-        if (groupInstance == null) {
-            groupInstances = monitor.getInstancesByParentInstanceId(instanceId);
+    public boolean verifyGroupStatus(String instanceId, GroupStatus requiredStatus) {
+        if (this.instanceIdToInstanceMap.containsKey(instanceId)) {
+            if (((GroupInstance) this.instanceIdToInstanceMap.get(instanceId)).getStatus() == requiredStatus) {
+                return true;
+            }
         } else {
-            if (groupInstance.getStatus() == requiredStatus) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        String networkPartitionId = null;
-        int noOfInstancesOfRequiredStatus = 0;
-        for (String childInstanceId : groupInstances) {
-            GroupInstance childGroupInstance = (GroupInstance) monitor.getInstance(childInstanceId);
-            networkPartitionId = childGroupInstance.getNetworkPartitionId();
-            if (childGroupInstance.getStatus() == requiredStatus) {
-                noOfInstancesOfRequiredStatus++;
-            }
-        }
-
-        if (!groupInstances.isEmpty()) {
-            GroupLevelNetworkPartitionContext networkPartitionContext =
-                    (GroupLevelNetworkPartitionContext) this.networkPartitionCtxts.
-                            get(networkPartitionId);
-            int minInstances = networkPartitionContext.getMinInstanceCount();
-            //if terminated all the instances in this instances map should be in terminated state
-            //if terminated all the instances in this instances map should be in terminated state
-            if (noOfInstancesOfRequiredStatus == this.inactiveInstancesMap.size() &&
-                    requiredStatus == GroupStatus.Terminated) {
-                return true;
-            } else if (noOfInstancesOfRequiredStatus >= minInstances) {
-                return true;
-            } else {
-                //of only one is inActive implies that the whole group is Inactive
-                if (requiredStatus == GroupStatus.Inactive && noOfInstancesOfRequiredStatus >= 1) {
-                    return true;
+            List<GroupInstance> instances = new ArrayList<GroupInstance>();
+            String networkPartitionId = null;
+            int noOfInstancesOfRequiredStatus = 0;
+            for (Instance instance : this.instanceIdToInstanceMap.values()) {
+                GroupInstance groupInstance = (GroupInstance) instance;
+                if (groupInstance.getParentId().equals(instanceId)) {
+                    instances.add(groupInstance);
+                    networkPartitionId = groupInstance.getNetworkPartitionId();
+                    if (groupInstance.getStatus() == requiredStatus) {
+                        noOfInstancesOfRequiredStatus++;
+                    }
                 }
             }
-
+            if (!instances.isEmpty()) {
+                int minInstances = this.networkPartitionCtxts.get(networkPartitionId).
+                        getMinInstanceCount();
+                if (noOfInstancesOfRequiredStatus >= minInstances) {
+                    return true;
+                } else {
+                    if (requiredStatus == GroupStatus.Inactive && noOfInstancesOfRequiredStatus >= 1) {
+                        return true;
+                    }
+                }
+            }
         }
         return false;
     }
@@ -752,7 +733,8 @@ public class GroupMonitor extends ParentComponentMonitor {
 
     @Override
     public void destroy() {
-        stopScheduler();
+        //TODO to stop all the drools
+	    stopScheduler();//Stop the scheduler
     }
 
 }

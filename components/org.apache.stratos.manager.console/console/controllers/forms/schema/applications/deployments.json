@@ -8,7 +8,7 @@
         "disable_properties": true,
         "disable_collapse": true
     },
-    "required":[],
+    "required":["id","partitionGroup"],
     "properties":{
         "id": {
             "type":"string",

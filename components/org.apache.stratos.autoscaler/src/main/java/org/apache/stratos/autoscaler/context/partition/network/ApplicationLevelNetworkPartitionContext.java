@@ -21,6 +21,7 @@ package org.apache.stratos.autoscaler.context.partition.network;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.autoscaler.context.application.ApplicationInstanceContext;
+import org.apache.stratos.messaging.domain.instance.ApplicationInstance;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -32,17 +33,36 @@ import java.util.Map;
  */
 public class ApplicationLevelNetworkPartitionContext extends NetworkPartitionContext implements Serializable {
     private static final Log log = LogFactory.getLog(ApplicationLevelNetworkPartitionContext.class);
+    private final String id;
     private boolean createdOnBurst;
 
+    //group instances kept inside a partition
+    private Map<String, ApplicationInstanceContext> instanceIdToInstanceContextMap;
+
     public ApplicationLevelNetworkPartitionContext(String id) {
-        super(id);
+        this.id = id;
+        this.instanceIdToInstanceContextMap = new HashMap<String, ApplicationInstanceContext>();
     }
+
+    public Map<String, ApplicationInstanceContext> getInstanceIdToInstanceContextMap() {
+        return instanceIdToInstanceContextMap;
+    }
+
+    public void setInstanceIdToInstanceContextMap(Map<String, ApplicationInstanceContext> instanceIdToInstanceContextMap) {
+        this.instanceIdToInstanceContextMap = instanceIdToInstanceContextMap;
+    }
+
+    public void addInstanceContext(ApplicationInstanceContext context) {
+        this.instanceIdToInstanceContextMap.put(context.getId(), context);
+
+    }
+
 
     public int hashCode() {
 
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((super.getId() == null) ? 0 : super.getId().hashCode());
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
         return result;
 
     }
@@ -59,11 +79,11 @@ public class ApplicationLevelNetworkPartitionContext extends NetworkPartitionCon
             return false;
         }
         final ApplicationLevelNetworkPartitionContext other = (ApplicationLevelNetworkPartitionContext) obj;
-        if (super.getId() == null) {
-            if (super.getId() != null) {
+        if (this.id == null) {
+            if (other.id != null) {
                 return false;
             }
-        } else if (!super.getId().equals(super.getId())) {
+        } else if (!this.id.equals(other.id)) {
             return false;
         }
         return true;
@@ -71,11 +91,11 @@ public class ApplicationLevelNetworkPartitionContext extends NetworkPartitionCon
 
     @Override
     public String toString() {
-        return "ApplicationNetworkPartitionContext [id=" + super.getId() + "]";
+        return "ApplicationNetworkPartitionContext [id=" + id  + "]";
     }
 
     public String getId() {
-        return super.getId();
+        return id;
     }
 
     public boolean isCreatedOnBurst() {
@@ -86,4 +106,7 @@ public class ApplicationLevelNetworkPartitionContext extends NetworkPartitionCon
         this.createdOnBurst = createdOnBurst;
     }
 
+    public void removeClusterApplicationContext(String instanceId) {
+        this.instanceIdToInstanceContextMap.remove(instanceId);
+    }
 }

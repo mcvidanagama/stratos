@@ -35,19 +35,25 @@ public class ClusterLevelNetworkPartitionContext extends NetworkPartitionContext
 
     private static final Log log = LogFactory.getLog(ClusterLevelNetworkPartitionContext.class);
     private static final long serialVersionUID = 572769304374110159L;
+    private final String id;
 
     private String partitionAlgorithm;
     private int min;
 
+    private Map<String, ClusterInstanceContext> instanceIdToClusterInstanceContextMap;
+
+
     public ClusterLevelNetworkPartitionContext(String id, String partitionAlgorithm, int min) {
-        super(id);
+        this.id = id;
         this.partitionAlgorithm = partitionAlgorithm;
         this.min = min;
+        setInstanceIdToClusterInstanceContextMap(new ConcurrentHashMap<String, ClusterInstanceContext>());
 
     }
 
     public ClusterLevelNetworkPartitionContext(String id) {
-        super(id);
+        this.id = id;
+        setInstanceIdToClusterInstanceContextMap(new HashMap<String, ClusterInstanceContext>());
     }
 
 
@@ -84,7 +90,33 @@ public class ClusterLevelNetworkPartitionContext extends NetworkPartitionContext
 
 
     public String getId() {
-        return super.getId();
+        return id;
+    }
+
+    public ClusterInstanceContext getClusterInstanceContext(String instanceId) {
+        return this.getClusterInstanceContextMap().get(instanceId);
+    }
+
+    public void addClusterInstanceContext(ClusterInstanceContext clusterInstanceContext) {
+        this.getClusterInstanceContextMap().put(clusterInstanceContext.getId(),
+                clusterInstanceContext);
+    }
+
+    public Map<String, ClusterInstanceContext> getClusterInstanceContextMap() {
+        return instanceIdToClusterInstanceContextMap;
+    }
+
+    public void setInstanceIdToClusterInstanceContextMap(
+            Map<String, ClusterInstanceContext> instanceIdToClusterInstanceContextMap) {
+        this.instanceIdToClusterInstanceContextMap = instanceIdToClusterInstanceContextMap;
+    }
+
+    public boolean containsClusterInstanceContext(String instanceId) {
+        return this.instanceIdToClusterInstanceContextMap.containsKey(instanceId);
+    }
+
+    public void removeClusterInstanceContext(String instanceId) {
+        this.instanceIdToClusterInstanceContextMap.remove(instanceId);
     }
 
     public int getMin() {

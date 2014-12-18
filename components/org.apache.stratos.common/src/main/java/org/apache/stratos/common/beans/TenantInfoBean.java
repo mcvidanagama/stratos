@@ -37,13 +37,12 @@ public class TenantInfoBean {
     private String email;
     private boolean active;
     private String successKey;
-    private long createdDate;
+    Calendar createdDate;
     private String originatedService;
     private String usagePlan;
 
-    public TenantInfoBean() {
 
-    }
+    public TenantInfoBean(){}
 
     /*copy constructor*/
     public TenantInfoBean(TenantInfoBean tenantInfoBean) {
@@ -56,7 +55,7 @@ public class TenantInfoBean {
         this.email = tenantInfoBean.email;
         this.active = tenantInfoBean.active;
         this.successKey = tenantInfoBean.successKey;
-        this.createdDate = tenantInfoBean.createdDate;
+        this.createdDate = (Calendar)tenantInfoBean.createdDate.clone();
         this.originatedService = tenantInfoBean.originatedService;
         this.usagePlan = tenantInfoBean.usagePlan;
     }
@@ -134,11 +133,11 @@ public class TenantInfoBean {
         this.successKey = successKey;
     }
 
-    public long getCreatedDate() {
+    public Calendar getCreatedDate() {
         return createdDate;
     }
 
-    public void setCreatedDate(long createdDate) {
+    public void setCreatedDate(Calendar createdDate) {
         this.createdDate = createdDate;
     }
 

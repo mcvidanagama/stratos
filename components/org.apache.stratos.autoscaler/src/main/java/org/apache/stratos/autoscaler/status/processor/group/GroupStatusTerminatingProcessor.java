@@ -66,9 +66,8 @@ public class GroupStatusTerminatingProcessor extends GroupStatusProcessor {
         Map<String, Group> groups;
         Map<String, ClusterDataHolder> clusterData;
 
-        if (log.isDebugEnabled()) {
-            log.debug("StatusChecker calculating the terminating status for the group " +
-                    "[ " + idOfComponent + " ]" + " for the instance " + " [ " + instanceId + " ]");
+        if (log.isInfoEnabled()) {
+            log.info("StatusChecker calculating the status for the group [ " + idOfComponent + " ]");
         }
 
         try {

@@ -59,7 +59,7 @@ public class DeployApplicationCommand implements Command<StratosCommandContext> 
 
     @Override
     public String getArgumentSyntax() {
-        return "[application-id]";
+        return null;
     }
 
     @Override
@@ -77,7 +77,6 @@ public class DeployApplicationCommand implements Command<StratosCommandContext> 
             context.getStratosApplication().printUsage(getName());
             return CliConstants.COMMAND_FAILED;
         }
-        String applicationId = args[0];
 
         try {
             CommandLineParser parser = new GnuParser();
@@ -89,7 +88,7 @@ public class DeployApplicationCommand implements Command<StratosCommandContext> 
                     return CliConstants.COMMAND_FAILED;
                 }
                 String resourceFileContent = CliUtils.readResource(resourcePath);
-                RestCommandLineService.getInstance().deployApplication(applicationId, resourceFileContent);
+                RestCommandLineService.getInstance().deployApplication(resourceFileContent);
                 return CliConstants.COMMAND_SUCCESSFULL;
             } else {
                 System.out.println("usage: " + getName() + " [-" + CliConstants.RESOURCE_PATH + " " + CliConstants.RESOURCE_PATH_LONG_OPTION + "]");

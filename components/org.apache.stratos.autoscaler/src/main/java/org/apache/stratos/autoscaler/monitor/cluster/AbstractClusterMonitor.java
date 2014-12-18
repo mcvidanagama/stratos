@@ -25,7 +25,7 @@ import org.apache.stratos.autoscaler.context.cluster.AbstractClusterContext;
 import org.apache.stratos.autoscaler.event.publisher.ClusterStatusEventPublisher;
 import org.apache.stratos.autoscaler.exception.InvalidArgumentException;
 import org.apache.stratos.autoscaler.monitor.Monitor;
-import org.apache.stratos.autoscaler.monitor.events.ScalingEvent;
+import org.apache.stratos.autoscaler.monitor.events.MonitorScalingEvent;
 import org.apache.stratos.autoscaler.monitor.events.MonitorStatusEvent;
 import org.apache.stratos.autoscaler.monitor.events.builder.MonitorStatusEventBuilder;
 import org.apache.stratos.autoscaler.rule.AutoscalerRuleEvaluator;
@@ -72,19 +72,14 @@ public abstract class AbstractClusterMonitor extends Monitor implements Runnable
     private Cluster cluster;
     private int monitoringIntervalMilliseconds;
     private boolean isDestroyed;
-    //has scaling dependents
-    private boolean hasScalingDependents;
-    private boolean groupScalingEnabledSubtree;
 
-    protected AbstractClusterMonitor(Cluster cluster, boolean hasScalingDependents, boolean groupScalingEnabledSubtree) {
+    protected AbstractClusterMonitor(Cluster cluster) {
 
         super();
-        this.groupScalingEnabledSubtree = groupScalingEnabledSubtree;
         this.setCluster(new Cluster(cluster));
         this.serviceType = cluster.getServiceName();
         this.clusterId = cluster.getClusterId();
         this.monitoringStarted = new AtomicBoolean(false);
-        this.hasScalingDependents = hasScalingDependents;
     }
 
     protected abstract void readConfigurations();
@@ -328,6 +323,11 @@ public abstract class AbstractClusterMonitor extends Monitor implements Runnable
 
     }
 
+    @Override
+    public void onEvent(MonitorScalingEvent scalingEvent) {
+
+    }
+
     public boolean isHasFaultyMember() {
         return hasFaultyMember;
     }
@@ -412,12 +412,5 @@ public abstract class AbstractClusterMonitor extends Monitor implements Runnable
         this.cluster = cluster;
     }
 
-    public boolean hasScalingDependents() {
-        return hasScalingDependents;
-    }
 
-    public boolean groupScalingEnabledSubtree() {
-
-        return groupScalingEnabledSubtree;
-    }
 }

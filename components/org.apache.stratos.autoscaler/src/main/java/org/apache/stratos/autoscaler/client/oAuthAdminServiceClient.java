@@ -58,11 +58,7 @@ public class oAuthAdminServiceClient {
             stub = new OAuthAdminServiceStub(epr);
             stub._getServiceClient().getOptions().setProperty(HTTPConstants.SO_TIMEOUT, autosclaerSocketTimeout);
             stub._getServiceClient().getOptions().setProperty(HTTPConstants.CONNECTION_TIMEOUT, autosclaerSocketTimeout);
-            //String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
-            //TODO StratosAuthenticationHandler does not set to carbon context, thus user name becomes null.
-            // For the moment username is hardcoded since above is fixed.
-            String username = "admin";
-            Utility.setAuthHeaders(stub._getServiceClient(), username);
+            Utility.setAuthHeaders(stub._getServiceClient(), "admin");
 
         } catch (AxisFault axisFault) {
             String msg = "Failed to initiate identity service client. " + axisFault.getMessage();
@@ -91,9 +87,6 @@ public class oAuthAdminServiceClient {
         oAuthConsumerDTO.setApplicationName(appName);
         oAuthConsumerDTO.setOAuthVersion(OAUTH_2_0);
         oAuthConsumerDTO.setGrantTypes(GRANT_TYPE);
-        if(log.isDebugEnabled()){
-            log.debug(String.format("Trying to register oAuth application [%s]", appName));
-        }
         stub.registerOAuthApplicationData(oAuthConsumerDTO);
     }
 

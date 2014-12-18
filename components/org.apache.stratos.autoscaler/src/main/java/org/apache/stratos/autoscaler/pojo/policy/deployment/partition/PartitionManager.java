@@ -73,21 +73,21 @@
 //     * Deploy a new partition to Auto Scaler.
 //     */
 //    public boolean addNewPartition(Partition partition) throws InvalidPartitionException {
-//        if (StringUtils.isEmpty(partition.getApplicationId())) {
+//        if (StringUtils.isEmpty(partition.getId())) {
 //            throw new InvalidPartitionException("Partition id can not be empty");
 //        }
-//        if (this.partitionExist(partition.getApplicationId())) {
-//            throw new InvalidPartitionException(String.format("Partition already exist in partition manager: [id] %s", partition.getApplicationId()));
+//        if (this.partitionExist(partition.getId())) {
+//            throw new InvalidPartitionException(String.format("Partition already exist in partition manager: [id] %s", partition.getId()));
 //        }
 //        if (null == partition.getProvider()) {
-//            throw new InvalidPartitionException("Mandatory field provider has not be set for partition " + partition.getApplicationId());
+//            throw new InvalidPartitionException("Mandatory field provider has not be set for partition " + partition.getId());
 //        }
 //        try {
 //            validatePartitionViaCloudController(partition);
 //            RegistryManager.getInstance().persistPartition(partition);
 //            addPartitionToInformationModel(partition);
 //            if (log.isInfoEnabled()) {
-//                log.info(String.format("Partition is deployed successfully: [id] %s", partition.getApplicationId()));
+//                log.info(String.format("Partition is deployed successfully: [id] %s", partition.getId()));
 //            }
 //            return true;
 //        } catch (Exception e) {
@@ -97,7 +97,7 @@
 //
 //
 //    public void addPartitionToInformationModel(Partition partition) {
-//        partitions.put(partition.getApplicationId(), partition);
+//        partitions.put(partition.getId(), partition);
 //    }
 //
 ////    public NetworkPartitionLbHolder getNetworkPartitionLbHolder(String networkPartitionId) {
@@ -118,7 +118,7 @@
 //
 //    public boolean validatePartitionViaCloudController(Partition partition) throws PartitionValidationException {
 //        if (log.isDebugEnabled()) {
-//            log.debug(String.format("Validating partition via cloud controller: [id] %s", partition.getApplicationId()));
+//            log.debug(String.format("Validating partition via cloud controller: [id] %s", partition.getId()));
 //        }
 //        return CloudControllerClient.getInstance().validatePartition(partition);
 //    }
@@ -126,7 +126,7 @@
 ////    public List<NetworkPartitionLbHolder> getNetworkPartitionLbHolders(DeploymentPolicy depPolicy) {
 ////        List<NetworkPartitionLbHolder> lbHolders = new ArrayList<NetworkPartitionLbHolder>();
 ////        for (NetworkPartition networkPartition : depPolicy.getChildLevelNetworkPartitions()) {
-////            String id = networkPartition.getApplicationId();
+////            String id = networkPartition.getId();
 ////            NetworkPartitionLbHolder entry = networkPartitionLbHolders.get(id);
 ////            if (entry != null) {
 ////                lbHolders.add(entry);
@@ -137,7 +137,7 @@
 //
 ////    public void deployNewNetworkPartitions(DeploymentPolicy depPolicy) {
 ////        for (NetworkPartition networkPartition : depPolicy.getChildLevelNetworkPartitions()) {
-////            String id = networkPartition.getApplicationId();
+////            String id = networkPartition.getId();
 ////            if (!networkPartitionLbHolders.containsKey(id)) {
 ////                NetworkPartitionLbHolder networkPartitionLbHolder =
 ////                        new NetworkPartitionLbHolder(id);
@@ -150,7 +150,7 @@
 //
 ////    public void undeployNetworkPartitions(DeploymentPolicy depPolicy) {
 ////        for (NetworkPartition networkPartition : depPolicy.getChildLevelNetworkPartitions()) {
-////            String id = networkPartition.getApplicationId();
+////            String id = networkPartition.getId();
 ////            if (networkPartitionLbHolders.containsKey(id)) {
 ////                NetworkPartitionLbHolder netPartCtx = this.getNetworkPartitionLbHolder(id);
 ////                // remove from information model

@@ -43,8 +43,7 @@ public class ClusterMonitorFactory {
      * @throws PolicyValidationException    when deployment policy is not valid
      * @throws PartitionValidationException when partition is not valid
      */
-    public static AbstractClusterMonitor getMonitor(Cluster cluster, boolean hasScalingDependents,
-                                                    boolean groupScalingEnabledSubtree)
+    public static AbstractClusterMonitor getMonitor(Cluster cluster)
             throws PolicyValidationException, PartitionValidationException {
 
         AbstractClusterMonitor clusterMonitor;
@@ -53,21 +52,20 @@ public class ClusterMonitorFactory {
 //////        } else if (cluster.isLbCluster()) {
 //////            clusterMonitor = getVMLbClusterMonitor(cluster);
 //        } else {
-            clusterMonitor = getVMClusterMonitor(cluster, hasScalingDependents, groupScalingEnabledSubtree);
+            clusterMonitor = getVMClusterMonitor(cluster);
 //        }
 
         return clusterMonitor;
     }
 
-    private static VMClusterMonitor getVMClusterMonitor(Cluster cluster, boolean hasScalingDependents,
-                                                        boolean groupScalingEnabledSubtree)
+    private static VMClusterMonitor getVMClusterMonitor(Cluster cluster)
             throws PolicyValidationException, PartitionValidationException {
 
         if (null == cluster) {
             return null;
         }
 
-        VMClusterMonitor clusterMonitor = new VMClusterMonitor(cluster, hasScalingDependents, groupScalingEnabledSubtree);
+        VMClusterMonitor clusterMonitor = new VMClusterMonitor(cluster);
 
         // find lb reference type
         java.util.Properties props = cluster.getProperties();
@@ -158,7 +156,7 @@ public class ClusterMonitorFactory {
 //                cluster.getClusterId(), cluster.getServiceName(),  autoscalePolicy, minReplicas, maxReplicas);
 
 
-//        KubernetesClusterMonitor dockerClusterMonitor = new KubernetesClusterMonitor(cluster);
+        KubernetesClusterMonitor dockerClusterMonitor = new KubernetesClusterMonitor(cluster);
 
         //populate the members after restarting
 //        for (Member member : cluster.getMembers()) {
@@ -203,8 +201,7 @@ public class ClusterMonitorFactory {
 //            }
 //        }
 
-//        log.info("KubernetesServiceClusterMonitor created: " + dockerClusterMonitor.toString());
-//        return dockerClusterMonitor;
-        return null;
+        log.info("KubernetesServiceClusterMonitor created: " + dockerClusterMonitor.toString());
+        return dockerClusterMonitor;
     }
 }

@@ -13,7 +13,9 @@ public class ComponentDefinition implements Serializable {
     private static final long serialVersionUID = -5932265453191494386L;
 
 	private List<GroupDefinition> groups;
+    
 	private DependencyDefinitions dependencies;
+	
     private List<CartridgeDefinition> cartridges;
 
     public List<GroupDefinition> getGroups() {
@@ -38,5 +40,6 @@ public class ComponentDefinition implements Serializable {
 
 	public void setCartridges(List<CartridgeDefinition> cartridges) {
 		this.cartridges = cartridges;
-	}
+	}    
+    
 }

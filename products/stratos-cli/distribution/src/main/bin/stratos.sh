@@ -25,16 +25,11 @@
 #
 #   STRATOS_URL        The URL of the Stratos Controller
 
-echo "Starting Stratos CLI..."
-if [ -z "$STRATOS_URL" ]; then
-    echo "STRATOS_URL environment variable is not set"
+if [ -z $STRATOS_CLI_HOME ] ; then
+STRATOS_CLI_HOME="$PWD"
 fi
 
-script_path="$( cd -P "$( dirname "$SOURCE" )" && pwd )/`dirname $0`"
-lib_path=${script_path}/../lib/
-class_path=`echo ${lib_path}/*.jar | tr ' ' ':'`
-
-properties="-Dlog4j.configuration=file://${script_path}/../conf/log4j.properties"
 #debug="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
 
-java -cp "${class_path}" ${properties} ${debug} org.apache.stratos.cli.Main
+java -jar ${debug} $STRATOS_CLI_HOME/org.apache.stratos.cli-4.1.0-SNAPSHOT.jar $*
+

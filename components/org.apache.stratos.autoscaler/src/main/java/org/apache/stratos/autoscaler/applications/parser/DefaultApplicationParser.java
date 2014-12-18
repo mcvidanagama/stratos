@@ -19,8 +19,6 @@
 
 package org.apache.stratos.autoscaler.applications.parser;
 
-import org.apache.amber.oauth2.common.exception.OAuthProblemException;
-import org.apache.amber.oauth2.common.exception.OAuthSystemException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -32,9 +30,6 @@ import org.apache.stratos.autoscaler.applications.STClusterInformation;
 import org.apache.stratos.autoscaler.applications.payload.PayloadData;
 import org.apache.stratos.autoscaler.applications.pojo.*;
 import org.apache.stratos.autoscaler.client.CloudControllerClient;
-import org.apache.stratos.autoscaler.client.IdentityApplicationManagementServiceClient;
-import org.apache.stratos.autoscaler.client.oAuthAdminServiceClient;
-import org.apache.stratos.autoscaler.exception.AutoScalerException;
 import org.apache.stratos.autoscaler.exception.application.ApplicationDefinitionException;
 import org.apache.stratos.autoscaler.exception.cartridge.CartridgeInformationException;
 import org.apache.stratos.autoscaler.pojo.ServiceGroup;
@@ -46,12 +41,10 @@ import org.apache.stratos.messaging.domain.applications.Application;
 import org.apache.stratos.messaging.domain.applications.ClusterDataHolder;
 import org.apache.stratos.messaging.domain.applications.DependencyOrder;
 import org.apache.stratos.messaging.domain.applications.Group;
-import org.wso2.carbon.identity.oauth.stub.OAuthAdminServiceException;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.rmi.RemoteException;
 import java.util.*;
 
 /**
@@ -60,7 +53,6 @@ import java.util.*;
  */
 public class DefaultApplicationParser implements ApplicationParser {
 
-    public static final String TOKEN_PAYLOD_PARAM_NAME = "TOKEN";
     private static Log log = LogFactory.getLog(DefaultApplicationParser.class);
 
     private Set<ApplicationClusterContext> applicationClusterContexts;
@@ -207,26 +199,14 @@ public class DefaultApplicationParser implements ApplicationParser {
                 DependencyOrder appDependencyOrder = new DependencyOrder();
                 String [] startupOrders = appCtxt.getComponents().getDependencyContext().getStartupOrdersContexts();
                 if (startupOrders != null) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("parsing application ... buildCompositeAppStructure: startupOrders != null for app alias: " +
-                                appCtxt.getAlias() + " #: " + startupOrders.length);
+                	if (log.isDebugEnabled()) {
+                    	log.debug("parsing application ... buildCompositeAppStructure: startupOrders != null for app alias: " +
+                    				appCtxt.getAlias() + " #: " + startupOrders.length);
                     }
-                    appDependencyOrder.setStartupOrders(ParserUtils.convertStartupOrder(startupOrders));
+                    appDependencyOrder.setStartupOrders(ParserUtils.convert(startupOrders));
                 } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("parsing application ... buildCompositeAppStructure: startupOrders == null for app alias: " + appCtxt.getAlias());
-                    }
-                }
-                String [] scalingDependents = appCtxt.getComponents().getDependencyContext().getScalingDependents();
-                if (scalingDependents != null) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("parsing application ... buildCompositeAppStructure: scalingDependents != null for app alias: " +
-                                appCtxt.getAlias() + " #: " + scalingDependents.length);
-                    }
-                    appDependencyOrder.setScalingDependents(ParserUtils.convertScalingDependentList(scalingDependents));
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("parsing application ... buildCompositeAppStructure: startupOrders == null for app alias: " + appCtxt.getAlias());
+                	if (log.isDebugEnabled()) {
+                    	log.debug("parsing application ... buildCompositeAppStructure: startupOrders == null for app alias: " + appCtxt.getAlias());
                     }
                 }
                 String terminationBehavior = appCtxt.getComponents().getDependencyContext().getTerminationBehaviour();
@@ -465,11 +445,12 @@ public class DefaultApplicationParser implements ApplicationParser {
         group.setGroupScalingEnabled(isGroupScalingEnabled(groupCtxt.getName(),serviceGroup));
         group.setGroupMinInstances(groupCtxt.getGroupMinInstances());
         group.setGroupMaxInstances(groupCtxt.getGroupMaxInstances());
+        group.setGroupScalingEnabled(groupCtxt.isGroupScalingEnabled());
         DependencyOrder dependencyOrder = new DependencyOrder();
         // create the Dependency Ordering
         String []  startupOrders = getStartupOrderForGroup(groupCtxt.getName(),serviceGroup);
         if (startupOrders != null) {
-            dependencyOrder.setStartupOrders(ParserUtils.convertStartupOrder(startupOrders, groupCtxt));
+            dependencyOrder.setStartupOrders(ParserUtils.convert(startupOrders, groupCtxt));
         }
         dependencyOrder.setTerminationBehaviour(getKillbehaviour(groupCtxt.getName(),serviceGroup));
         //dependencyOrder.setScalingDependents(scalingDependents);
@@ -650,15 +631,13 @@ public class DefaultApplicationParser implements ApplicationParser {
         // Create text payload
         PayloadData payloadData = ApplicationUtils.createPayload(appId, groupName, cartridgeInfo, subscriptionKey, tenantId, clusterId,
                 hostname, repoUrl, alias, null, dependencyAliases, properties);
-
-        String oAuth_token = createToken(appId);
-        payloadData.add(TOKEN_PAYLOD_PARAM_NAME, oAuth_token);
-
+        //TOD payloadData.add("TOKEN", createToken(appId));
         String textPayload = payloadData.toString();
 
         return new ApplicationClusterContext(cartridgeInfo.getType(), clusterId, hostname, textPayload, deploymentPolicy, isLB);
     }
 
+    /*
     public String  createToken(String appid) throws AutoScalerException {
         String token = null;
         String ouathAppName = appid + Math.random();
@@ -685,6 +664,7 @@ public class DefaultApplicationParser implements ApplicationParser {
 
         return token;
     }
+    */
     private CartridgeInfo getCartridge (String cartridgeType) throws ApplicationDefinitionException {
 
         try {

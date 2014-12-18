@@ -51,8 +51,8 @@ RESTCalls = new function(){
         return this.send("POST","/tenant/availability/" + tenantDomain,{});
     };
 
-    this.deployDeploymentPolicyDefinition = function(applicationID, policyDefinition){
-        return this.send("POST","/application/"+applicationID+"/deploy",policyDefinition);
+    this.deployDeploymentPolicyDefinition = function(policyDefinition){
+        return this.send("POST","/deploymentPolicies",policyDefinition);
     };
 
     this.deployAutoscalePolicyDefinition = function(policyDefinition){
@@ -135,7 +135,7 @@ RESTCalls = new function(){
     };
 
     this.getApplicationTopology = function(appId){
-        return this.sendReceive("GET","/applications/" + appId + '/runtime',{});
+        return this.sendReceive("GET","/applications/" + appId,{});
     };
 
     this.getClusterInfo = function(clusterId){

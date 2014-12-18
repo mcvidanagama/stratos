@@ -71,9 +71,8 @@ public class GroupStatusInactiveProcessor extends GroupStatusProcessor {
         Map<String, Group> groups;
         Map<String, ClusterDataHolder> clusterData;
 
-        if (log.isDebugEnabled()) {
-            log.debug("StatusChecker calculating the inactive status for the group " +
-                    "[ " + idOfComponent + " ]" + " for the instance " + " [ " + instanceId + " ]");
+        if (log.isInfoEnabled()) {
+            log.info("StatusChecker calculating the status for the group [ " + idOfComponent + " ]");
         }
 
         try {
@@ -106,8 +105,7 @@ public class GroupStatusInactiveProcessor extends GroupStatusProcessor {
                 } else if (component instanceof Group) {
                     //send activation to the parent
                     if (((Group) component).getStatus(instanceId) != GroupStatus.Inactive) {
-                        log.info("sending group instance Inactive for [group] " +
-                                component.getUniqueIdentifier() + " [instance] " + instanceId);
+                        log.info("sending group inactive: " + component.getUniqueIdentifier());
                         ApplicationBuilder.handleGroupInactivateEvent(appId, component.getUniqueIdentifier(), instanceId);
                         return true;
                     }

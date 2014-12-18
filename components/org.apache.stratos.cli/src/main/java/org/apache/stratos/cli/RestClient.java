@@ -36,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 
 public class RestClient implements GenericRestClient {
 
@@ -211,21 +210,9 @@ public class RestClient implements GenericRestClient {
         }
     }
 
-    public Object getEntity(String serviceEndpoint, Class responseJsonClass, String identifierPlaceHolder,
-                            String identifier, String entityName) {
+    public Object getEntity(String serviceEndpoint, Class responseJsonClass, String identifier, String entityName) {
         try {
-            return executeGet(serviceEndpoint.replace(identifierPlaceHolder, identifier), responseJsonClass);
-        } catch (Exception e) {
-            String message = String.format("Error in getting %s", entityName);
-            System.out.println(message);
-            logger.error(message, e);
-            return null;
-        }
-    }
-
-    public Object getEntity(String serviceEndpoint, Type responseType, String identifierPlaceHolder, String identifier, String entityName) {
-        try {
-            return executeGet(serviceEndpoint.replace(identifierPlaceHolder, identifier), responseType);
+            return executeGet(serviceEndpoint.replace("{id}", identifier), responseJsonClass);
         } catch (Exception e) {
             String message = String.format("Error in getting %s", entityName);
             System.out.println(message);
@@ -237,17 +224,6 @@ public class RestClient implements GenericRestClient {
     public Object listEntity(String serviceEndpoint, Class responseJsonClass, String entityName) {
         try {
             return executeGet(serviceEndpoint, responseJsonClass);
-        } catch (Exception e) {
-            String message = String.format("Error in listing %s", entityName);
-            System.out.println(message);
-            logger.error(message, e);
-            return null;
-        }
-    }
-
-    public Object listEntity(String serviceEndpoint, Type type, String entityName) {
-        try {
-            return executeGet(serviceEndpoint, type);
         } catch (Exception e) {
             String message = String.format("Error in listing %s", entityName);
             System.out.println(message);
@@ -272,28 +248,6 @@ public class RestClient implements GenericRestClient {
     }
 
     private Object executeGet(String serviceEndpoint, Class responseJsonClass) throws Exception {
-        String resultString = executeGet(serviceEndpoint);
-        if (resultString == null) {
-            return null;
-        }
-
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        Gson gson = gsonBuilder.create();
-        return gson.fromJson(resultString, responseJsonClass);
-    }
-
-    private Object executeGet(String serviceEndpoint, Type responseJsonType) throws Exception {
-        String resultString = executeGet(serviceEndpoint);
-        if (resultString == null) {
-            return null;
-        }
-
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        Gson gson = gsonBuilder.create();
-        return gson.fromJson(resultString, responseJsonType);
-    }
-
-    private String executeGet(String serviceEndpoint) throws Exception {
         DefaultHttpClient httpClient = new DefaultHttpClient();
         HttpResponse response = null;
 
@@ -308,7 +262,10 @@ public class RestClient implements GenericRestClient {
                 CliUtils.printError(response);
                 return null;
             } else {
-                return CliUtils.getHttpResponseString(response);
+                String resultString = CliUtils.getHttpResponseString(response);
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                Gson gson = gsonBuilder.create();
+                return gson.fromJson(resultString, responseJsonClass);
             }
         } finally {
             httpClient.getConnectionManager().shutdown();

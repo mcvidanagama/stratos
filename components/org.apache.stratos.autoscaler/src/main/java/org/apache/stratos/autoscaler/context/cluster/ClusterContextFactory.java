@@ -48,7 +48,7 @@ public class ClusterContextFactory {
 
     private static final Log log = LogFactory.getLog(ClusterContextFactory.class);
 
-    public static VMClusterContext getVMClusterContext(String instanceId, Cluster cluster, boolean hasScalingDependents)
+    public static VMClusterContext getVMClusterContext(String instanceId, Cluster cluster)
             throws PolicyValidationException, PartitionValidationException {
 
         if (null == cluster) {
@@ -67,7 +67,7 @@ public class ClusterContextFactory {
                                 getDeploymentPolicyByApplication(cluster.getAppId());
 
         return new VMClusterContext(cluster.getClusterId(), cluster.getServiceName(), autoscalePolicy,
-                deploymentPolicy, hasScalingDependents);
+                deploymentPolicy);
     }
 
     /* public static VMClusterContext getVMLBClusterContext(Cluster cluster) throws PolicyValidationException {
@@ -106,7 +106,7 @@ public class ClusterContextFactory {
          // partition group = network partition context
          for (ChildLevelNetworkPartition networkPartition : deploymentPolicy.getChildLevelNetworkPartitions()) {
 
-             String networkPartitionId = networkPartition.getApplicationId();
+             String networkPartitionId = networkPartition.getId();
  //            NetworkPartitionLbHolder networkPartitionLbHolder =
  //                    PartitionManager.getInstance()
  //                            .getNetworkPartitionLbHolder(networkPartitionId);
@@ -126,7 +126,7 @@ public class ClusterContextFactory {
                      networkPartition.getPartitions());
              for (Member member : cluster.getMembers()) {
                  String memberId = member.getMemberId();
-                 if (member.getNetworkPartitionId().equalsIgnoreCase(clusterLevelNetworkPartitionContext.getApplicationId())) {
+                 if (member.getNetworkPartitionId().equalsIgnoreCase(clusterLevelNetworkPartitionContext.getId())) {
                      MemberContext memberContext = new MemberContext();
                      memberContext.setClusterId(member.getClusterId());
                      memberContext.setMemberId(memberId);

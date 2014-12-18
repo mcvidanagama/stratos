@@ -23,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.autoscaler.applications.dependency.context.ApplicationChildContext;
 import org.apache.stratos.autoscaler.monitor.Monitor;
 import org.apache.stratos.autoscaler.monitor.component.ParentComponentMonitor;
-import org.apache.stratos.messaging.domain.applications.ScalingDependentList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +34,8 @@ public class DependencyTree {
     private static final Log log = LogFactory.getLog(DependencyTree.class);
 
     private List<ApplicationChildContext> primaryApplicationContextList;
+
+    private List<ApplicationChildContext> scalingDependencyApplicationContextList;
 
     private TerminationBehavior terminationBehavior;
 
@@ -65,6 +66,11 @@ public class DependencyTree {
 
     }
 
+    public void addScalingApplicationContext(ApplicationChildContext applicationContext) {
+        scalingDependencyApplicationContextList.add(applicationContext);
+
+    }
+
     /**
      * Find an ApplicationContext from dependency tree with the given id
      *
@@ -73,6 +79,16 @@ public class DependencyTree {
      */
     public ApplicationChildContext findApplicationContextWithIdInPrimaryTree(String id) {
         return findApplicationContextWithId(id, primaryApplicationContextList);
+    }
+
+    /**
+     * Find an ApplicationContext from dependency tree with the given id
+     *
+     * @param id the alias/id of group/cluster
+     * @return ApplicationContext of the given id
+     */
+    public ApplicationChildContext findApplicationContextWithIdInScalingDependencyTree(String id) {
+        return findApplicationContextWithId(id, scalingDependencyApplicationContextList);
     }
 
     /**
@@ -244,6 +260,13 @@ public class DependencyTree {
         return this.getTerminationBehavior() == TerminationBehavior.TERMINATE_ALL;
     }
 
+    public List<ApplicationChildContext> getScalingDependencyApplicationContextList() {
+        return scalingDependencyApplicationContextList;
+    }
+
+    public void setScalingDependencyApplicationContextList(List<ApplicationChildContext> scalingDependencyApplicationContextList) {
+        this.scalingDependencyApplicationContextList = scalingDependencyApplicationContextList;
+    }
 
     public TerminationBehavior getTerminationBehavior() {
         return terminationBehavior;

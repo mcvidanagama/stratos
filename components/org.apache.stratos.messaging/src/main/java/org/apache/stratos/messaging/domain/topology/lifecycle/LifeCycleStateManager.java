@@ -83,10 +83,8 @@ public class LifeCycleStateManager<T extends LifeCycleState> implements Serializ
         if (getCurrentState() != nextState) {
             stateStack.push(nextState);
             stateChanged = true;
-            if(log.isDebugEnabled()) {
-                log.debug("Element [" + identifier + "]'s lifecycle state changed from [" +
-                        getPreviousState() + "] to [" + getCurrentState() + "]");
-            }
+            log.info("Element [" + identifier + "]'s lifecycle state changed from [" +
+                    getPreviousState() + "] to [" + getCurrentState() + "]");
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Element [" + identifier +"]'s lifecycle state has been " +

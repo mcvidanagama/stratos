@@ -193,9 +193,7 @@ public class RuleTasksDelegator {
             VMClusterMonitor vmClusterMonitor = (VMClusterMonitor) AutoscalerContext.getInstance().getClusterMonitor(clusterId);
             VMClusterContext clusterContext = (VMClusterContext) vmClusterMonitor.getClusterContext();
             ClusterLevelNetworkPartitionContext  clusterLevelNetworkPartitionContext = clusterContext.getNetworkPartitionCtxt(nwPartitionId);
-            ClusterInstanceContext clusterInstanceContext =
-                    (ClusterInstanceContext) clusterLevelNetworkPartitionContext.
-                                getInstanceContext(instanceId);
+            ClusterInstanceContext clusterInstanceContext = clusterLevelNetworkPartitionContext.getClusterInstanceContext(instanceId);
             minimumCountOfNetworkPartition = clusterInstanceContext.getMinInstanceCount();
             
             
@@ -248,9 +246,7 @@ public class RuleTasksDelegator {
             VMClusterMonitor vmClusterMonitor = (VMClusterMonitor) AutoscalerContext.getInstance().getClusterMonitor(clusterId);
             VMClusterContext clusterContext = (VMClusterContext) vmClusterMonitor.getClusterContext();
             ClusterLevelNetworkPartitionContext  clusterLevelNetworkPartitionContext = clusterContext.getNetworkPartitionCtxt(nwPartitionId);
-            ClusterInstanceContext clusterInstanceContext =
-                    (ClusterInstanceContext) clusterLevelNetworkPartitionContext.
-                            getInstanceContext(instanceId);
+            ClusterInstanceContext clusterInstanceContext = clusterLevelNetworkPartitionContext.getClusterInstanceContext(instanceId);
             minimumCountOfNetworkPartition = clusterInstanceContext.getMinInstanceCount();
             
             if (vmClusterMonitor.getCluster().isKubernetesCluster()) {
@@ -311,34 +307,17 @@ public class RuleTasksDelegator {
     }
 
 
-    public void delegateScalingDependencyNotification(String clusterId, String networkPartitionId, String instanceId,
-                                                      int requiredInstanceCount, int minimumInstanceCount) {
+    public void delegateScalingDependencyNotification(String clusterId, String networkPartitionId, float factor) {
 
-        if(log.isDebugEnabled()) {
-            log.debug("Scaling dependent notification..");
-        }
-        //Notify parent for checking scaling dependencies
-        AbstractClusterMonitor clusterMonitor = AutoscalerContext.getInstance().getClusterMonitor(clusterId);
-        float factor = requiredInstanceCount / minimumInstanceCount;
-        if (clusterMonitor instanceof VMClusterMonitor) {
-
-            VMClusterMonitor vmClusterMonitor = (VMClusterMonitor) clusterMonitor;
-            vmClusterMonitor.sendClusterScalingEvent(networkPartitionId, instanceId, factor);
-        }
-
-    }
-
-    public void delegateScalingOverMaxNotification(String clusterId, String networkPartitionId, String instanceId) {
-
-        if(log.isDebugEnabled()) {
-            log.debug("Scaling dependent notification..");
-        }
+    	if(log.isDebugEnabled()) {
+    		log.debug("In Delegate scaling dependent notification..");
+    	}
         //Notify parent for checking scaling dependencies
         AbstractClusterMonitor clusterMonitor = AutoscalerContext.getInstance().getClusterMonitor(clusterId);
         if (clusterMonitor instanceof VMClusterMonitor) {
 
             VMClusterMonitor vmClusterMonitor = (VMClusterMonitor) clusterMonitor;
-            vmClusterMonitor.sendScalingOverMaxEvent(networkPartitionId, instanceId);
+            vmClusterMonitor.sendClusterScalingEvent(networkPartitionId, factor);
         }
 
     }

@@ -66,9 +66,8 @@ public class GroupStatusTerminatedProcessor extends GroupStatusProcessor {
         Map<String, Group> groups;
         Map<String, ClusterDataHolder> clusterData;
 
-        if (log.isDebugEnabled()) {
-            log.debug("StatusChecker calculating the terminated status for the group " +
-                    "[ " + idOfComponent + " ]" + " for the instance " + " [ " + instanceId + " ]");
+        if (log.isInfoEnabled()) {
+            log.info("StatusChecker calculating the status for the group [ " + idOfComponent + " ]");
         }
 
         try {
@@ -92,13 +91,11 @@ public class GroupStatusTerminatedProcessor extends GroupStatusProcessor {
                             getAllGroupInSameState(groups, GroupStatus.Terminated, instanceId)) {
                 //send the terminated event
                 if (component instanceof Application) {
-                    log.info("sending application terminated for [application] " + appId + " [instance] "
-                            + instanceId);
+                    log.info("sending app terminated: " + appId);
                     ApplicationBuilder.handleApplicationInstanceTerminatedEvent(appId, instanceId);
                     return true;
                 } else if (component instanceof Group) {
-                    log.info("sending group instance terminated for [group] " +
-                            component.getUniqueIdentifier() + " [instance] " + instanceId);
+                    log.info("sending group terminated : " + component.getUniqueIdentifier());
                     ApplicationBuilder.handleGroupInstanceTerminatedEvent(appId,
                             component.getUniqueIdentifier(), instanceId);
                     return true;

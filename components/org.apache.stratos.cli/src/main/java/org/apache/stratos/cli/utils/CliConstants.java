@@ -25,9 +25,13 @@ package org.apache.stratos.cli.utils;
 public class CliConstants {
 
 	public static final String STRATOS_APPLICATION_NAME = "stratos";
+
 	public static final String STRATOS_URL_ENV_PROPERTY = "STRATOS_URL";
+
 	public static final String STRATOS_USERNAME_ENV_PROPERTY = "STRATOS_USERNAME";
+
 	public static final String STRATOS_PASSWORD_ENV_PROPERTY = "STRATOS_PASSWORD";
+
 	public static final String STRATOS_SHELL_PROMPT = "stratos> ";
 	
 	public static final int COMMAND_SUCCESSFULL = 0;
@@ -128,12 +132,12 @@ public class CliConstants {
     /**
      * Autoscaling policy deployment
      */
-    public static final String AUTOSCALING_POLICY_DEPLOYMENT = "add-autoscaling-policy";
+    public static final String AUTOSCALING_POLICY_DEPLOYMENT = "deploy-autoscaling-policy";
 
     /**
      * Deploy, deployment service
      */
-    public static final String DEPLOY_SERVICE_DEPLOYMENT = "add-service";
+    public static final String DEPLOY_SERVICE_DEPLOYMENT = "deploy-service";
 
     /**
      * Deployment policy deployment

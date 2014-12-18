@@ -28,8 +28,6 @@ public class DependencyContext implements Serializable {
 
     private String [] startupOrdersContexts;
 
-    private String [] scalingDependents;
-
     private String terminationBehaviour;
 
     public String getTerminationBehaviour() {
@@ -47,12 +45,4 @@ public class DependencyContext implements Serializable {
 	public void setStartupOrdersContexts(String [] startupOrdersContexts) {
 		this.startupOrdersContexts = startupOrdersContexts;
 	}
-
-    public String[] getScalingDependents() {
-        return scalingDependents;
-    }
-
-    public void setScalingDependents(String[] scalingDependents) {
-        this.scalingDependents = scalingDependents;
-    }
 }

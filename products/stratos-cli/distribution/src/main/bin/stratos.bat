@@ -32,5 +32,5 @@ if "%STRATOS_CLI_HOME%"=="" set STRATOS_CLI_HOME=%CD%
 
 cd %STRATOS_CLI_HOME%
 
-rem TODO: Update according to stratos.sh
+java -jar "org.apache.stratos.cli-4.0.0-SNAPSHOT.jar" %*
 

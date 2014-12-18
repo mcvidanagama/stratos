@@ -22,7 +22,6 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.stratos.autoscaler.client.CloudControllerClient;
-import org.apache.stratos.autoscaler.context.InstanceContext;
 import org.apache.stratos.autoscaler.context.cluster.ClusterContextFactory;
 import org.apache.stratos.autoscaler.context.cluster.ClusterInstanceContext;
 import org.apache.stratos.autoscaler.context.cluster.VMClusterContext;
@@ -35,9 +34,8 @@ import org.apache.stratos.autoscaler.exception.InvalidArgumentException;
 import org.apache.stratos.autoscaler.exception.cartridge.TerminationException;
 import org.apache.stratos.autoscaler.exception.partition.PartitionValidationException;
 import org.apache.stratos.autoscaler.exception.policy.PolicyValidationException;
+import org.apache.stratos.autoscaler.monitor.events.MonitorScalingEvent;
 import org.apache.stratos.autoscaler.monitor.events.MonitorStatusEvent;
-import org.apache.stratos.autoscaler.monitor.events.ScalingEvent;
-import org.apache.stratos.autoscaler.monitor.events.ScalingOverMaxEvent;
 import org.apache.stratos.autoscaler.monitor.events.builder.MonitorStatusEventBuilder;
 import org.apache.stratos.autoscaler.rule.AutoscalerRuleEvaluator;
 import org.apache.stratos.autoscaler.status.processor.cluster.ClusterStatusActiveProcessor;
@@ -78,16 +76,16 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
     private boolean hasPrimary;
     private float scalingFactorBasedOnDependencies = 1.0f;
 
-
-    protected VMClusterMonitor(Cluster cluster, boolean hasScalingDependents, boolean groupScalingEnabledSubtree) {
-        super(cluster, hasScalingDependents, groupScalingEnabledSubtree);
+    protected VMClusterMonitor(Cluster cluster) {
+        super(cluster);
         this.networkPartitionIdToClusterLevelNetworkPartitionCtxts = new HashMap<String, ClusterLevelNetworkPartitionContext>();
+
         readConfigurations();
         autoscalerRuleEvaluator = new AutoscalerRuleEvaluator();
         autoscalerRuleEvaluator.parseAndBuildKnowledgeBaseForDroolsFile(StratosConstants.VM_OBSOLETE_CHECK_DROOL_FILE);
         autoscalerRuleEvaluator.parseAndBuildKnowledgeBaseForDroolsFile(StratosConstants.VM_SCALE_CHECK_DROOL_FILE);
         autoscalerRuleEvaluator.parseAndBuildKnowledgeBaseForDroolsFile(StratosConstants.VM_MIN_CHECK_DROOL_FILE);
-        autoscalerRuleEvaluator.parseAndBuildKnowledgeBaseForDroolsFile(StratosConstants.DEPENDENT_SCALE_CHECK_DROOL_FILE);
+        //autoscalerRuleEvaluator.parseAndBuildKnowledgeBaseForDroolsFile(StratosConstants.DEPENDENT_SCALE_CHECK_DROOL_FILE);
 
         this.obsoleteCheckKnowledgeSession = autoscalerRuleEvaluator.getStatefulSession(
                 StratosConstants.VM_OBSOLETE_CHECK_DROOL_FILE);
@@ -95,8 +93,8 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
                 StratosConstants.VM_SCALE_CHECK_DROOL_FILE);
         this.minCheckKnowledgeSession = autoscalerRuleEvaluator.getStatefulSession(
                 StratosConstants.VM_MIN_CHECK_DROOL_FILE);
-        this.dependentScaleCheckKnowledgeSession = autoscalerRuleEvaluator.getStatefulSession(
-                StratosConstants.DEPENDENT_SCALE_CHECK_DROOL_FILE);
+        /*this.dependentScaleCheckKnowledgeSession = autoscalerRuleEvaluator.getStatefulSession(
+                StratosConstants.DEPENDENT_SCALE_CHECK_DROOL_FILE);*/
     }
 
     private static void terminateMember(String memberId) {
@@ -187,15 +185,14 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
         return false;
     }
 
-    public synchronized void monitor() {
+    public void monitor() {
 
         for (ClusterLevelNetworkPartitionContext networkPartitionContext : getNetworkPartitionCtxts()) {
 
-            final Collection<InstanceContext> clusterInstanceContexts = networkPartitionContext.
-                    getInstanceIdToInstanceContextMap().values();
+            final Collection<ClusterInstanceContext> clusterInstanceContexts = networkPartitionContext.
+                    getClusterInstanceContextMap().values();
 
-            for (final InstanceContext pInstanceContext : clusterInstanceContexts) {
-                final ClusterInstanceContext instanceContext = (ClusterInstanceContext) pInstanceContext;
+            for (final ClusterInstanceContext instanceContext : clusterInstanceContexts) {
                 ClusterInstance instance = (ClusterInstance) this.instanceIdToInstanceMap.
                         get(instanceContext.getId());
 
@@ -213,8 +210,7 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
                             // store primary members in the cluster instance context
                             List<String> primaryMemberListInClusterInstance = new ArrayList<String>();
 
-                            for (ClusterLevelPartitionContext partitionContext :
-                                                            instanceContext.getPartitionCtxts()) {
+                            for (ClusterLevelPartitionContext partitionContext : instanceContext.getPartitionCtxts()) {
 
                                 // get active primary members in this cluster instance context
                                 for (MemberContext memberContext : partitionContext.getActiveMembers()) {
@@ -246,7 +242,7 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
 
                             if (log.isDebugEnabled()) {
                                 log.debug(String.format("Running minimum check for cluster instance %s ",
-                                        instanceContext.getId() + " for the cluster: " + clusterId));
+                                        instanceContext.getId()));
                             }
 
                             minCheckFactHandle = AutoscalerRuleEvaluator.evaluate(getMinCheckKnowledgeSession(),
@@ -257,8 +253,7 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
                             boolean rifReset = instanceContext.isRifReset();
                             boolean memoryConsumptionReset = instanceContext.isMemoryConsumptionReset();
                             boolean loadAverageReset = instanceContext.isLoadAverageReset();
-                            boolean averageRequestServedPerInstanceReset
-                                    = instanceContext.isAverageRequestServedPerInstanceReset();
+                            boolean averageRequestServedPerInstanceReset = instanceContext.isAverageRequestServedPerInstanceReset();
 
                             if (log.isDebugEnabled()) {
                                 log.debug("Execution point of scaling Rule, [Is rif Reset] : " + rifReset
@@ -298,8 +293,8 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
                                 instanceContext.setLoadAverageReset(false);
                             } else if (log.isDebugEnabled()) {
                                 log.debug(String.format("Scale rule will not run since the LB statistics have not " +
-                                                "received before this cycle for [cluster instance context] %s [cluster] %s",
-                                        instanceContext.getId(), clusterId));
+                                                "received before this cycle for [cluster instance context] %s ",
+                                        instanceContext.getId()));
                             }
 
                         }
@@ -334,6 +329,14 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
         }
     }
 
+//    public String getLbReferenceType() {
+//        return lbReferenceType;
+//    }
+//
+//    public void setLbReferenceType(String lbReferenceType) {
+//        this.lbReferenceType = lbReferenceType;
+//    }
+
     @Override
     public void destroy() {
         getMinCheckKnowledgeSession().dispose();
@@ -349,6 +352,7 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
     @Override
     public String toString() {
         return "VMClusterMonitor [clusterId=" + getClusterId() +
+//                ", lbReferenceType=" + lbReferenceType +
                 ", hasPrimary=" + hasPrimary + " ]";
     }
 
@@ -372,25 +376,20 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
         if (statusEvent.getStatus() == GroupStatus.Terminating || statusEvent.getStatus() ==
                 ApplicationStatus.Terminating) {
             if (log.isInfoEnabled()) {
-                log.info("Publishing Cluster terminating event for [application] " + appId +
-                        " [cluster] " + this.getClusterId() + " [instance] " + instanceId);
+                log.info("Publishing Cluster terminating event for [application]: " + appId +
+                        " [cluster]: " + this.getClusterId());
             }
             ClusterStatusEventPublisher.sendClusterTerminatingEvent(getAppId(), getServiceId(), getClusterId(), instanceId);
         }
     }
 
     @Override
-    public void onChildScalingEvent(ScalingEvent scalingEvent) {
+    public void onChildScalingEvent(MonitorScalingEvent scalingEvent) {
 
     }
 
     @Override
-    public void onChildScalingOverMaxEvent(ScalingOverMaxEvent scalingOverMaxEvent) {
-
-    }
-
-    @Override
-    public void onParentScalingEvent(ScalingEvent scalingEvent) {
+    public void onParentScalingEvent(MonitorScalingEvent scalingEvent) {
 
         if (log.isDebugEnabled()) {
             log.debug("Parent scaling event received to [cluster]: " + this.getClusterId()
@@ -438,20 +437,14 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
         getDependentScaleCheckKnowledgeSession().setGlobal("algorithmName", clusterInstanceContext.getPartitionAlgorithm());
         getDependentScaleCheckKnowledgeSession().setGlobal("isPrimary", hasPrimary);
 
-        dependentScaleCheckFactHandle = AutoscalerRuleEvaluator.evaluate(getDependentScaleCheckKnowledgeSession()
-                , dependentScaleCheckFactHandle, clusterInstanceContext);
+        dependentScaleCheckFactHandle = AutoscalerRuleEvaluator.evaluate(getScaleCheckKnowledgeSession()
+                , scaleCheckFactHandle, clusterInstanceContext);
 
     }
 
-    public void sendClusterScalingEvent(String networkPartitionId, String instanceId, float factor) {
+    public void sendClusterScalingEvent(String networkPartitionId, float factor) {
 
-        MonitorStatusEventBuilder.handleClusterScalingEvent(this.parent, networkPartitionId, instanceId, factor, this.id);
-    }
-
-    public void sendScalingOverMaxEvent(String networkPartitionId, String instanceId) {
-
-        MonitorStatusEventBuilder.handleScalingOverMaxEvent(this.parent, networkPartitionId, instanceId,
-                this.id);
+        MonitorStatusEventBuilder.handleClusterScalingEvent(this.parent, networkPartitionId, factor, this.id);
     }
 
     @Override
@@ -909,9 +902,20 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
         String memberId = memberReadyToShutdownEvent.getMemberId();
         String partitionId = getPartitionOfMember(memberId);
         ClusterLevelPartitionContext partitionCtxt = nwPartitionCtxt.getPartitionCtxt(partitionId);
+        // terminate the shutdown ready member
+        //CloudControllerClient ccClient = CloudControllerClient.getInstance();
 
         try {
+            //NetworkPartitionContext nwPartitionCtxt;
+            //String networkPartitionId = memberReadyToShutdownEvent.getNetworkPartitionId();
+            //nwPartitionCtxt = getNetworkPartitionCtxt(networkPartitionId);
+
+            // start a new member in the same Partition
+            //String memberId = memberReadyToShutdownEvent.getMemberId();
             String clusterId = memberReadyToShutdownEvent.getClusterId();
+            //String partitionId = getPartitionOfMember(memberId);
+            //PartitionContext partitionCtxt = nwPartitionCtxt.getPartitionCtxt(partitionId);
+
             //move member to pending termination list
             if (partitionCtxt.getPendingTerminationMember(memberId) != null) {
                 partitionCtxt.movePendingTerminationMemberToObsoleteMembers(memberId);
@@ -920,18 +924,12 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
                             "and moved to obsolete list: [member] %s " +
                             "[partition] %s [cluster] %s ", memberId, partitionId, clusterId));
                 }
-            } else if (partitionCtxt.getObsoleteMember(memberId) != null) {
+            } else if(partitionCtxt.getObsoleteMember(memberId) != null) {
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("Member is  in obsolete list: [member] %s " +
                             "[partition] %s [cluster] %s ", memberId, partitionId, clusterId));
                 }
             } //TODO else part
-
-            //when no more members are there to terminate Invoking it monitor directly
-            // to speed up the termination process
-            if (partitionCtxt.getTotalMemberCount() == 0) {
-                this.monitor();
-            }
 
 
         } catch (Exception e) {
@@ -1036,14 +1034,13 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
 
     @Override
     public void terminateAllMembers(final String instanceId, final String networkPartitionId) {
-        final VMClusterMonitor monitor = this;
+
         Thread memberTerminator = new Thread(new Runnable() {
             public void run() {
 
-                ClusterInstanceContext instanceContext =
-                        (ClusterInstanceContext) getAllNetworkPartitionCtxts().get(networkPartitionId)
-                                                                    .getInstanceContext(instanceId);
-                boolean allMovedToObsolete = true;
+                ClusterInstanceContext instanceContext = getAllNetworkPartitionCtxts().get(networkPartitionId)
+                        .getClusterInstanceContext(instanceId);
+
                 for (ClusterLevelPartitionContext partitionContext : instanceContext.getPartitionCtxts()) {
                     if (log.isInfoEnabled()) {
                         log.info("Starting to terminate all members in cluster [" + getClusterId() + "] " +
@@ -1078,20 +1075,14 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
                         MemberContext pendingMemberCtxt = pendingIterator.next();
                         // pending members
                         String memeberId = pendingMemberCtxt.getMemberId();
-                        if (log.isDebugEnabled()) {
+                        if(log.isDebugEnabled()) {
                             log.debug("Moving pending member [member id] " + memeberId + " to obsolete list");
                         }
                         partitionContext.movePendingMemberToObsoleteMembers(memeberId);
                     }
-                    if(partitionContext.getTotalMemberCount() == 0) {
-                        allMovedToObsolete = allMovedToObsolete && true;
-                    } else {
-                        allMovedToObsolete = false;
-                    }
-                }
 
-                if(allMovedToObsolete) {
-                    monitor.monitor();
+//                terminateAllFactHandle = AutoscalerRuleEvaluator.evaluateTerminateAll
+//                        (terminateAllKnowledgeSession, terminateAllFactHandle, partitionContext);
                 }
             }
         }, "Member Terminator - [cluster id] " + getClusterId());
@@ -1108,9 +1099,7 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
                 ((VMClusterContext) this.clusterContext).getNetworkPartitionCtxts();
         ClusterLevelNetworkPartitionContext networkPartitionContext =
                 clusterLevelNetworkPartitionContextMap.get(networkPartitionId);
-        ClusterInstanceContext instanceContext = (ClusterInstanceContext) networkPartitionContext.
-                                                        getInstanceContext(instanceId);
-        return instanceContext;
+        return networkPartitionContext.getClusterInstanceContextMap().get(instanceId);
     }
 
     public Collection<ClusterLevelNetworkPartitionContext> getNetworkPartitionCtxts() {
@@ -1125,11 +1114,11 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
 
     }
 
-    public boolean createInstanceOnDemand(String instanceId) {
+    public void createInstanceOnDemand(String instanceId) {
         Cluster cluster = TopologyManager.getTopology().getService(this.serviceType).
                 getCluster(this.clusterId);
         try {
-            return createInstance(instanceId, cluster);
+            createInstance(instanceId, cluster);
             //TODO exception
         } catch (PolicyValidationException e) {
             log.error("Error while creating the cluster instance", e);
@@ -1137,11 +1126,10 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
             log.error("Error while creating the cluster instance", e);
 
         }
-        return false;
 
     }
 
-    private boolean createInstance(String parentInstanceId, Cluster cluster)
+    private void createInstance(String parentInstanceId, Cluster cluster)
             throws PolicyValidationException, PartitionValidationException {
         Instance parentMonitorInstance = this.parent.getInstance(parentInstanceId);
         String partitionId = null;
@@ -1149,22 +1137,18 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
             partitionId = parentMonitorInstance.getPartitionId();
         }
         if (parentMonitorInstance != null) {
-
             ClusterInstance clusterInstance = cluster.getInstanceContexts(parentInstanceId);
             if (clusterInstance != null) {
-
                 // Cluster instance is already there. No need to create one.
                 VMClusterContext clusterContext = (VMClusterContext) this.getClusterContext();
-                if (clusterContext == null) {
-
-                    clusterContext = ClusterContextFactory.getVMClusterContext(clusterInstance.getInstanceId(), cluster,
-                            hasScalingDependents());
+                if(clusterContext == null) {
+                    clusterContext =
+                            ClusterContextFactory.getVMClusterContext(clusterInstance.getInstanceId(), cluster);
                     this.setClusterContext(clusterContext);
                 }
 
                 // create VMClusterContext and then add all the instanceContexts
-                clusterContext.addInstanceContext(parentInstanceId, cluster, hasScalingDependents(),
-                        groupScalingEnabledSubtree());
+                clusterContext.addInstanceContext(parentInstanceId, cluster, this.hasGroupScalingDependent());
                 if (this.getInstance(clusterInstance.getInstanceId()) == null) {
                     this.addInstance(clusterInstance);
                 }
@@ -1185,12 +1169,9 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
             } else {
                 createClusterInstance(cluster.getServiceName(), cluster.getClusterId(), null, parentInstanceId, partitionId,
                         parentMonitorInstance.getNetworkPartitionId());
-
             }
-            return true;
 
         } else {
-            return false;
 
         }
 
@@ -1207,8 +1188,7 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
         //FIXME to iterate properly
         for (ClusterLevelNetworkPartitionContext networkPartitionContext :
                 ((VMClusterContext) this.clusterContext).getNetworkPartitionCtxts().values()) {
-            ClusterInstanceContext clusterInstanceContext =
-                    (ClusterInstanceContext) networkPartitionContext.getInstanceContext(instanceId);
+            ClusterInstanceContext clusterInstanceContext = networkPartitionContext.getClusterInstanceContext(instanceId);
             if (clusterInstanceContext != null) {
                 for (ClusterLevelPartitionContext partitionContext : clusterInstanceContext.getPartitionCtxts()) {
                     List<String> members = new ArrayList<String>();
@@ -1232,7 +1212,7 @@ public class VMClusterMonitor extends AbstractClusterMonitor {
                     }
                     for (String memberId : members) {
                         // pending members
-                        if (log.isDebugEnabled()) {
+                        if(log.isDebugEnabled()) {
                             log.debug("Moving pending member [member id] " + memberId + " the obsolete list");
                         }
                         partitionContext.movePendingMemberToObsoleteMembers(memberId);

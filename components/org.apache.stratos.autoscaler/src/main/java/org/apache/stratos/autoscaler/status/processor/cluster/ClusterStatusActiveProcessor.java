@@ -66,9 +66,7 @@ public class ClusterStatusActiveProcessor extends ClusterStatusProcessor {
         boolean clusterActive = false;
         for (ClusterLevelNetworkPartitionContext clusterLevelNetworkPartitionContext : monitor.getNetworkPartitionCtxts()) {
             //minimum check per partition
-            ClusterInstanceContext instanceContext =
-                    (ClusterInstanceContext) clusterLevelNetworkPartitionContext.
-                            getInstanceContext(instanceId);
+            ClusterInstanceContext instanceContext = clusterLevelNetworkPartitionContext.getClusterInstanceContext(instanceId);
             if (instanceContext != null) {
                 if (instanceContext.getActiveMembers() >= instanceContext.getMinInstanceCount()) {
                     clusterActive = true;

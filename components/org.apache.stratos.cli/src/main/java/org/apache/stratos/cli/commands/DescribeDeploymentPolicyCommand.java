@@ -42,7 +42,7 @@ public class DescribeDeploymentPolicyCommand implements Command<StratosCommandCo
 
     @Override
     public String getArgumentSyntax() {
-        return "[application-id]";
+        return "[ID]";
     }
 
     @Override
@@ -56,11 +56,11 @@ public class DescribeDeploymentPolicyCommand implements Command<StratosCommandCo
 			logger.debug("Executing {} command...", getName());
 		}
 		if (args != null && args.length == 1) {
-			String applicationId = args[0];
+			String id = args[0];
 			if (logger.isDebugEnabled()) {
-				logger.debug("Getting deployment policy {}", applicationId);
+				logger.debug("Getting Deployment policy info {}", id);
 			}
-			 RestCommandLineService.getInstance().describeDeploymentPolicy(applicationId);
+			 RestCommandLineService.getInstance().describeDeploymentPolicy(id);
 			return CliConstants.COMMAND_SUCCESSFULL;
 		} else {
 			context.getStratosApplication().printUsage(getName());

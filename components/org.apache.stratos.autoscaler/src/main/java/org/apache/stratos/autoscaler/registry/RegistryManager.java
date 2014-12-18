@@ -24,7 +24,7 @@ package org.apache.stratos.autoscaler.registry;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.stratos.autoscaler.applications.pojo.ApplicationContext;
+//import org.apache.stratos.autoscaler.NetworkPartitionLbHolder;
 import org.apache.stratos.autoscaler.exception.AutoScalerException;
 import org.apache.stratos.autoscaler.pojo.ServiceGroup;
 import org.apache.stratos.autoscaler.pojo.policy.autoscale.AutoscalePolicy;
@@ -117,6 +117,24 @@ public class RegistryManager {
         }
     }
 
+    public void persistPartition(Partition partition) {
+        String resourcePath = AutoScalerConstants.AUTOSCALER_RESOURCE + AutoScalerConstants.PARTITION_RESOURCE + "/" + partition.getId();
+        persist(partition, resourcePath);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Partition written to registry: [id] %s [provider] %s [min] %d [max] %d",
+                    partition.getId(), partition.getProvider(), partition.getPartitionMin(), partition.getPartitionMax()));
+        }
+    }
+
+//    public void persistNetworkPartitionIbHolder(NetworkPartitionLbHolder nwPartitionLbHolder) {
+//        String resourcePath = AutoScalerConstants.AUTOSCALER_RESOURCE + AutoScalerConstants
+//                .NETWORK_PARTITION_LB_HOLDER_RESOURCE + "/" + nwPartitionLbHolder.getNetworkPartitionId();
+//        persist(nwPartitionLbHolder, resourcePath);
+//        if (log.isDebugEnabled()) {
+//            log.debug("NetworkPartitionContext written to registry: " + nwPartitionLbHolder.toString());
+//        }
+//    }
+
     public void persistAutoscalerPolicy(AutoscalePolicy autoscalePolicy) {
         String resourcePath = AutoScalerConstants.AUTOSCALER_RESOURCE + AutoScalerConstants.AS_POLICY_RESOURCE + "/" + autoscalePolicy.getId();
         persist(autoscalePolicy, resourcePath);
@@ -127,12 +145,13 @@ public class RegistryManager {
     }
 
     public void persistDeploymentPolicy(DeploymentPolicy deploymentPolicy) {
-        String resourcePath = AutoScalerConstants.AUTOSCALER_RESOURCE + AutoScalerConstants.DEPLOYMENT_POLICY_RESOURCE + "/" + deploymentPolicy.getApplicationId();
+        String resourcePath = AutoScalerConstants.AUTOSCALER_RESOURCE + AutoScalerConstants.DEPLOYMENT_POLICY_RESOURCE + "/" + deploymentPolicy.getId();
         persist(deploymentPolicy, resourcePath);
         if (log.isDebugEnabled()) {
             log.debug(deploymentPolicy.toString());
         }
     }
+
 
     public void persistApplication(Application application) {
 
@@ -155,6 +174,7 @@ public class RegistryManager {
     }
 
     public String[] getApplicationResourcePaths() {
+
         try {
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
@@ -172,9 +192,11 @@ public class RegistryManager {
                     return null;
                 }
             }
+
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
+
         return null;
     }
 
@@ -189,7 +211,8 @@ public class RegistryManager {
             Object obj = retrieve(applicationResourcePath);
             if (obj != null) {
                 try {
-                    Object dataObj = Deserializer.deserializeFromByteArray((byte[]) obj);
+                    Object dataObj = Deserializer
+                            .deserializeFromByteArray((byte[]) obj);
                     if (dataObj instanceof Application) {
                         return (Application) dataObj;
                     } else {
@@ -200,13 +223,24 @@ public class RegistryManager {
                     log.warn(msg, e);
                 }
             }
+            /*if (obj != null) {
+                if (obj instanceof Application) {
+                    return (Application) obj;
+                } else {
+                    log.warn("Expected object type not found for Application " + applicationResourcePath + " in Registry");
+                    return null;
+                }
+            }*/
+
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
+
         return null;
     }
 
     public void removeApplication(String applicationId) {
+
         try {
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
@@ -219,102 +253,7 @@ public class RegistryManager {
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
-    }
 
-    public void persistApplicationContext(ApplicationContext applicationContext) {
-
-        try {
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-            carbonContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            carbonContext.setTenantId(MultitenantConstants.SUPER_TENANT_ID);
-
-            String resourcePath = AutoScalerConstants.AUTOSCALER_RESOURCE +
-                    AutoScalerConstants.APPLICATION_CONTEXTS_RESOURCE + "/" + applicationContext.getApplicationId();
-            persist(applicationContext, resourcePath);
-            if (log.isDebugEnabled()) {
-                log.debug("Application context [" + applicationContext.getApplicationId() + "] " +
-                        "persisted successfully in the Autoscaler Registry");
-            }
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
-        }
-    }
-
-    public String[] getApplicationContextResourcePaths() {
-        try {
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-            carbonContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            carbonContext.setTenantId(MultitenantConstants.SUPER_TENANT_ID);
-
-            Object obj = retrieve(AutoScalerConstants.AUTOSCALER_RESOURCE +
-                    AutoScalerConstants.APPLICATION_CONTEXTS_RESOURCE);
-
-            if (obj != null) {
-                if (obj instanceof String[]) {
-                    return (String[]) obj;
-                } else {
-                    log.warn("Expected object type not found for Applications in Registry");
-                    return null;
-                }
-            }
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
-        }
-        return null;
-    }
-
-    public ApplicationContext getApplicationContext(String applicationId) {
-
-        try {
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-            carbonContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            carbonContext.setTenantId(MultitenantConstants.SUPER_TENANT_ID);
-
-            String applicationResourcePath = AutoScalerConstants.AUTOSCALER_RESOURCE +
-                    AutoScalerConstants.APPLICATION_CONTEXTS_RESOURCE + "/" + applicationId;
-            return (ApplicationContext) getApplicationContextByResourcePath(applicationResourcePath);
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
-        }
-    }
-
-    public ApplicationContext getApplicationContextByResourcePath(String resourcePath) {
-
-        try {
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-            carbonContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            carbonContext.setTenantId(MultitenantConstants.SUPER_TENANT_ID);
-
-            Object obj = retrieve(resourcePath);
-            if (obj != null) {
-                try {
-                    return (ApplicationContext) Deserializer.deserializeFromByteArray((byte[]) obj);
-                } catch (Exception e) {
-                    log.error("Could not deserialize application context", e);
-                }
-            }
-            return null;
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
-        }
-    }
-
-    public void removeApplicationContext(String applicationId) {
-        try {
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-            carbonContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            carbonContext.setTenantId(MultitenantConstants.SUPER_TENANT_ID);
-
-            delete(AutoScalerConstants.AUTOSCALER_RESOURCE + AutoScalerConstants.APPLICATION_CONTEXTS_RESOURCE +
-                    "/" + applicationId);
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
-        }
     }
 
     public void persistServiceGroup(ServiceGroup servicegroup) {
@@ -384,6 +323,39 @@ public class RegistryManager {
         }
         return partitionList;
     }
+
+//    public List<NetworkPartitionLbHolder> retrieveNetworkPartitionLbHolders() {
+//        List<NetworkPartitionLbHolder> nwPartitionLbHolderList = new ArrayList<NetworkPartitionLbHolder>();
+//        RegistryManager registryManager = RegistryManager.getInstance();
+//        String[] partitionsResourceList = (String[]) registryManager.retrieve(AutoScalerConstants.AUTOSCALER_RESOURCE +
+//                AutoScalerConstants.NETWORK_PARTITION_LB_HOLDER_RESOURCE);
+//
+//        if (partitionsResourceList != null) {
+//            NetworkPartitionLbHolder nwPartitionLbHolder;
+//            for (String resourcePath : partitionsResourceList) {
+//                Object serializedObj = registryManager.retrieve(resourcePath);
+//                if (serializedObj != null) {
+//                    try {
+//
+//                        Object dataObj = Deserializer.deserializeFromByteArray((byte[]) serializedObj);
+//                        if (dataObj instanceof NetworkPartitionLbHolder) {
+//                            nwPartitionLbHolder = (NetworkPartitionLbHolder) dataObj;
+//                            if (log.isDebugEnabled()) {
+//                                log.debug(String.format("NetworkPartitionLbHolder read from registry: " + nwPartitionLbHolder.toString()));
+//                            }
+//                            nwPartitionLbHolderList.add(nwPartitionLbHolder);
+//                        } else {
+//                            return null;
+//                        }
+//                    } catch (Exception e) {
+//                        String msg = "Unable to retrieve data from Registry. Hence, any historical NetworkPartitionLbHolder will not get reflected.";
+//                        log.warn(msg, e);
+//                    }
+//                }
+//            }
+//        }
+//        return nwPartitionLbHolderList;
+//    }
 
     public List<AutoscalePolicy> retrieveASPolicies() {
         List<AutoscalePolicy> asPolicyList = new ArrayList<AutoscalePolicy>();
@@ -550,7 +522,7 @@ public class RegistryManager {
         this.delete(resourcePath);
         if (log.isDebugEnabled()) {
             log.debug(String.format("Deployment policy deleted from registry: [id] %s",
-                    depPolicy.getApplicationId()));
+                    depPolicy.getId()));
         }
     }
 

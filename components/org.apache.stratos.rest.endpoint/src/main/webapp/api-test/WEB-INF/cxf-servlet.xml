@@ -42,7 +42,7 @@
             <bean class="org.apache.cxf.jaxrs.provider.json.JSONProvider">
                 <property name="dropRootElement" value="true"/>
                 <property name="supportUnwrapped" value="true"/>
-            </bean>
+            </bean>>
             <ref bean="exceptionHandler"/>
         </jaxrs:providers>
     </jaxrs:server>
@@ -83,16 +83,8 @@
                 <value>domains</value>
                 <value>kubernetesHost</value>
                 <value>cartridges</value>
-                <value>subGroups</value>
-                <value>groups</value>
-                <value>clusters</value>
                 <value>startupOrders</value>
-                <value>childPolicies</value>
-                <value>childLevelNetworkPartition</value>
-                <value>childLevelPartitions</value>
-                <value>networkPartition</value>
-                <value>partitions</value>
-                <value>instances</value>
+                <value>dependencies</value>
             </list>
         </property>
     </bean>

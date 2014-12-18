@@ -76,7 +76,7 @@ public class AddTenantCommand implements Command<StratosCommandContext> {
     }
 
     public String getName() {
-        return "add-tenant";
+        return CliConstants.ADD_TENANT;
     }
 
     public String getDescription() {

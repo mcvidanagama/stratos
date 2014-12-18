@@ -90,8 +90,8 @@ public class AutoscalerTopologyEventReceiver {
             protected void onEvent(Event event) {
                 if (!topologyInitialized) {
                     log.info("[CompleteTopologyEvent] Received: " + event.getClass());
+                    ApplicationHolder.acquireReadLock();
                     try {
-                        ApplicationHolder.acquireReadLock();
                         Applications applications = ApplicationHolder.getApplications();
                         if (applications != null) {
                             for (Application application : applications.getApplications().values()) {
@@ -306,7 +306,7 @@ public class AutoscalerTopologyEventReceiver {
                 ClusterInstance instance = (ClusterInstance) monitor.getInstance(instanceId);
                 ((VMClusterContext)monitor.getClusterContext()).
                         getNetworkPartitionCtxt(instance.getNetworkPartitionId()).
-                        removeInstanceContext(instanceId);
+                        removeClusterInstanceContext(instanceId);
                 monitor.removeInstance(instanceId);
                 if (!monitor.hasInstance() && appMonitor.isTerminating()) {
                     //Destroying and Removing the Cluster monitor
@@ -449,15 +449,13 @@ public class AutoscalerTopologyEventReceiver {
                                     VMClusterContext clusterContext =
                                             (VMClusterContext) clusterMonitor.getClusterContext();
                                     if (clusterContext == null) {
-                                        clusterContext = ClusterContextFactory.getVMClusterContext(instanceId, cluster,
-                                                clusterMonitor.hasScalingDependents());
+                                        clusterContext = ClusterContextFactory.getVMClusterContext(instanceId, cluster);
                                         clusterMonitor.setClusterContext(clusterContext);
 
                                     }
                                     log.info(" Cluster monitor has scaling dependents"
-                                    		+ "  ["+clusterMonitor.hasScalingDependents()+"] "); // TODO -- remove this log..
-                                    clusterContext.addInstanceContext(instanceId, cluster,
-                                            clusterMonitor.hasScalingDependents(), clusterMonitor.groupScalingEnabledSubtree());
+                                    		+ "  ["+clusterMonitor.hasGroupScalingDependent()+"] "); // TODO -- remove this log..
+                                    clusterContext.addInstanceContext(instanceId, cluster, clusterMonitor.hasGroupScalingDependent());
                                     if (clusterMonitor.getInstance(instanceId) == null) {
                                         // adding the same instance in topology to monitor as a reference
                                         ClusterInstance clusterInstance1 = cluster.getInstanceContexts(instanceId);
@@ -468,9 +466,6 @@ public class AutoscalerTopologyEventReceiver {
                                         clusterMonitor.startScheduler();
                                         log.info("Monitoring task for Cluster Monitor with cluster id "
                                                 + clusterInstanceCreatedEvent.getClusterId() + " started successfully");
-                                    } else {
-                                        //monitor already started. Invoking it directly to speed up the process
-                                        ((VMClusterMonitor)clusterMonitor).monitor();
                                     }
                                 } catch (PolicyValidationException e) {
                                     log.error(e.getMessage(), e);
@@ -536,7 +531,7 @@ public class AutoscalerTopologyEventReceiver {
                 try {
                     long start = System.currentTimeMillis();
                     if (log.isDebugEnabled()) {
-                        log.debug("Application monitor is going to be started for [application] " +
+                        log.debug("application monitor is going to be started for [application] " +
                                 appId);
                     }
                     try {

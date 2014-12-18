@@ -20,26 +20,26 @@ package org.apache.stratos.common.listeners;
 
 
 import org.apache.stratos.common.beans.TenantInfoBean;
-import org.apache.stratos.common.exception.ApacheStratosException;
+import org.apache.stratos.common.exception.StratosException;
 
 public interface TenantMgtListener {
-    public void onTenantCreate(TenantInfoBean tenantInfo) throws ApacheStratosException;
+    public void onTenantCreate(TenantInfoBean tenantInfo) throws StratosException;
 
-    public void onTenantUpdate(TenantInfoBean tenantInfo) throws ApacheStratosException;
+    public void onTenantUpdate(TenantInfoBean tenantInfo) throws StratosException;
 
     public void onTenantDelete(int tenantId);
 
     public void onTenantRename(int tenantId, String oldDomainName, 
-                             String newDomainName)throws ApacheStratosException;
+                             String newDomainName)throws StratosException;
     
-    public void onTenantInitialActivation(int tenantId) throws ApacheStratosException;
+    public void onTenantInitialActivation(int tenantId) throws StratosException;
     
-    public void onTenantActivation(int tenantId) throws ApacheStratosException;
+    public void onTenantActivation(int tenantId) throws StratosException;
     
-    public void onTenantDeactivation(int tenantId) throws ApacheStratosException;
+    public void onTenantDeactivation(int tenantId) throws StratosException;
 
     public void onSubscriptionPlanChange(int tenentId, String oldPlan, 
-                                         String newPlan) throws ApacheStratosException;
+                                         String newPlan) throws StratosException;
     
     public int getListenerOrder();
 }

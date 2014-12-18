@@ -620,10 +620,6 @@ public class CommonUtil {
           }
           return true;
       }
-
-    public static boolean isEmptyArray(String[] array) {
-        return (array == null) || (array.length == 0) || ((array.length == 1) && (array[0] == null));
-    }
 }
 
 

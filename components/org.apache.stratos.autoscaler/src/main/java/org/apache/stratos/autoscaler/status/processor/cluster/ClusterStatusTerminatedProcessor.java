@@ -103,6 +103,8 @@ public class ClusterStatusTerminatedProcessor extends ClusterStatusProcessor {
                     }
                 }
             }
+
+
         } finally {
             TopologyManager.releaseReadLockForCluster(monitor.getServiceId(), monitor.getClusterId());
 
@@ -121,10 +123,9 @@ public class ClusterStatusTerminatedProcessor extends ClusterStatusProcessor {
         for (ClusterLevelNetworkPartitionContext clusterLevelNetworkPartitionContext :
                 monitor.getAllNetworkPartitionCtxts().values()) {
             //minimum check per partition
-            if (clusterLevelNetworkPartitionContext.containsInstanceContext(instanceId)) {
-                ClusterInstanceContext clusterInstanceContext =
-                        (ClusterInstanceContext) clusterLevelNetworkPartitionContext.
-                        getInstanceContext(instanceId);
+            if (clusterLevelNetworkPartitionContext.containsClusterInstanceContext(instanceId)) {
+                ClusterInstanceContext clusterInstanceContext = clusterLevelNetworkPartitionContext.
+                        getClusterInstanceContext(instanceId);
                 if(clusterInstanceContext != null) {
                     for (ClusterLevelPartitionContext partitionContext :
                             clusterInstanceContext.getPartitionCtxts()) {
