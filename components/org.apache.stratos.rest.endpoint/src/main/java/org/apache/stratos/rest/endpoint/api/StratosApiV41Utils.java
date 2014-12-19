@@ -90,7 +90,7 @@ public class StratosApiV41Utils {
     private static ServiceDeploymentManager serviceDeploymentManager = new ServiceDeploymentManager();
 
     // Util methods for cartridges
-    public static void createCartridgeDefinition(CartridgeDefinitionBean cartridgeDefinitionBean, ConfigurationContext ctxt,
+    public static void addCartridge(CartridgeDefinitionBean cartridgeDefinitionBean, ConfigurationContext ctxt,
                                        String userName, String tenantDomain) throws RestAPIException {
 
         log.info(String.format("Starting to deploy a cartridge: [type] %s " , cartridgeDefinitionBean.getType()));
@@ -107,10 +107,10 @@ public class StratosApiV41Utils {
         } catch (ADCException e) {
             throw new RestAPIException(e);
         }
-        log.info(String.format("Successfully deployed cartridge: [type] %s " , cartridgeDefinitionBean.getType()));
+        log.info(String.format("Successfully deployed cartridge: [cartridge-type] %s " , cartridgeDefinitionBean.getType()));
     }
 
-    public static void deleteCartridgeDefinition(String cartridgeType) throws RestAPIException {
+    public static void removeCartridge(String cartridgeType) throws RestAPIException {
 
         CloudControllerServiceClient cloudControllerServiceClient = getCloudControllerServiceClient();
         if (cloudControllerServiceClient != null) {
@@ -176,7 +176,7 @@ public class StratosApiV41Utils {
                                                     String cartridgeType) throws RestAPIException {
 
         try {
-            cloudControllerServiceClient.unDeployCartridgeDefinition(cartridgeType);
+            cloudControllerServiceClient.removeCartridge(cartridgeType);
 
         } catch (RemoteException e) {
             log.error(e.getMessage(), e);
@@ -536,7 +536,7 @@ public class StratosApiV41Utils {
 
     // Util methods for Autoscaling policies
 
-    public static void createAutoscalingPolicy(AutoscalePolicy autoscalePolicyBean) throws RestAPIException {
+    public static void addAutoscalingPolicy(AutoscalePolicy autoscalePolicyBean) throws RestAPIException {
 
         log.info(String.format("Deploying autoscaling policy: [id] %s", autoscalePolicyBean.getId()));
 
@@ -864,7 +864,7 @@ public class StratosApiV41Utils {
 
     // Util methods for service groups
 
-    public static void createServiceGroupDefinition(ServiceGroupDefinition serviceGroupDefinition) throws RestAPIException {
+    public static void addServiceGroup(ServiceGroupDefinition serviceGroupDefinition) throws RestAPIException {
 
         try {
             serviceGropingManager.deployServiceGroupDefinition(serviceGroupDefinition);
@@ -904,7 +904,7 @@ public class StratosApiV41Utils {
         }
     }
 
-    public static void deleteServiceGroupDefinition(String serviceGroupDefinitionName) throws RestAPIException {
+    public static void removeServiceGroup(String serviceGroupDefinitionName) throws RestAPIException {
 
         try {
             serviceGropingManager.undeployServiceGroupDefinition(serviceGroupDefinitionName);
@@ -1034,7 +1034,7 @@ public class StratosApiV41Utils {
         }
     }
 
-    public static void deleteApplication(String applicationId) throws RestAPIException {
+    public static void removeApplication(String applicationId) throws RestAPIException {
 
         try {
             AutoscalerServiceClient.getServiceClient().deleteApplication(applicationId);
@@ -1172,7 +1172,7 @@ public class StratosApiV41Utils {
 
     // Util methods for Kubernetes clusters
     
-    public static boolean deployKubernetesGroup(KubernetesGroup kubernetesGroupBean) throws RestAPIException {
+    public static boolean addKubernetesGroup(KubernetesGroup kubernetesGroupBean) throws RestAPIException {
 
         CloudControllerServiceClient cloudControllerServiceClient = getCloudControllerServiceClient();
         if (cloudControllerServiceClient != null) {
@@ -1193,7 +1193,7 @@ public class StratosApiV41Utils {
         return false;
     }
 
-    public static boolean deployKubernetesHost(String kubernetesGroupId, KubernetesHost kubernetesHostBean)
+    public static boolean addKubernetesHost(String kubernetesGroupId, KubernetesHost kubernetesHostBean)
             throws RestAPIException {
 
         CloudControllerServiceClient cloudControllerServiceClient = getCloudControllerServiceClient();
@@ -1282,7 +1282,7 @@ public class StratosApiV41Utils {
         return null;
     }
 
-    public static boolean undeployKubernetesGroup(String kubernetesGroupId) throws RestAPIException {
+    public static boolean removeKubernetesGroup(String kubernetesGroupId) throws RestAPIException {
 
         CloudControllerServiceClient cloudControllerServiceClient = getCloudControllerServiceClient();
         if (cloudControllerServiceClient != null) {
@@ -1301,7 +1301,7 @@ public class StratosApiV41Utils {
         return false;
     }
 
-    public static boolean undeployKubernetesHost(String kubernetesHostId) throws RestAPIException {
+    public static boolean removeKubernetesHost(String kubernetesHostId) throws RestAPIException {
 
         CloudControllerServiceClient cloudControllerServiceClient = getCloudControllerServiceClient();
         if (cloudControllerServiceClient != null) {
