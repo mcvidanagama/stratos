@@ -93,21 +93,21 @@ public class StratosApiV41Utils {
     public static void createCartridgeDefinition(CartridgeDefinitionBean cartridgeDefinitionBean, ConfigurationContext ctxt,
                                        String userName, String tenantDomain) throws RestAPIException {
 
-        log.info("Starting to deploy a cartridge: [type] " + cartridgeDefinitionBean.getType());
+        log.info(String.format("Starting to deploy a cartridge: [type] %s " , cartridgeDefinitionBean.getType()));
 
         CartridgeConfig cartridgeConfig = ObjectConverter.convertCartridgeDefinitionBeanToStubCartridgeConfig(cartridgeDefinitionBean);
         if (cartridgeConfig == null) {
             throw new RestAPIException("Could not read cartridge definition, cartridge deployment failed");
         }
 	    if (StringUtils.isEmpty(cartridgeConfig.getCategory())) {
-		    throw new RestAPIException("Category is not specified, cartridge deployment failed");
+		    throw new RestAPIException(String.format("Category is not specified %s , hence cartridge deployment failed",cartridgeConfig.getDisplayName()));
 	    }
         try {
             CartridgeDeploymentManager.getDeploymentManager(cartridgeDefinitionBean.getDeployerType()).deploy(cartridgeConfig);
         } catch (ADCException e) {
             throw new RestAPIException(e);
         }
-        log.info("Successfully deployed cartridge: [type] " + cartridgeDefinitionBean.getType());
+        log.info(String.format("Successfully deployed cartridge: [type] %s " , cartridgeDefinitionBean.getType()));
     }
 
     public static void deleteCartridgeDefinition(String cartridgeType) throws RestAPIException {
@@ -119,16 +119,16 @@ public class StratosApiV41Utils {
             try {
                 cartridgeInfo = cloudControllerServiceClient.getCartridgeInfo(cartridgeType);
             } catch (RemoteException e) {
-                log.error("Could not find cartridge: [type] " + cartridgeType);
+                log.error(String.format("Could not find cartridge: [type] %s ", cartridgeType));
                 throw new RestAPIException(e);
 
             } catch (CloudControllerServiceUnregisteredCartridgeExceptionException e) {
-                log.error("Could not find cartridge: [type] " + cartridgeType);
+                log.error(String.format("Could not find cartridge: [type]  %s " , cartridgeType));
                 throw new RestAPIException(e);
             }
 
             if (cartridgeInfo == null) {
-                String errorMsg = "Could not find cartridge: [type] " + cartridgeType;
+                String errorMsg = String.format("Could not find cartridge: [type] %s ", cartridgeType);
                 log.error(errorMsg);
                 throw new RestAPIException(errorMsg);
             }
@@ -140,16 +140,18 @@ public class StratosApiV41Utils {
                     Service service = serviceDeploymentManager.getService(cartridgeType);
                     if (service != null) {
                         // not allowed to undeploy!
-                        String errorMsg = "Multi tenant Service already exists for " + cartridgeType + ", cannot undeploy";
-                        log.error(errorMsg);
-                        throw new RestAPIException(errorMsg);
+	                    String errorMsg =
+			                    String.format("Multi tenant Service already exists for %s ,hence cannot undeploy",
+			                                  cartridgeType);
+	                    log.error(errorMsg);
+	                    throw new RestAPIException(errorMsg);
                     } else {
                         // can undeploy
                         undeployCartridgeDefinition(cloudControllerServiceClient, cartridgeType);
                     }
 
                 } catch (ADCException e) {
-                    log.error("Error in getting MT Service details for type " + cartridgeType);
+                    log.error(String.format("Error in getting MT Service details for type %S " , cartridgeType));
                     throw new RestAPIException(e);
                 }
 
@@ -159,7 +161,7 @@ public class StratosApiV41Utils {
                         cartridgeSubsciptionManager.getCartridgeSubscriptionsForType(cartridgeType);
                 if (cartridgeSubscriptions != null && !cartridgeSubscriptions.isEmpty()) {
                     // not allowed to undeploy!
-                    String errorMsg = "Subscription exists for " + cartridgeType + ", cannot undeploy";
+                    String errorMsg =String.format("Subscription exists for %s, cannot undeploy",cartridgeType);
                     log.error(errorMsg);
                     throw new RestAPIException(errorMsg);
                 } else {
@@ -231,6 +233,13 @@ public class StratosApiV41Utils {
         return lbCartridges;
     }
 
+	/**
+	 * Get the available cartridges by provider
+	 * @param provider provide name
+	 * @param configurationContext configuration context
+	 * @return List of the cartridge definitions
+	 * @throws RestAPIException
+	 */
 	private static List<CartridgeDefinitionBean> getAvailableCartridgesByProvider(String provider, ConfigurationContext configurationContext) throws RestAPIException {
 		List<CartridgeDefinitionBean> cartridges = new ArrayList<CartridgeDefinitionBean>();
 
